@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ClarifySign</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--ink:#1c2033;--mute:#6b7190;--line:#e3e6f0;--brand:#4b5cf0;--ok:#16a06b;--warn:#d98a00;--err:#d13b4b}
+@media (prefers-color-scheme:dark){:root{--bg:#10131c;--card:#181c29;--ink:#e8eaf6;--mute:#8f95b5;--line:#272c40;--brand:#7c8bff}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+h1{font-size:20px;margin:0;letter-spacing:.2px}h1 span{color:var(--brand)}
+.hdr{display:flex;gap:10px;align-items:center}
+select,button,input{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+button{cursor:pointer}button.primary{background:var(--brand);color:#fff;border-color:var(--brand)}button:disabled{opacity:.5;cursor:default}
+.tabs{display:flex;gap:6px;padding:12px 20px 0}.tab{border-radius:10px 10px 0 0;border-bottom:none}.tab.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+main{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px 20px;max-width:1200px;margin:0 auto}
+@media(max-width:820px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.video{position:relative;background:#000;border-radius:12px;overflow:hidden;aspect-ratio:4/3}
+video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.pill{display:inline-flex;gap:8px;align-items:center;padding:6px 12px;border-radius:99px;background:var(--bg);border:1px solid var(--line);font-weight:600;margin-top:12px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--mute)}.dot.live{background:var(--ok);animation:p 1s infinite}.dot.warn{background:var(--warn)}.dot.err{background:var(--err)}
+@keyframes p{50%{opacity:.35}}
+.log{display:flex;flex-direction:column;gap:10px;min-height:120px;max-height:340px;overflow:auto}
+.msg{border:1px solid var(--line);border-radius:12px;padding:10px 12px}.msg .big{font-size:26px;font-weight:700}.msg .sub{color:var(--mute);font-size:14px}
+.ask{border:2px solid var(--brand);border-radius:14px;padding:12px;margin-top:10px}.opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.note{color:var(--mute);font-size:14px;margin-top:8px}.err{color:var(--err)}
+canvas{width:100%;max-width:420px;background:var(--bg);border-radius:12px;border:1px solid var(--line)}
+details{margin:0 20px 24px;max-width:1160px;margin-inline:auto}details pre{white-space:pre-wrap;font-size:12px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.hide{display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>Clarify<span>Sign</span></h1>
+  <div class="hdr">
+    <select id="lang" aria-label="Language"></select>
+    <label class="note" style="margin:0"><input type="checkbox" id="auto" checked> Speak aloud</label>
+    <label class="note" style="margin:0"><input type="checkbox" id="rs"> Research</label>
+  </div>
+</header>
+<div class="tabs"><button class="tab on" id="t1">Sign → Voice</button><button class="tab" id="t2">Voice → Sign</button></div>
+
+<main id="m1">
+  <section class="card">
+    <div class="video"><video id="cam" autoplay playsinline muted></video></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <span class="pill"><span class="dot" id="dot"></span><span id="status">Ready</span></span>
+      <button class="primary" id="go" style="margin-top:12px">Start camera</button>
+      <button id="reset" style="margin-top:12px" disabled>Reset</button>
+    </div>
+    <div class="note" id="banner"></div>
+  </section>
+  <section class="card">
+    <strong>Conversation</strong>
+    <div class="log" id="log"><div class="note">Sign in front of the camera. Raise your hands, sign, then lower them.</div></div>
+    <div id="askbox"></div>
+    <div class="note" id="voicenote"></div>
+  </section>
+</main>
+
+<main id="m2" class="hide">
+  <section class="card">
+    <strong>Speak or type</strong>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button class="primary" id="mic">🎤 Speak</button>
+      <input id="txt" placeholder="…or type a phrase" style="flex:1;min-width:160px"><button id="send">Show sign</button>
+    </div>
+    <div class="pill"><span class="dot" id="dot2"></span><span id="status2">Ready</span></div>
+    <div class="msg" style="margin-top:12px"><div class="sub">Heard</div><div class="big" id="heard">–</div><div class="sub" id="matched"></div></div>
+    <div class="note" id="scope"></div>
+  </section>
+  <section class="card">
+    <canvas id="cv" width="420" height="360"></canvas>
+    <div><button id="replay" disabled>Replay</button></div>
+    <div class="note">Schematic skeleton replay of a real recorded sign. It is not a full avatar. Only the supported signs can be shown.</div>
+  </section>
+</main>
+
+<details id="rsbox" class="hide"><summary>Research / diagnostics</summary><pre id="rsout">–</pre></details>
+
+<script>
+const $=id=>document.getElementById(id);
+const STATUS={idle:"Ready",listening:"Watching for a sign",signing:"Recognizing…",interpreting:"Working out the meaning…",clarifying:"I need to check something",resolved:"Got it",speaking:"Speaking…",voice:"Listening to you…",generating:"Preparing the sign…",error:"Something went wrong"};
+let CFG=null,ws=null,stream=null,timer=null,inflight=false,lang=localStorage.getItem("lang")||"hi";
+
+function setStatus(k,tone){const t=STATUS[k]||k;$("status").textContent=t;$("status2").textContent=t;
+  for(const d of [$("dot"),$("dot2")]){d.className="dot "+(tone||(["listening","signing"].includes(k)?"live":k==="error"?"err":k==="clarifying"?"warn":""));}}
+function say(el,text,cls){el.textContent=text;el.className=cls||"note"}
+
+// ---------- config ----------
+fetch("/api/config").then(r=>r.json()).then(c=>{CFG=c;
+  const s=$("lang");c.languages.forEach(l=>{const o=document.createElement("option");o.value=l.code;o.textContent=l.name;s.appendChild(o)});
+  s.value=c.languages.some(l=>l.code===lang)?lang:"hi";lang=s.value;
+  if(!c.recognition_ready){say($("banner"),c.reason,"note err");}
+  $("scope").textContent="Supported signs: "+c.concepts.map(x=>x.english).join(", ")+".";
+  if(!c.signs_available)$("scope").textContent+=" Sign animations are not installed yet (models/signs.json missing).";
+  loadSigns();checkVoice();});
+$("lang").onchange=()=>{lang=$("lang").value;localStorage.setItem("lang",lang);checkVoice();if(ws&&ws.readyState===1)ws.send(JSON.stringify({type:"config",lang}))};
+$("rs").onchange=()=>$("rsbox").classList.toggle("hide",!$("rs").checked);
+$("t1").onclick=()=>tab(1);$("t2").onclick=()=>tab(2);
+function tab(n){$("m1").classList.toggle("hide",n!==1);$("m2").classList.toggle("hide",n!==2);$("t1").classList.toggle("on",n===1);$("t2").classList.toggle("on",n===2)}
+
+// ---------- speech output: never falls back to another language ----------
+function voiceFor(tag){const vs=speechSynthesis.getVoices();const base=tag.split("-")[0];
+  return vs.find(v=>v.lang.replace("_","-")===tag)||vs.find(v=>v.lang.toLowerCase().startsWith(base))||null}
+function checkVoice(){if(!CFG)return;const l=CFG.languages.find(x=>x.code===lang);
+  const ok=!!voiceFor(l.tag);$("voicenote").textContent=ok?"":`No ${l.name} voice on this device. Text will be shown but not spoken.`}
+if("speechSynthesis" in window)speechSynthesis.onvoiceschanged=checkVoice;
+function speak(text,tag){const v=("speechSynthesis" in window)?voiceFor(tag):null;if(!v){checkVoice();return Promise.resolve(false)}
+  return new Promise(res=>{const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;setStatus("speaking","live");
+    u.onend=u.onerror=()=>res(true);speechSynthesis.speak(u)})}
+
+// ---------- Sign -> Voice ----------
+function addMsg(html){const d=document.createElement("div");d.className="msg";d.innerHTML=html;const L=$("log");
+  if(L.querySelector(".note"))L.innerHTML="";L.appendChild(d);L.scrollTop=L.scrollHeight;return d}
+function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+async function start(){
+  if(CFG&&!CFG.recognition_ready){setStatus("error");return}
+  try{stream=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480},audio:false})}
+  catch(e){setStatus("error");say($("banner"),"Camera permission was denied.","note err");return}
+  $("cam").srcObject=stream;
+  ws=new WebSocket((location.protocol==="https:"?"wss://":"ws://")+location.host+"/ws/sign");
+  ws.binaryType="arraybuffer";
+  ws.onopen=()=>{ws.send(JSON.stringify({type:"config",lang}));$("go").textContent="Stop";$("reset").disabled=false;pump()};
+  ws.onmessage=ev=>onEvent(JSON.parse(ev.data));
+  ws.onclose=()=>{stop(false)};
+}
+function stop(closeWs=true){clearTimeout(timer);if(closeWs&&ws)ws.close();ws=null;
+  if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;$("cam").srcObject=null;
+  $("go").textContent="Start camera";$("reset").disabled=true;$("askbox").innerHTML="";setStatus("idle")}
+$("go").onclick=()=>stream?stop():start();
+$("reset").onclick=()=>{$("askbox").innerHTML="";if(ws)ws.send(JSON.stringify({type:"reset"}))};
+
+const cap=document.createElement("canvas");
+function pump(){ // one frame in flight at a time; the camera frame is sent UNMIRRORED
+  if(!ws||ws.readyState!==1)return;
+  const v=$("cam");
+  if(!inflight&&v.videoWidth){cap.width=480;cap.height=Math.round(480*v.videoHeight/v.videoWidth);
+    cap.getContext("2d").drawImage(v,0,0,cap.width,cap.height);inflight=true;
+    cap.toBlob(b=>b.arrayBuffer().then(buf=>{if(ws&&ws.readyState===1)ws.send(buf)}),"image/jpeg",0.7)}
+  timer=setTimeout(pump,40);
+}
+function ask(q){setStatus("clarifying","warn");const box=$("askbox");box.innerHTML="";
+  const d=document.createElement("div");d.className="ask";d.innerHTML=`<strong>${esc(q.text)}</strong><div class="opts"></div>`;
+  q.options.forEach(o=>{const b=document.createElement("button");b.textContent=o.text_lang?`${o.label} · ${o.text_lang}`:o.label;
+    b.onclick=()=>{box.innerHTML="";ws.send(JSON.stringify({type:"answer",value:o.value}));setStatus("interpreting")};d.querySelector(".opts").appendChild(b)});
+  box.appendChild(d)}
+async function onEvent(e){
+  if(e.research||e.top){$("rsout").textContent=JSON.stringify(e.research||{top:e.top},null,2)}
+  if(e.type==="ack"){inflight=false;return}
+  if(e.type==="state"){setStatus(e.state)}
+  else if(e.type==="provisional"){}
+  else if(e.type==="clarify"){ask(e.question)}
+  else if(e.type==="resolved"){$("askbox").innerHTML="";setStatus("resolved","live");
+    addMsg(`<div class="sub">You signed</div><div class="big">${esc(e.text)}</div><div class="sub">${esc(e.english)}${e.how==="best_guess"?" · best guess":""}</div>`);
+    if($("auto").checked)await speak(e.text,e.tag);setStatus("listening")}
+  else if(e.type==="resign"){$("askbox").innerHTML="";addMsg(`<div class="sub">${esc(e.message)}</div>`);setStatus("listening")}
+  else if(e.type==="error"){setStatus("error");say($("banner"),e.message,"note err");stop(false)}
+}
+
+// ---------- Voice -> Sign ----------
+let SIGNS=null,anim=null,lastSeq=[];
+function loadSigns(){fetch("/api/signs").then(r=>r.ok?r.json():null).then(j=>SIGNS=j).catch(()=>{})}
+const HE=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+const PE=[[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24]];
+function drawFrame(f){const c=$("cv"),g=c.getContext("2d"),S=110,ox=c.width/2,oy=120;g.clearRect(0,0,c.width,c.height);
+  const P=i=>[f[126+i*3],f[126+i*3+1]],ok=i=>f[126+i*3]!==0||f[126+i*3+1]!==0,X=([x,y])=>[ox+x*S,oy+y*S];
+  g.strokeStyle=getComputedStyle(document.body).color;g.lineWidth=3;g.lineCap="round";
+  PE.forEach(([a,b])=>{if(ok(a)&&ok(b)){const A=X(P(a)),B=X(P(b));g.beginPath();g.moveTo(...A);g.lineTo(...B);g.stroke()}});
+  if(ok(0)){const h=X(P(0));g.beginPath();g.arc(h[0],h[1],16,0,7);g.stroke()}
+  [[0,15],[63,16]].forEach(([off,wr],k)=>{const blk=f.slice(off,off+63);if(!blk.some(v=>v!==0)||!ok(wr))return;
+    const w=P(wr),pts=[];for(let i=0;i<21;i++)pts.push(X([w[0]+blk[i*3]*0.45,w[1]+blk[i*3+1]*0.45]));
+    g.strokeStyle=k?"#d98a00":"#4b5cf0";g.lineWidth=2;HE.forEach(([a,b])=>{g.beginPath();g.moveTo(...pts[a]);g.lineTo(...pts[b]);g.stroke()})})}
+function play(ids){if(!SIGNS){say($("scope"),"Sign animations are not installed yet (models/signs.json missing).","note err");return}
+  const frames=[];ids.forEach(id=>{(SIGNS[id]||[]).forEach(fr=>frames.push(fr));for(let i=0;i<6;i++)frames.push(null)});
+  clearInterval(anim);let i=0;lastSeq=ids;$("replay").disabled=false;setStatus("generating","live");
+  anim=setInterval(()=>{if(i>=frames.length){clearInterval(anim);setStatus("idle");return}const f=frames[i++];if(f)drawFrame(f)},80)}
+$("replay").onclick=()=>play(lastSeq);
+async function understand(text){const r=await fetch(`/api/understand?text=${encodeURIComponent(text)}&lang=${lang}`);const j=await r.json();
+  $("heard").textContent=text||"–";
+  if(!j.concepts.length){$("matched").textContent="No supported sign found in that phrase.";setStatus("idle");return}
+  $("matched").textContent=j.concepts.map(c=>`${c.text} (${c.english})`).join("  →  ");play(j.concepts.map(c=>c.id))}
+$("send").onclick=()=>understand($("txt").value);
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+$("mic").onclick=()=>{if(!SR){say($("scope"),"Speech input needs Chrome or Edge. You can type instead.","note err");return}
+  const l=CFG.languages.find(x=>x.code===lang),r=new SR();r.lang=l.tag;setStatus("voice","live");
+  r.onresult=ev=>understand(ev.results[0][0].transcript);r.onerror=()=>setStatus("error");r.onend=()=>{};r.start()};
+</script>
+</body>
+</html>
