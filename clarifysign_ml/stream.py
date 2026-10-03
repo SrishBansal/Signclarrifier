@@ -1,7 +1,7 @@
 """Continuous webcam -> one prediction per sign. Transport-agnostic: push one (225,) feature per frame."""
 from collections import deque
 import numpy as np
-from .features import frame_activity, prepare_sequence, ACT_Y
+from .features import frame_activity, prepare_sequence, ACT_Y, SEQ_LEN
 
 
 class StreamingSession:
@@ -24,7 +24,7 @@ class StreamingSession:
         self.max_n = max(10, int(self.max_s * fps))
 
     def reset(self):
-        self.state, self.buf, self.act_run, self.idle_run, self.need_rest = "idle", [], 0, 0, False
+        self.state, self.buf, self.act_run, self.idle_run, self.need_rest = "idle", deque(maxlen=SEQ_LEN), 0, 0, False
         self.pre = deque(maxlen=64)
 
     def push(self, feat):
@@ -39,15 +39,18 @@ class StreamingSession:
                 self.pre.popleft()
             self.act_run = self.act_run + 1 if a else 0
             if self.act_run >= self.start_n:
-                self.state, self.buf, self.idle_run = "signing", list(self.pre), 0
-                self.pre.clear(); self.act_run = 0
+                self.state, self.act_run, self.idle_run = "signing", 0, 0
+                self.buf = deque(self.pre, maxlen=SEQ_LEN)
+                self.pre.clear()
                 ev.append({"type": "sign_start"})
             return ev
-        self.buf.append(feat)
+        self.buf.append(feat)  # deque will drop oldest when exceeding SEQ_LEN
         self.idle_run = 0 if a else self.idle_run + 1
-        if self.every and len(self.buf) % self.every == 0:
+        # Only emit provisional predictions when we have a full sequence of SEQ_LEN frames.
+        if self.every and len(self.buf) % self.every == 0 and len(self.buf) >= SEQ_LEN:
             ev.append({"type": "provisional", "probs": self.predict_fn(prepare_sequence(np.stack(self.buf), self.act_y))})
-        if self.idle_run >= self.end_n or len(self.buf) >= self.max_n:
+        # Only emit sign_end (final prediction) when we have enough frames for a real sequence.
+        if (self.idle_run >= self.end_n or len(self.buf) >= self.max_n) and len(self.buf) > 0:
             seq = np.stack(self.buf)
             ev.append({"type": "sign_end", "n_frames": len(seq),
                        "probs": self.predict_fn(prepare_sequence(seq, self.act_y))})

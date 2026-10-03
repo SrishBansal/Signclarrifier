@@ -60,10 +60,8 @@ class ISLPlanner:
         if state.items:
             for item in state.items:
                 cid = item.concept.upper()
-                if cid.startswith("FS_"):
-                    # Out of vocabulary: expand to fingerspell letters
-                    word = cid[3:]
-                    topic_signs.extend(self.ontology.fingerspell(word))
+                if cid.startswith("OOV_") or cid.startswith("FS_"):
+                    topic_signs.append(cid)  # OOV: keep as-is, kind=nosign
                 elif cid != "THIS" and cid != "ITEM":
                     topic_signs.append(self.ontology.get_sign_id(cid))
                 elif state.current_focus_referent:

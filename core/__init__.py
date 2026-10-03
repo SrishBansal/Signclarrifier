@@ -1,8 +1,7 @@
 """
 ClarifySign Core.
 Decoupled modules:
-- sign_library: keyframe sequence library and build tools
-- renderer: avatar renderer and playback API
+- sign_library: build tools (medoid, DTW aggregation)
 - models, ontology, nlu, planner, dialogue, semantics (lazy loaded to prevent unintended coupling)
 """
 
@@ -21,12 +20,11 @@ __all__ = [
     "get_planner",
     "DialogueManager",
     "NaturalLanguageRealizer",
-    "SignLibrary",
-    "AvatarRenderer",
-    "ASRProvider",
-    "TTSProvider",
-    "MockASRProvider",
-    "MockTTSProvider",
+    "medoid_sequence",
+    "dtw_distance",
+    "dtw_average_sequence",
+    "build_library_from_dir",
+    "build_library_from_dict",
 ]
 
 
@@ -46,13 +44,8 @@ def __getattr__(name: str):
     if name == "NaturalLanguageRealizer":
         from .semantics import NaturalLanguageRealizer
         return NaturalLanguageRealizer
-    if name in ("SignLibrary", "SignTimeline"):
-        from .sign_library import SignLibrary, SignTimeline
-        return SignLibrary if name == "SignLibrary" else SignTimeline
-    if name == "AvatarRenderer":
-        from .renderer import AvatarRenderer
-        return AvatarRenderer
-    if name in ("ASRProvider", "MockASRProvider", "ServerWhisperASRProvider", "TTSProvider", "MockTTSProvider", "ServerTTSProvider"):
-        from .speech import ASRProvider, MockASRProvider, ServerWhisperASRProvider, TTSProvider, MockTTSProvider, ServerTTSProvider
-        return locals()[name]
+    if name in ("medoid_sequence", "dtw_distance", "dtw_average_sequence",
+                "build_library_from_dir", "build_library_from_dict"):
+        from .sign_library import builder
+        return getattr(builder, name)
     raise AttributeError(f"module 'core' has no attribute '{name}'")

@@ -255,19 +255,39 @@
       let prevLast = REST_FRAME;
 
       // 2. Sequential signs
-      sequence.forEach((rawId, seqIdx) => {
-        const id = rawId.toLowerCase().trim();
-        let signSeq = this.signs[id];
+      sequence.forEach((item, seqIdx) => {
+        // Accept plain string IDs (legacy) or plan-item dicts {sign_id, gloss, kind}
+        let rawId, gloss, kind;
+        if (typeof item === "string") {
+          rawId = item.toLowerCase().trim();
+          gloss = rawId.toUpperCase();
+          kind = "sign";
+        } else {
+          rawId = (item.sign_id || item.concept || "").toLowerCase().trim();
+          gloss = item.gloss || rawId.toUpperCase();
+          kind = item.kind || "sign";
+        }
+
+        let signSeq = this.signs[rawId];
         let status = "native";
 
-        if (!signSeq || !signSeq.length) {
-          if (id.startsWith("fs_") || id.startsWith("fs-")) {
-            status = "fingerspell";
-            signSeq = UNKNOWN_SEQUENCE; // fallback to fingerspell sequence
-          } else {
-            status = "unknown";
-            signSeq = UNKNOWN_SEQUENCE; // visible unknown sign marker (NEVER silent skip)
+        if (kind === "marker") {
+          // Rest-pose hold ~0.4s = ~10 frames at 25fps, with gloss pill
+          const holdCount = Math.max(6, Math.round(10 / this.speed));
+          glossItems.push({ id: rawId, label: gloss, index: seqIdx,
+            startFrame: frames.length, endFrame: frames.length + holdCount - 1, status: "marker" });
+          for (let f = 0; f < holdCount; f++) {
+            frames.push(REST_FRAME);
+            metadata.push({ signId: rawId, signIndex: seqIdx, isTrans: false,
+              progress: f / holdCount, gloss, status: "marker" });
           }
+          prevLast = REST_FRAME;
+          return;
+        }
+
+        if (!signSeq || !signSeq.length) {
+          status = kind === "nosign" ? "nosign" : "unknown";
+          signSeq = UNKNOWN_SEQUENCE;
         }
 
         // Ease-in-out LERP transition from previous pose to first frame
@@ -275,44 +295,21 @@
         for (let t = 0; t < transFrames; t++) {
           const alpha = easeInOut(t / transFrames);
           frames.push(lerpFrame(prevLast, firstFrame, alpha));
-          metadata.push({
-            signId: id,
-            signIndex: seqIdx,
-            isTrans: true,
-            progress: 0,
-            gloss: `→ ${id.toUpperCase()}`,
-            status
-          });
+          metadata.push({ signId: rawId, signIndex: seqIdx, isTrans: true,
+            progress: 0, gloss: `→ ${gloss}`, status });
         }
 
         const startFrame = frames.length;
         const totalRaw = signSeq.length;
-        // Add actual sign frames (speed-adjusted)
         const signFrameCount = Math.max(12, Math.round(totalRaw / this.speed));
         for (let f = 0; f < signFrameCount; f++) {
           const progress = f / Math.max(1, signFrameCount - 1);
           const rawIdx = Math.min(totalRaw - 1, Math.floor(progress * (totalRaw - 1)));
           frames.push(signSeq[rawIdx]);
-          metadata.push({
-            signId: id,
-            signIndex: seqIdx,
-            isTrans: false,
-            progress,
-            gloss: id.toUpperCase(),
-            status
-          });
+          metadata.push({ signId: rawId, signIndex: seqIdx, isTrans: false, progress, gloss, status });
         }
         const endFrame = frames.length - 1;
-
-        glossItems.push({
-          id,
-          label: id.toUpperCase(),
-          index: seqIdx,
-          startFrame,
-          endFrame,
-          status
-        });
-
+        glossItems.push({ id: rawId, label: gloss, index: seqIdx, startFrame, endFrame, status });
         prevLast = signSeq[totalRaw - 1];
       });
 

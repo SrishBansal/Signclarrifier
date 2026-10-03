@@ -1,5 +1,5 @@
 """Architectural Verification Gate:
-Proves that the renderer module and sign_library have NO imports of NLU or planner code.
+Proves that sign_library and app/static/renderer.js import no NLU or planner code.
 """
 import ast
 import os
@@ -49,24 +49,6 @@ def get_imports_from_file(filepath: str):
     return imports, from_imports, imported_names
 
 
-def test_core_renderer_has_no_nlu_planner_imports():
-    """Verify core/renderer.py has zero imports of NLU / planner code."""
-    renderer_path = os.path.join(ROOT, "core", "renderer.py")
-    assert os.path.exists(renderer_path), "core/renderer.py must exist"
-
-    imports, from_imports, names = get_imports_from_file(renderer_path)
-    all_modules = set(imports + from_imports)
-
-    for forbidden in FORBIDDEN_MODULES:
-        for mod in all_modules:
-            assert not (mod == forbidden or mod.startswith(forbidden + ".")), (
-                f"VIOLATION: core/renderer.py imports forbidden module '{mod}'"
-            )
-
-    for sym in FORBIDDEN_SYMBOLS:
-        assert sym not in names, f"VIOLATION: core/renderer.py imports forbidden symbol '{sym}'"
-
-
 def test_sign_library_has_no_nlu_planner_imports():
     """Verify all files under core/sign_library/ have zero imports of NLU / planner code."""
     lib_dir = os.path.join(ROOT, "core", "sign_library")
@@ -85,26 +67,6 @@ def test_sign_library_has_no_nlu_planner_imports():
             assert sym not in names, (
                 f"VIOLATION: {os.path.basename(py_file)} imports forbidden symbol '{sym}'"
             )
-
-
-def test_runtime_isolation_of_renderer():
-    """Verify that importing core.renderer does NOT load NLU or planner into sys.modules."""
-    # Temporarily remove any cached modules if present
-    for k in list(sys.modules.keys()):
-        if any(k.startswith(f) for f in ["core.nlu", "core.planner", "core.dialogue"]):
-            del sys.modules[k]
-
-    # Clean import of renderer
-    if "core.renderer" in sys.modules:
-        del sys.modules["core.renderer"]
-
-    import core.renderer
-    renderer = core.renderer.AvatarRenderer()
-    assert renderer is not None
-
-    # Verify no forbidden modules were transitively imported
-    for forbidden in ["core.nlu", "core.planner", "core.dialogue"]:
-        assert forbidden not in sys.modules, f"Transitive leak: {forbidden} was loaded by core.renderer"
 
 
 def test_js_renderer_decoupling():

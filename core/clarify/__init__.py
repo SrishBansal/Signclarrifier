@@ -1,23 +1,12 @@
 # Clarify core package public API
-
 from .candidates import candidates, uncertainty, H
-from .calibration import calibrate_probabilities, compute_ece
-from .policy import Dialogue
+from .policy import Dialogue, update_posterior
 from .planner import plan, info_gain, _question_models, _likelihood, context
-from .resolution import update_posterior, resolve_dialogue
+from .config import load_config
 
 __all__ = [
-    'candidates',
-    'uncertainty',
-    'H',
-    'calibrate_probabilities',
-    'compute_ece',
-    'Dialogue',
-    'plan',
-    'info_gain',
-    '_question_models',
-    '_likelihood',
-    'context',
-    'update_posterior',
-    'resolve_dialogue',
+    "candidates", "uncertainty", "H",
+    "Dialogue", "update_posterior",
+    "plan", "info_gain", "_question_models", "_likelihood", "context",
+    "load_config",
 ]

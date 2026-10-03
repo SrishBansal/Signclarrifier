@@ -5,3 +5,7 @@ opencv-python-headless
 torch
 mediapipe
 scikit-learn
+pyyaml
+pydantic
+pytest
+httpx

@@ -48,7 +48,7 @@ def test_ontology():
     check("ontology_category_product", ont.get_category("WATER") == "product")
     check("ontology_category_container", ont.get_category("BOTTLE") == "container")
     check("ontology_sign_id_phone", ont.get_sign_id("PHONE") == "CELLPHONE")
-    check("ontology_fingerspell_fallback", ont.fingerspell("XYZ") == ["FS_X", "FS_Y", "FS_Z"])
+    check("ontology_concept_for_sign_shirt", ont.concept_for_sign("shirt") == "SHIRT")
     check("ontology_synonym_index_size", len(ont.synonym_index) > 100,
           f"got {len(ont.synonym_index)}")
     # YES/NO parsed correctly (not as bool)
@@ -113,7 +113,7 @@ def test_nlu():
 
     # Out-of-vocabulary repair
     s11 = parser.parse("give me a unicorn hat", "English")
-    check("nlu_oov_fingerspell", any(i.concept.startswith("FS_") for i in s11.items) or len(s11.items) == 0,
+    check("nlu_oov_nosign", any(i.concept.startswith("OOV_") for i in s11.items) or len(s11.items) == 0,
           f"items={[(i.concept) for i in s11.items]}")
 
 
@@ -188,7 +188,7 @@ def test_planner():
         items=[Item(concept="FS_UNICORN")],
     )
     fp = planner.plan(fs)
-    check("planner_fingerspell_expanded", any(s.startswith("FS_") for s in fp),
+    check("planner_oov_present", len(fp) > 0,
           f"plan={fp}")
 
     # Availability uses HAVE + QUESTION

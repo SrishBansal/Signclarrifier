@@ -134,7 +134,8 @@ details{margin:0 20px 24px;max-width:1160px;margin-inline:auto}details pre{white
 <script>
 const $=id=>document.getElementById(id);
 const STATUS={idle:"Ready",listening:"Watching for a sign",signing:"Recognizing…",interpreting:"Working out the meaning…",clarifying:"I need to check something",resolved:"Got it",speaking:"Speaking…",voice:"Listening to you…",generating:"Preparing the sign…",error:"Something went wrong"};
-let CFG=null,ws=null,stream=null,timer=null,watchdogTimer=null,inflight=false,lang=localStorage.getItem("lang")||"hi";
+let CFG=null,ws=null,stream=null,timer=null,watchdogTimer=null,inflight=false,lang=localStorage.getItem("lang")||"en";
+const SID=(()=>{let s=sessionStorage.getItem("sid");if(!s){s=crypto.randomUUID();sessionStorage.setItem("sid",s);}return s;})();
 
 function setStatus(k,tone){const t=STATUS[k]||k;$("status").textContent=t;$("status2").textContent=t;
   for(const d of [$("dot"),$("dot2")]){d.className="dot "+(tone||(["listening","signing"].includes(k)?"live":k==="error"?"err":k==="clarifying"?"warn":""));}}
@@ -143,7 +144,7 @@ function say(el,text,cls){el.textContent=text;el.className=cls||"note"}
 // ---------- config ----------
 fetch("/api/config").then(r=>r.json()).then(c=>{CFG=c;
   const s=$("lang");c.languages.forEach(l=>{const o=document.createElement("option");o.value=l.code;o.textContent=l.name;s.appendChild(o)});
-  s.value=c.languages.some(l=>l.code===lang)?lang:"hi";lang=s.value;
+  s.value=c.languages.some(l=>l.code===lang)?lang:(c.languages[0]?.code||"en");lang=s.value;
   if(!c.recognition_ready){say($("banner"),c.reason,"note err");}
   $("scope").textContent="Supported signs: "+c.concepts.map(x=>x.english).join(", ")+".";
   if(!c.signs_available)$("scope").textContent+=" Sign animations are not installed yet (models/signs.json missing).";
@@ -153,11 +154,9 @@ $("rs").onchange=()=>$("rsbox").classList.toggle("hide",!$("rs").checked);
 $("t1").onclick=()=>tab(1);$("t2").onclick=()=>tab(2);
 function tab(n){$("m1").classList.toggle("hide",n!==1);$("m2").classList.toggle("hide",n!==2);$("t1").classList.toggle("on",n===1);$("t2").classList.toggle("on",n===2)}
 
-// Speech provider instances
+// Speech provider instances (browser-native Web Speech API only)
 const asrProvider = new window.WebSpeechASRProvider();
-const serverAsrProvider = new window.ServerFallbackASRProvider();
 const ttsProvider = new window.WebSpeechTTSProvider();
-const serverTtsProvider = new window.ServerFallbackTTSProvider();
 let lastAsrText = "", lastAsrConfidence = 1.0;
 
 function checkVoice(){
@@ -191,7 +190,7 @@ async function start(){
   catch(e){setStatus("error");say($("banner"),"Camera permission was denied.","note err");return}
   $("cam").srcObject=stream;
   say($("banner"),"","note");
-  ws=new WebSocket((location.protocol==="https:"?"wss://":"ws://")+location.host+"/ws/sign");
+  ws=new WebSocket((location.protocol==="https:"?"wss://":"ws://")+location.host+"/ws/sign?sid="+encodeURIComponent(SID));
   ws.binaryType="arraybuffer";
   ws.onopen=()=>{ws.send(JSON.stringify({type:"config",lang}));$("go").textContent="Stop";$("reset").disabled=false;pump()};
   ws.onmessage=ev=>onEvent(JSON.parse(ev.data));
@@ -344,46 +343,21 @@ $("link").onclick=()=>{const u=`${location.origin}/?tab=voice&lang=${lang}&text=
 async function understand(text){
   $("txt").value=text;
   $("cnt").textContent=text.length+" / 200";
-  const r=await fetch(`/api/understand?text=${encodeURIComponent(text)}&lang=${lang}`);
+  const r=await fetch(`/api/understand?text=${encodeURIComponent(text)}&lang=${lang}&sid=${encodeURIComponent(SID)}`);
   const j=await r.json();
-
-  // Side-by-side debugging log of ASR text and downstream state
-  const sideBySideLog = {
-    timestamp: new Date().toLocaleTimeString(),
-    asr_text: lastAsrText || "(typed)",
-    confidence: lastAsrConfidence,
-    edited_text: text,
-    language: lang,
-    downstream_state: {
-      concepts: (j.concepts || []).map(c => ({ id: c.id, english: c.english })),
-      matched_count: (j.concepts || []).length
-    }
-  };
-
-  const rsout = $("rsout");
-  if (rsout) {
-    let prev = rsout.textContent;
-    if (prev === "–") prev = "";
-    rsout.textContent = `=== SPEECH & DOWNSTREAM DEBUG ===\n` +
-      `ASR Heard:   "${sideBySideLog.asr_text}" (${Math.round(sideBySideLog.confidence * 100)}% conf)\n` +
-      `Shopkeeper:  "${sideBySideLog.edited_text}"\n` +
-      `Downstream:  ${sideBySideLog.downstream_state.concepts.map(c => c.id).join(" -> ") || "NONE"}\n\n` + prev;
+  const rsout=$("rsout");
+  if(rsout){
+    let prev=rsout.textContent;if(prev==="–")prev="";
+    rsout.textContent=`Heard: "${j.heard}"  plan: ${(j.plan||[]).map(p=>p.gloss||p.concept).join(" → ")||"NONE"}\n`+prev;
   }
-
-  fetch("/api/debug/log_interaction", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(sideBySideLog)
-  }).catch(() => {});
-
-  if(!j.concepts.length){
+  const plan=j.plan||[];
+  if(!plan.length){
     $("matched").textContent="No supported sign found in that phrase.";
-    setStatus("idle");
-    return;
+    setStatus("idle");return;
   }
-  lastInfo=j.concepts;
-  $("matched").textContent=j.concepts.map(c=>`${c.text} (${c.english})`).join("  →  ");
-  play(j.concepts.map(c=>c.id));
+  lastInfo=plan;
+  $("matched").textContent=(j.text||plan.map(p=>p.gloss).join(" "));
+  play(plan);
 }
 
 $("send").onclick=()=>understand($("txt").value);
@@ -403,19 +377,18 @@ let isMicActive = false;
 $("mic").onclick=()=>{
   if(isMicActive){
     asrProvider.stop();
-    serverAsrProvider.stop();
     isMicActive = false;
     setStatus("idle");
     return;
   }
 
-  if(!asrProvider.isSupported() && !serverAsrProvider.isSupported()){
+  if(!asrProvider.isSupported()){
     setStatus("error");
-    say($("scope"),"Speech recognition is not supported in this browser. You can type directly in the box.","note err");
+    say($("scope"),"Speech recognition is not supported in this browser. Please use Chrome or Edge, or type directly in the box.","note err");
     return;
   }
 
-  const activeProvider = asrProvider.isSupported() ? asrProvider : serverAsrProvider;
+  const activeProvider = asrProvider;
   setStatus("voice","live");
   say($("scope"),"Listening... speak clearly...","note");
   isMicActive = true;
