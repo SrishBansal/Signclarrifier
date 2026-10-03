@@ -8,3 +8,4 @@ Without a trained model the app says so. It never invents predictions.
 Layout: `clarifysign_ml/` features, model, training, streaming (shared by Colab and the server) | `app/` server, session, clarification (EIG), semantics, UI | `tests/`.
 Known limits: translations are machine drafts needing native review; speech needs a device voice for the language (otherwise text only);
 clarification thresholds are untuned starting values; recognition accuracy on a live camera is untested until you train and try it.
+# Signclarrifier
