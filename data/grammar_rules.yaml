@@ -1,0 +1,40 @@
+version: "2.0.0"
+description: "Configurable ISL Grammar Planning Rules"
+
+ordering_rules:
+  # Standard ISL Topic-Comment canonical order
+  component_order:
+    - "GREETING"
+    - "TOPIC_ENTITY"
+    - "CONTAINER"
+    - "ATTRIBUTES"
+    - "QUANTITY"
+    - "ACTION_PREDICATE"
+    - "NEGATION"
+    - "QUESTION_MARKER"
+
+intent_mappings:
+  GREET:
+    lead_sign: "HELLO"
+  REQUEST:
+    default_action: "GIVE"
+  QUESTION:
+    end_marker: "QUESTION"
+  AVAILABILITY:
+    predicate: "HAVE"
+    end_marker: "QUESTION"
+  PAYMENT:
+    predicate: "PAYMENT"
+  CONFIRM:
+    lead_sign: "YES"
+  REJECT:
+    lead_sign: "NO"
+
+quantity_words:
+  1: "ONE"
+  2: "TWO"
+  3: "THREE"
+  4: "FOUR"
+  5: "FIVE"
+
+fingerspell_prefix: "FS_"

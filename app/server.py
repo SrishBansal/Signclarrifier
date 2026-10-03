@@ -1,10 +1,12 @@
 """Thin FastAPI shell. All logic lives in session.py / clarify.py / semantics.py."""
 import os, json, asyncio
 import numpy as np, cv2
-from fastapi import FastAPI, WebSocket, Query
+from fastapi import FastAPI, WebSocket, Query, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
+from starlette.staticfiles import StaticFiles
 from .semantics import LANGS, CONCEPTS, EN, realize, match_text
 from .session import SignSession
+from core.speech import MockASRProvider, MockTTSProvider, ServerWhisperASRProvider, ServerTTSProvider
 
 HERE = os.path.dirname(__file__)
 MODEL = os.environ.get("MODEL_PATH", "models/clarifysign_bilstm.pt")
@@ -29,7 +31,13 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
         from clarifysign_ml.features import LandmarkExtractor
         extractor_factory = lambda: LandmarkExtractor(TASK)
     app = FastAPI(title="ClarifySign")
+    app.mount("/static", StaticFiles(directory=os.path.join(HERE, "static")), name="static")
     dec = lambda b: cv2.imdecode(np.frombuffer(b, np.uint8), cv2.IMREAD_COLOR)
+
+    # Speech providers & interaction debug logs
+    asr_provider = MockASRProvider()
+    tts_provider = MockTTSProvider()
+    interaction_logs = []
 
     @app.get("/")
     def index():
@@ -55,6 +63,67 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
             return JSONResponse({"error": "signs.json missing. Run the Colab export cell."}, 404)
         return FileResponse(SIGNS, media_type="application/json")
 
+    @app.post("/api/asr")
+    async def asr_endpoint(request: Request, lang: str = Query("en-IN")):
+        body = await request.body()
+        if not body:
+            return JSONResponse({"error": "Empty audio body"}, 400)
+        try:
+            res = asr_provider.transcribe(body, language=lang)
+            return {
+                "text": res.text,
+                "confidence": res.confidence,
+                "language": res.language,
+                "is_fallback": res.is_fallback,
+                "provider": res.raw_provider
+            }
+        except Exception as ex:
+            return JSONResponse({"error": str(ex)}, 400)
+
+    @app.post("/api/tts")
+    async def tts_endpoint(request: Request):
+        try:
+            data = await request.json()
+        except Exception:
+            data = {}
+        text = data.get("text", "")
+        lang = data.get("lang", "en-IN")
+        voice = data.get("voice")
+        if not text:
+            return JSONResponse({"error": "Missing 'text' in payload"}, 400)
+        try:
+            res = tts_provider.synthesize(text, language=lang, voice=voice)
+            return Response(content=res.audio_data, media_type=res.mime_type)
+        except Exception as ex:
+            return JSONResponse({"error": str(ex)}, 400)
+
+    @app.post("/api/debug/log_interaction")
+    async def log_interaction(request: Request):
+        try:
+            data = await request.json()
+            import time
+            entry = {
+                "timestamp": time.time(),
+                "asr_text": data.get("asr_text", ""),
+                "confidence": data.get("confidence", 1.0),
+                "edited_text": data.get("edited_text", ""),
+                "language": data.get("language", ""),
+                "downstream_state": data.get("downstream_state", {}),
+            }
+            interaction_logs.append(entry)
+            if len(interaction_logs) > 100:
+                interaction_logs.pop(0)
+            import logging
+            logging.info("SPEECH_DEBUG: ASR='%s' (conf=%.2f) -> EDITED='%s' -> STATE=%s",
+                         entry["asr_text"], entry["confidence"], entry["edited_text"], entry["downstream_state"])
+            return {"status": "ok", "logged": True}
+        except Exception as ex:
+            return JSONResponse({"error": str(ex)}, 400)
+
+    @app.get("/api/debug/interactions")
+    def get_interaction_logs():
+        return {"interactions": interaction_logs[-20:]}
+
     @app.websocket("/ws/sign")
     async def ws_sign(ws: WebSocket):
         await ws.accept()
@@ -69,23 +138,44 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
                 if msg["type"] == "websocket.disconnect":
                     break
                 if msg.get("bytes"):
-                    img = dec(msg["bytes"])
-                    events = await loop.run_in_executor(None, sess.on_frame, msg["bytes"]) if img is not None else []
-                    for e in events:
-                        await ws.send_json(e)
+                    try:
+                        img = dec(msg["bytes"])
+                        events = await loop.run_in_executor(None, sess.on_frame, msg["bytes"]) if img is not None else []
+                        for e in events:
+                            await ws.send_json(e)
+                    except Exception as ex:
+                        import logging, traceback
+                        logging.exception("Error processing frame: %s", ex)
+                        await ws.send_json({"type": "error", "message": f"Frame error: {str(ex)}"})
                     await ws.send_json({"type": "ack"})
                 elif msg.get("text"):
-                    d = json.loads(msg["text"])
-                    if d.get("type") == "config":
-                        sess.set_lang(d["lang"])
-                    elif d.get("type") == "answer":
-                        for e in sess.on_answer(d["value"]):
-                            await ws.send_json(e)
-                    elif d.get("type") == "reset":
-                        sess.reset(); await ws.send_json({"type": "state", "state": "listening"})
+                    try:
+                        d = json.loads(msg["text"])
+                        if not isinstance(d, dict):
+                            raise ValueError("Message must be a JSON object")
+                        mtype = d.get("type")
+                        if mtype == "config":
+                            sess.set_lang(d.get("lang", "hi"))
+                        elif mtype == "answer":
+                            for e in sess.on_answer(d.get("value")):
+                                await ws.send_json(e)
+                        elif mtype == "reset":
+                            sess.reset()
+                            await ws.send_json({"type": "state", "state": "listening"})
+                        else:
+                            await ws.send_json({"type": "error", "message": f"Unknown message type: {mtype}"})
+                    except (json.JSONDecodeError, ValueError, KeyError) as ex:
+                        import logging
+                        logging.warning("Invalid WebSocket message: %s", ex)
+                        await ws.send_json({"type": "error", "message": f"Invalid message: {str(ex)}"})
+                    except Exception as ex:
+                        import logging, traceback
+                        logging.exception("Error processing WebSocket message: %s", ex)
+                        await ws.send_json({"type": "error", "message": f"Server error: {str(ex)}"})
         finally:
             close = getattr(sess.ext, "close", None)
-            if close: close()
+            if close:
+                close()
     return app
 
 

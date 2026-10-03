@@ -1,0 +1,634 @@
+version: "2.0.0"
+description: "ClarifySign Domain Ontology for Indian Retail & Shopkeeper Dialogue"
+
+concepts:
+  # ---------------------------------------------------
+  # Products & Entities
+  # ---------------------------------------------------
+  WATER:
+    category: "product"
+    sign_id: "WATER"
+    fingerspell: false
+    synonyms:
+      en: ["water", "drinking water", "mineral water"]
+      hi: ["पानी", "जल", "नीर"]
+      hinglish: ["paani", "pani", "water"]
+      ta: ["தண்ணீர்", "தண்ணி", "குடிநீர்"]
+
+  BOTTLE:
+    category: "container"
+    sign_id: "BOTTLE"
+    fingerspell: false
+    synonyms:
+      en: ["bottle", "flask"]
+      hi: ["बोतल", "बॉटल"]
+      hinglish: ["bottle", "botal"]
+      ta: ["பாட்டில்", "குடுவை"]
+
+  SHIRT:
+    category: "product"
+    sign_id: "SHIRT"
+    fingerspell: false
+    synonyms:
+      en: ["shirt", "t-shirt", "tshirt", "tee", "top", "cloth", "kurta"]
+      hi: ["कमीज", "शर्ट", "टी-शर्ट", "कुर्ता"]
+      hinglish: ["shirt", "tshirt", "t-shirt", "kurta", "t shirt"]
+      ta: ["சட்டை", "டிசர்ட்", "உடை"]
+
+  PEN:
+    category: "product"
+    sign_id: "PEN"
+    fingerspell: false
+    synonyms:
+      en: ["pen", "ballpen", "ball point pen"]
+      hi: ["कलम", "पेन"]
+      hinglish: ["pen", "kalam"]
+      ta: ["பேனா", "எழுதுகோல்"]
+
+  SHOES:
+    category: "product"
+    sign_id: "SHOES"
+    fingerspell: false
+    synonyms:
+      en: ["shoes", "shoe", "footwear", "sneakers"]
+      hi: ["जूते", "जूता", "चप्पल"]
+      hinglish: ["shoes", "joota", "joote", "chappal"]
+      ta: ["காலணி", "ஷூ", "செருப்பு"]
+
+  PHONE:
+    category: "product"
+    sign_id: "CELLPHONE"
+    fingerspell: false
+    synonyms:
+      en: ["phone", "mobile", "cellphone", "mobile phone", "telephone"]
+      hi: ["फोन", "मोबाइल", "दूरभाष"]
+      hinglish: ["phone", "mobile", "cellphone", "fon"]
+      ta: ["தொலைபேசி", "மொபைல்", "போன்"]
+
+  MILK:
+    category: "product"
+    sign_id: "MILK"
+    fingerspell: false
+    synonyms:
+      en: ["milk", "dairy milk"]
+      hi: ["दूध", "दुग्ध"]
+      hinglish: ["doodh", "dudh", "milk"]
+      ta: ["பால்"]
+
+  BREAD:
+    category: "product"
+    sign_id: "BREAD"
+    fingerspell: false
+    synonyms:
+      en: ["bread", "loaf"]
+      hi: ["ब्रेड", "पावरोटी"]
+      hinglish: ["bread", "pav", "paav"]
+      ta: ["ரொட்டி", "பிரெட்"]
+
+  SOAP:
+    category: "product"
+    sign_id: "SOAP"
+    fingerspell: false
+    synonyms:
+      en: ["soap", "bath soap", "detergent"]
+      hi: ["साबुन"]
+      hinglish: ["sabun", "soap"]
+      ta: ["சோப்", "சவர்க்காரம்"]
+
+  BAG:
+    category: "container"
+    sign_id: "BAG"
+    fingerspell: false
+    synonyms:
+      en: ["bag", "carry bag", "polythene", "paper bag", "sack"]
+      hi: ["थैला", "बैग", "पॉलीथीन"]
+      hinglish: ["thaila", "bag", "thela"]
+      ta: ["பை", "பரிவு"]
+
+  PACKET:
+    category: "container"
+    sign_id: "PACKET"
+    fingerspell: false
+    synonyms:
+      en: ["packet", "pack", "pouch", "sachet"]
+      hi: ["पैकेट", "पैक"]
+      hinglish: ["packet", "pack", "pouch"]
+      ta: ["பாக்கெட்"]
+
+  TEA:
+    category: "product"
+    sign_id: "TEA"
+    fingerspell: false
+    synonyms:
+      en: ["tea", "chai", "tea leaves"]
+      hi: ["चाय", "चायपत्ती"]
+      hinglish: ["chai", "chay", "tea"]
+      ta: ["தேநீர்", "டீ"]
+
+  COFFEE:
+    category: "product"
+    sign_id: "COFFEE"
+    fingerspell: false
+    synonyms:
+      en: ["coffee", "kaapi"]
+      hi: ["कॉफी"]
+      hinglish: ["coffee", "koffee"]
+      ta: ["காபி"]
+
+  RICE:
+    category: "product"
+    sign_id: "RICE"
+    fingerspell: false
+    synonyms:
+      en: ["rice", "grain"]
+      hi: ["चावल", "भात"]
+      hinglish: ["chawal", "rice", "bhaat"]
+      ta: ["அரிசி", "சாதம்"]
+
+  SUGAR:
+    category: "product"
+    sign_id: "SUGAR"
+    fingerspell: false
+    synonyms:
+      en: ["sugar"]
+      hi: ["चीनी", "शक्कर"]
+      hinglish: ["cheeni", "shakkar", "sugar"]
+      ta: ["சர்க்கரை"]
+
+  EGG:
+    category: "product"
+    sign_id: "EGG"
+    fingerspell: false
+    synonyms:
+      en: ["egg", "eggs"]
+      hi: ["अंडा", "अंडे"]
+      hinglish: ["anda", "ande", "egg"]
+      ta: ["முட்டை"]
+
+  BISCUIT:
+    category: "product"
+    sign_id: "BISCUIT"
+    fingerspell: false
+    synonyms:
+      en: ["biscuit", "cookie", "cookies"]
+      hi: ["बिस्कुट", "बिस्किट"]
+      hinglish: ["biscuit", "biskut"]
+      ta: ["பிஸ்கட்"]
+
+  BOOK:
+    category: "product"
+    sign_id: "BOOK"
+    fingerspell: false
+    synonyms:
+      en: ["book", "notebook", "copy"]
+      hi: ["किताब", "पुस्तक", "कॉपी"]
+      hinglish: ["kitab", "book", "copy"]
+      ta: ["புத்தகம்", "நோட்டு"]
+
+  MEDICINE:
+    category: "product"
+    sign_id: "MEDICINE"
+    fingerspell: false
+    synonyms:
+      en: ["medicine", "tablet", "pills", "syrup"]
+      hi: ["दवा", "दवाई", "औषधि"]
+      hinglish: ["dawa", "dawai", "tablet"]
+      ta: ["மருந்து", "மாத்திரை"]
+
+  # ---------------------------------------------------
+  # Quantities & Numbers
+  # ---------------------------------------------------
+  ONE:
+    category: "quantity"
+    sign_id: "ONE"
+    fingerspell: false
+    synonyms:
+      en: ["1", "one", "single"]
+      hi: ["एक", "१"]
+      hinglish: ["ek", "one"]
+      ta: ["ஒன்று", "ஒரு"]
+
+  TWO:
+    category: "quantity"
+    sign_id: "TWO"
+    fingerspell: false
+    synonyms:
+      en: ["2", "two", "pair", "double"]
+      hi: ["दो", "२"]
+      hinglish: ["do", "two"]
+      ta: ["இரண்டு", "ரெண்டு"]
+
+  THREE:
+    category: "quantity"
+    sign_id: "THREE"
+    fingerspell: false
+    synonyms:
+      en: ["3", "three"]
+      hi: ["तीन", "३"]
+      hinglish: ["teen", "three"]
+      ta: ["மூன்று", "மூணு"]
+
+  FOUR:
+    category: "quantity"
+    sign_id: "FOUR"
+    fingerspell: false
+    synonyms:
+      en: ["4", "four"]
+      hi: ["चार", "४"]
+      hinglish: ["chaar", "char", "four"]
+      ta: ["நான்கு", "நாலு"]
+
+  FIVE:
+    category: "quantity"
+    sign_id: "FIVE"
+    fingerspell: false
+    synonyms:
+      en: ["5", "five"]
+      hi: ["पांच", "५"]
+      hinglish: ["paanch", "panch", "five"]
+      ta: ["ஐந்து", "அஞ்சு"]
+
+  HALF:
+    category: "quantity"
+    sign_id: "HALF"
+    fingerspell: false
+    synonyms:
+      en: ["half", "0.5"]
+      hi: ["आधा"]
+      hinglish: ["aadha", "adha", "half"]
+      ta: ["அரை"]
+
+  KILO:
+    category: "unit"
+    sign_id: "KILO"
+    fingerspell: false
+    synonyms:
+      en: ["kilo", "kg", "kilogram"]
+      hi: ["किलो", "किलोग्राम"]
+      hinglish: ["kilo", "kg"]
+      ta: ["கிலோ"]
+
+  LITRE:
+    category: "unit"
+    sign_id: "LITRE"
+    fingerspell: false
+    synonyms:
+      en: ["litre", "liter", "l"]
+      hi: ["लीटर"]
+      hinglish: ["litre", "liter"]
+      ta: ["லிட்டர்"]
+
+  # ---------------------------------------------------
+  # Attributes: Colours, Sizes, States
+  # ---------------------------------------------------
+  BLUE:
+    category: "attribute_colour"
+    sign_id: "BLUE"
+    fingerspell: false
+    synonyms:
+      en: ["blue", "navy blue", "cyan"]
+      hi: ["नीला", "नीले", "नीली"]
+      hinglish: ["neela", "nila", "blue", "neeli", "nili"]
+      ta: ["நீலம்"]
+
+  RED:
+    category: "attribute_colour"
+    sign_id: "RED"
+    fingerspell: false
+    synonyms:
+      en: ["red", "crimson"]
+      hi: ["लाल"]
+      hinglish: ["laal", "lal", "red"]
+      ta: ["சிவப்பு"]
+
+  BLACK:
+    category: "attribute_colour"
+    sign_id: "BLACK"
+    fingerspell: false
+    synonyms:
+      en: ["black", "dark"]
+      hi: ["काला", "काले", "काली"]
+      hinglish: ["kaala", "kala", "black"]
+      ta: ["கருப்பு"]
+
+  WHITE:
+    category: "attribute_colour"
+    sign_id: "WHITE"
+    fingerspell: false
+    synonyms:
+      en: ["white"]
+      hi: ["सफेद", "श्वेत"]
+      hinglish: ["safed", "white"]
+      ta: ["வெள்ளை"]
+
+  GREEN:
+    category: "attribute_colour"
+    sign_id: "GREEN"
+    fingerspell: false
+    synonyms:
+      en: ["green"]
+      hi: ["हरा", "हरे", "हरी"]
+      hinglish: ["hara", "hare", "green"]
+      ta: ["பச்சை"]
+
+  YELLOW:
+    category: "attribute_colour"
+    sign_id: "YELLOW"
+    fingerspell: false
+    synonyms:
+      en: ["yellow"]
+      hi: ["पीला", "पीले", "पीली"]
+      hinglish: ["peela", "pila", "yellow"]
+      ta: ["மஞ்சள்"]
+
+  LARGE:
+    category: "attribute_size"
+    sign_id: "BIGLARGE"
+    fingerspell: false
+    synonyms:
+      en: ["large", "big", "xl", "xxl"]
+      hi: ["बड़ा", "बड़े", "बड़ी"]
+      hinglish: ["bada", "badaa", "large", "big"]
+      ta: ["பெரிய", "பெரிசு"]
+
+  SMALL:
+    category: "attribute_size"
+    sign_id: "SMALLLITTLE"
+    fingerspell: false
+    synonyms:
+      en: ["small", "little", "tiny"]
+      hi: ["छोटा", "छोटे", "छोटी"]
+      hinglish: ["chhota", "chota", "small"]
+      ta: ["சிறிய", "சின்ன"]
+
+  MEDIUM:
+    category: "attribute_size"
+    sign_id: "MEDIUM"
+    fingerspell: false
+    synonyms:
+      en: ["medium", "regular", "normal"]
+      hi: ["मध्यम", "मीडियम"]
+      hinglish: ["medium", "darmiyana"]
+      ta: ["நடுத்தர"]
+
+  HOT:
+    category: "attribute_state"
+    sign_id: "HOT"
+    fingerspell: false
+    synonyms:
+      en: ["hot", "warm"]
+      hi: ["गर्म", "गरम"]
+      hinglish: ["garam", "hot"]
+      ta: ["சூடான", "சூடு"]
+
+  COLD:
+    category: "attribute_state"
+    sign_id: "COLD"
+    fingerspell: false
+    synonyms:
+      en: ["cold", "chilled"]
+      hi: ["ठंडा", "शीतल"]
+      hinglish: ["thanda", "chilled", "cold"]
+      ta: ["குளிர்ந்த", "ஜில்"]
+
+  NEW:
+    category: "attribute_state"
+    sign_id: "NEW"
+    fingerspell: false
+    synonyms:
+      en: ["new", "latest"]
+      hi: ["नया", "नए", "नई"]
+      hinglish: ["naya", "naye", "new"]
+      ta: ["புதிய", "புது"]
+
+  # ---------------------------------------------------
+  # Commercial & Transactional Concepts
+  # ---------------------------------------------------
+  PRICE:
+    category: "commercial"
+    sign_id: "COST"
+    fingerspell: false
+    synonyms:
+      en: ["price", "cost", "rate", "how much", "amount"]
+      hi: ["कीमत", "दाम", "मूल्य", "भाव", "कितने"]
+      hinglish: ["price", "cost", "daam", "kimat", "kitna", "kitne"]
+      ta: ["விலை", "எவ்வளவு", "மதிப்பு"]
+
+  PAYMENT:
+    category: "commercial"
+    sign_id: "PAYMENT"
+    fingerspell: false
+    synonyms:
+      en: ["payment", "pay", "money"]
+      hi: ["भुगतान", "पैसे"]
+      hinglish: ["payment", "pay", "paise"]
+      ta: ["பணம்", "செலுத்துதல்"]
+
+  CASH:
+    category: "commercial"
+    sign_id: "CASH"
+    fingerspell: false
+    synonyms:
+      en: ["cash", "notes", "coins"]
+      hi: ["नकद", "रोकड़"]
+      hinglish: ["cash", "nakad"]
+      ta: ["ரொக்கம்", "கேஷ்"]
+
+  UPI:
+    category: "commercial"
+    sign_id: "UPI"
+    fingerspell: false
+    synonyms:
+      en: ["upi", "gpay", "phonepe", "paytm", "qr code", "scanner", "scan", "online payment"]
+      hi: ["यूपीआई", "क्यूआर कोड", "ऑनलाइन"]
+      hinglish: ["upi", "qr", "scanner", "scan", "gpay", "online"]
+      ta: ["யுபிஐ", "ஸ்கேன்"]
+
+  CHANGE:
+    category: "commercial"
+    sign_id: "CHANGE"
+    fingerspell: false
+    synonyms:
+      en: ["change", "loose money", "coins"]
+      hi: ["खुल्ले", "छुट्टे"]
+      hinglish: ["khulle", "chhutte", "change"]
+      ta: ["சில்லறை"]
+
+  BILL:
+    category: "commercial"
+    sign_id: "BILL"
+    fingerspell: false
+    synonyms:
+      en: ["bill", "receipt", "invoice"]
+      hi: ["बिल", "रसीद"]
+      hinglish: ["bill", "raseed"]
+      ta: ["பில்", "ரசீது"]
+
+  DISCOUNT:
+    category: "commercial"
+    sign_id: "DISCOUNT"
+    fingerspell: false
+    synonyms:
+      en: ["discount", "offer", "concession", "less"]
+      hi: ["छूट", "डिस्काउंट"]
+      hinglish: ["discount", "chhoot", "kam"]
+      ta: ["தள்ளுபடி"]
+
+  # ---------------------------------------------------
+  # Dialogue & Social Expressions
+  # ---------------------------------------------------
+  HELLO:
+    category: "social"
+    sign_id: "HELLO"
+    fingerspell: false
+    synonyms:
+      en: ["hello", "hi", "hey", "good morning", "good evening", "good afternoon"]
+      hi: ["नमस्ते", "नमस्कार", "प्रणाम"]
+      hinglish: ["namaste", "namaskar", "hello", "hi"]
+      ta: ["வணக்கம்", "ஹலோ"]
+
+  THANKYOU:
+    category: "social"
+    sign_id: "THANKYOU"
+    fingerspell: false
+    synonyms:
+      en: ["thank you", "thanks", "thankyou", "many thanks"]
+      hi: ["धन्यवाद", "शुक्रिया"]
+      hinglish: ["dhanyawad", "shukriya", "thanks", "thank you"]
+      ta: ["நன்றி", "ரொம்ப நன்றி"]
+
+  PLEASE:
+    category: "social"
+    sign_id: "PLEASE"
+    fingerspell: false
+    synonyms:
+      en: ["please", "kindly"]
+      hi: ["कृपया", "जरा"]
+      hinglish: ["please", "kripya", "zara"]
+      ta: ["தயவுசெய்து"]
+
+  "YES":
+    category: "social"
+    sign_id: "GOOD"
+    fingerspell: false
+    synonyms:
+      en: ["yes", "yeah", "yep", "sure", "ok", "okay", "fine", "correct", "agree"]
+      hi: ["हाँ", "जी हाँ", "ठीक है", "सही"]
+      hinglish: ["haan", "ha", "theek hai", "sahi", "ok", "okay"]
+      ta: ["ஆம்", "சரி", "ஆமாம்"]
+
+  "NO":
+    category: "social"
+    sign_id: "NO"
+    fingerspell: false
+    synonyms:
+      en: ["no", "nope", "not", "cancel", "never", "don't want"]
+      hi: ["नहीं", "मत", "ना"]
+      hinglish: ["nahi", "nahin", "na", "mat", "no"]
+      ta: ["இல்லை", "வேண்டாம்"]
+
+  # ---------------------------------------------------
+  # Actions & Interactions
+  # ---------------------------------------------------
+  BUY:
+    category: "action"
+    sign_id: "BUY"
+    fingerspell: false
+    synonyms:
+      en: ["buy", "purchase", "take"]
+      hi: ["खरीदना", "लेना"]
+      hinglish: ["kharidna", "lena", "buy"]
+      ta: ["வாங்குதல்", "வாங்க"]
+
+  GIVE:
+    category: "action"
+    sign_id: "GIVE"
+    fingerspell: false
+    synonyms:
+      en: ["give", "hand over", "pass"]
+      hi: ["देना", "दीजिए", "दो"]
+      hinglish: ["dena", "dedo", "de do", "dijiye", "give"]
+      ta: ["கொடு", "தாருங்கள்"]
+
+  SHOW:
+    category: "action"
+    sign_id: "SHOW"
+    fingerspell: false
+    synonyms:
+      en: ["show", "display"]
+      hi: ["दिखाना", "दिखाइए", "दिखाओ"]
+      hinglish: ["dikhana", "dikhao", "dikhaiye", "show"]
+      ta: ["காட்டு", "காட்டுங்கள்"]
+
+  HAVE:
+    category: "action"
+    sign_id: "HAVE"
+    fingerspell: false
+    synonyms:
+      en: ["have", "available", "stock", "is there", "do you have"]
+      hi: ["है", "उपलब्ध", "मिलना"]
+      hinglish: ["hai", "milega", "available", "hai kya"]
+      ta: ["உள்ளது", "இருக்கிறதா", "இருக்கா"]
+
+  PACK:
+    category: "action"
+    sign_id: "PACK"
+    fingerspell: false
+    synonyms:
+      en: ["pack", "wrap", "put in bag"]
+      hi: ["पैक", "बांधना"]
+      hinglish: ["pack", "pack kar do"]
+      ta: ["பேக்"]
+
+  # ---------------------------------------------------
+  # Queries, Locations & Referents
+  # ---------------------------------------------------
+  QUESTION:
+    category: "grammar"
+    sign_id: "QUESTION"
+    fingerspell: false
+    synonyms:
+      en: ["?", "query"]
+      hi: ["?"]
+      hinglish: ["?"]
+      ta: ["?"]
+
+  WHERE:
+    category: "spatial"
+    sign_id: "WHERE"
+    fingerspell: false
+    synonyms:
+      en: ["where", "which place"]
+      hi: ["कहाँ", "किधर"]
+      hinglish: ["kahan", "kidhar", "where"]
+      ta: ["எங்கே", "எங்கு"]
+
+  STORE:
+    category: "spatial"
+    sign_id: "STOREORSHOP"
+    fingerspell: false
+    synonyms:
+      en: ["store", "shop", "market"]
+      hi: ["दुकान", "स्टोर"]
+      hinglish: ["dukaan", "shop", "store"]
+      ta: ["கடை"]
+
+  COUNTER:
+    category: "spatial"
+    sign_id: "COUNTER"
+    fingerspell: false
+    synonyms:
+      en: ["counter", "billing counter", "cash counter"]
+      hi: ["काउंटर", "गल्ला"]
+      hinglish: ["counter", "billing counter"]
+      ta: ["கவுண்ட்டர்"]
+
+  EXIT:
+    category: "spatial"
+    sign_id: "EXIT"
+    fingerspell: false
+    synonyms:
+      en: ["exit", "way out", "door"]
+      hi: ["निकास", "बाहर"]
+      hinglish: ["exit", "bahar"]
+      ta: ["வெளியேறும் வழி"]

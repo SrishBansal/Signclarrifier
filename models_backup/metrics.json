@@ -1,0 +1,58 @@
+{
+ "classes": [
+  "bank",
+  "biglarge",
+  "black",
+  "blue",
+  "cellphone",
+  "good",
+  "hello",
+  "hot",
+  "new",
+  "pen",
+  "red",
+  "shoes",
+  "smalllittle",
+  "storeorshop",
+  "thankyou",
+  "tshirt",
+  "white"
+ ],
+ "metrics": {
+  "val": {
+   "n": 54,
+   "top1": 0.7037037037037037,
+   "top3": 0.9814814814814815,
+   "macro_f1": 0.642131398013751,
+   "ece": 0.15719625298623682
+  },
+  "test": {
+   "n": 60,
+   "top1": 0.65,
+   "top3": 0.8666666666666667,
+   "macro_f1": 0.567519735166794,
+   "ece": 0.1919965078433355
+  }
+ },
+ "meta": {
+  "mediapipe": "1.0.1",
+  "n_clips": 340,
+  "split": "session-group proxy (INCLUDE has no signer IDs); NOT proven signer-independent",
+  "metrics": {
+   "val": {
+    "n": 54,
+    "top1": 0.7037037037037037,
+    "top3": 0.9814814814814815,
+    "macro_f1": 0.642131398013751,
+    "ece": 0.15719625298623682
+   },
+   "test": {
+    "n": 60,
+    "top1": 0.65,
+    "top3": 0.8666666666666667,
+    "macro_f1": 0.567519735166794,
+    "ece": 0.1919965078433355
+   }
+  }
+ }
+}

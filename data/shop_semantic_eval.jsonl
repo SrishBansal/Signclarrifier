@@ -1,0 +1,215 @@
+{"text": "bhai mujhe ek bottle paani chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "WATER", "container": "BOTTLE", "quantity": 1, "attributes": {}, "paraphrase_group": "paani_request"}
+{"text": "ek paani ki bottle dena", "language": "Hinglish", "intent": "REQUEST", "concept": "WATER", "container": "BOTTLE", "quantity": 1, "attributes": {}, "paraphrase_group": "paani_request"}
+{"text": "pani milega kya", "language": "Hinglish", "intent": "AVAILABILITY", "concept": "WATER", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "water bottle please", "language": "English", "intent": "REQUEST", "concept": "WATER", "container": "BOTTLE", "quantity": 1, "attributes": {}, "paraphrase_group": "paani_request"}
+{"text": "give me one water bottle", "language": "English", "intent": "REQUEST", "concept": "WATER", "container": "BOTTLE", "quantity": 1, "attributes": {}, "paraphrase_group": "paani_request"}
+{"text": "I want a blue shirt", "language": "English", "intent": "REQUEST", "concept": "SHIRT", "container": null, "quantity": 1, "attributes": {"colour": "BLUE"}, "paraphrase_group": "blue_shirt_request"}
+{"text": "mujhe neeli shirt chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "SHIRT", "container": null, "quantity": 1, "attributes": {"colour": "BLUE"}, "paraphrase_group": "blue_shirt_request"}
+{"text": "blue shirt dena", "language": "Hinglish", "intent": "REQUEST", "concept": "SHIRT", "container": null, "quantity": 1, "attributes": {"colour": "BLUE"}, "paraphrase_group": "blue_shirt_request"}
+{"text": "ek blue shirt pack kar do", "language": "Hinglish", "intent": "REQUEST", "concept": "SHIRT", "container": null, "quantity": 1, "attributes": {"colour": "BLUE"}, "paraphrase_group": "blue_shirt_request"}
+{"text": "நீல சட்டை கொடுங்கள்", "language": "Tamil", "intent": "REQUEST", "concept": "SHIRT", "container": null, "quantity": 1, "attributes": {"colour": "BLUE"}, "paraphrase_group": "blue_shirt_request"}
+{"text": "is shirt ka price kitna hai", "language": "Hinglish", "intent": "QUESTION", "concept": "SHIRT", "container": null, "quantity": null, "attributes": {"query": "PRICE"}, "paraphrase_group": "shirt_price_query"}
+{"text": "how much for this shirt", "language": "English", "intent": "QUESTION", "concept": "SHIRT", "container": null, "quantity": null, "attributes": {"query": "PRICE"}, "paraphrase_group": "shirt_price_query"}
+{"text": "shirt kitne ka hai", "language": "Hinglish", "intent": "QUESTION", "concept": "SHIRT", "container": null, "quantity": null, "attributes": {"query": "PRICE"}, "paraphrase_group": "shirt_price_query"}
+{"text": "what is the cost of the shirt", "language": "English", "intent": "QUESTION", "concept": "SHIRT", "container": null, "quantity": null, "attributes": {"query": "PRICE"}, "paraphrase_group": "shirt_price_query"}
+{"text": "இந்த சட்டை விலை என்ன", "language": "Tamil", "intent": "QUESTION", "concept": "SHIRT", "container": null, "quantity": null, "attributes": {"query": "PRICE"}, "paraphrase_group": "shirt_price_query"}
+{"text": "UPI chalega kya", "language": "Hinglish", "intent": "PAYMENT", "concept": "UPI", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": "upi_payment_query"}
+{"text": "can I pay via UPI", "language": "English", "intent": "PAYMENT", "concept": "UPI", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": "upi_payment_query"}
+{"text": "bhai QR scanner dikhana", "language": "Hinglish", "intent": "PAYMENT", "concept": "UPI", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": "upi_payment_query"}
+{"text": "GPay accept karte ho", "language": "Hinglish", "intent": "PAYMENT", "concept": "UPI", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": "upi_payment_query"}
+{"text": "யுபிஐ பணம் செலுத்தலாமா", "language": "Tamil", "intent": "PAYMENT", "concept": "UPI", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": "upi_payment_query"}
+{"text": "hello", "language": "English", "intent": "GREET", "concept": "HELLO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": "greeting_generic"}
+{"text": "hi there", "language": "English", "intent": "GREET", "concept": "HELLO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": "greeting_generic"}
+{"text": "good morning", "language": "English", "intent": "GREET", "concept": "HELLO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": "greeting_generic"}
+{"text": "good evening bhai", "language": "Hinglish", "intent": "GREET", "concept": "HELLO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": "greeting_generic"}
+{"text": "namaste", "language": "Hindi", "intent": "GREET", "concept": "HELLO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": "greeting_generic"}
+{"text": "namaskar", "language": "Hindi", "intent": "GREET", "concept": "HELLO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": "greeting_generic"}
+{"text": "pranam", "language": "Hindi", "intent": "GREET", "concept": "HELLO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": "greeting_generic"}
+{"text": "vanakkam", "language": "Tamil", "intent": "GREET", "concept": "HELLO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": "greeting_generic"}
+{"text": "hello bhai", "language": "Hinglish", "intent": "GREET", "concept": "HELLO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": "greeting_generic"}
+{"text": "hey", "language": "English", "intent": "GREET", "concept": "HELLO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": "greeting_generic"}
+{"text": "namaste ji", "language": "Hinglish", "intent": "GREET", "concept": "HELLO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": "greeting_generic"}
+{"text": "good afternoon", "language": "English", "intent": "GREET", "concept": "HELLO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": "greeting_generic"}
+{"text": "வணக்கம் ஐயா", "language": "Tamil", "intent": "GREET", "concept": "HELLO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": "greeting_generic"}
+{"text": "hi bhaiya", "language": "Hinglish", "intent": "GREET", "concept": "HELLO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": "greeting_generic"}
+{"text": "namaskar shopkeeper", "language": "English", "intent": "GREET", "concept": "HELLO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": "greeting_generic"}
+{"text": "yes", "language": "English", "intent": "CONFIRM", "concept": "YES", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "haan", "language": "Hinglish", "intent": "CONFIRM", "concept": "YES", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "ha", "language": "Hinglish", "intent": "CONFIRM", "concept": "YES", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "theek hai", "language": "Hinglish", "intent": "CONFIRM", "concept": "YES", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "sure", "language": "English", "intent": "CONFIRM", "concept": "YES", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "ok", "language": "English", "intent": "CONFIRM", "concept": "YES", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "okay", "language": "English", "intent": "CONFIRM", "concept": "YES", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "sahi hai", "language": "Hinglish", "intent": "CONFIRM", "concept": "YES", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "ஆம்", "language": "Tamil", "intent": "CONFIRM", "concept": "YES", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "சரி", "language": "Tamil", "intent": "CONFIRM", "concept": "YES", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "no", "language": "English", "intent": "REJECT", "concept": "NO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "nahi", "language": "Hinglish", "intent": "REJECT", "concept": "NO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "nahin", "language": "Hinglish", "intent": "REJECT", "concept": "NO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "na", "language": "Hinglish", "intent": "REJECT", "concept": "NO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "mat do", "language": "Hinglish", "intent": "REJECT", "concept": "NO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "cancel it", "language": "English", "intent": "REJECT", "concept": "NO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "never mind", "language": "English", "intent": "REJECT", "concept": "NO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "இல்லை", "language": "Tamil", "intent": "REJECT", "concept": "NO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "வேண்டாம்", "language": "Tamil", "intent": "REJECT", "concept": "NO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "no thank you", "language": "English", "intent": "REJECT", "concept": "NO", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "give me one pen", "language": "English", "intent": "REQUEST", "concept": "PEN", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek pen dena", "language": "Hinglish", "intent": "REQUEST", "concept": "PEN", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "do pen chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "PEN", "container": null, "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "give me one ballpen", "language": "English", "intent": "REQUEST", "concept": "PEN", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek ballpen dena", "language": "Hinglish", "intent": "REQUEST", "concept": "PEN", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "do ballpen chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "PEN", "container": null, "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "give me one milk", "language": "English", "intent": "REQUEST", "concept": "MILK", "container": "PACKET", "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek milk dena", "language": "Hinglish", "intent": "REQUEST", "concept": "MILK", "container": "PACKET", "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "do milk chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "MILK", "container": "PACKET", "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "give me one doodh", "language": "English", "intent": "REQUEST", "concept": "MILK", "container": "PACKET", "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek doodh dena", "language": "Hinglish", "intent": "REQUEST", "concept": "MILK", "container": "PACKET", "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "do doodh chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "MILK", "container": "PACKET", "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "give me one bread", "language": "English", "intent": "REQUEST", "concept": "BREAD", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek bread dena", "language": "Hinglish", "intent": "REQUEST", "concept": "BREAD", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "do bread chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "BREAD", "container": null, "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "give me one loaf of bread", "language": "English", "intent": "REQUEST", "concept": "BREAD", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek loaf of bread dena", "language": "Hinglish", "intent": "REQUEST", "concept": "BREAD", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "do loaf of bread chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "BREAD", "container": null, "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "give me one soap", "language": "English", "intent": "REQUEST", "concept": "SOAP", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek soap dena", "language": "Hinglish", "intent": "REQUEST", "concept": "SOAP", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "do soap chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "SOAP", "container": null, "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "give me one sabun", "language": "English", "intent": "REQUEST", "concept": "SOAP", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek sabun dena", "language": "Hinglish", "intent": "REQUEST", "concept": "SOAP", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "do sabun chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "SOAP", "container": null, "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "give me one shoes", "language": "English", "intent": "REQUEST", "concept": "SHOES", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek shoes dena", "language": "Hinglish", "intent": "REQUEST", "concept": "SHOES", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "do shoes chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "SHOES", "container": null, "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "give me one joote", "language": "English", "intent": "REQUEST", "concept": "SHOES", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek joote dena", "language": "Hinglish", "intent": "REQUEST", "concept": "SHOES", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "do joote chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "SHOES", "container": null, "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "give me one tea", "language": "English", "intent": "REQUEST", "concept": "TEA", "container": "PACKET", "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek tea dena", "language": "Hinglish", "intent": "REQUEST", "concept": "TEA", "container": "PACKET", "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "do tea chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "TEA", "container": "PACKET", "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "give me one chai", "language": "English", "intent": "REQUEST", "concept": "TEA", "container": "PACKET", "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek chai dena", "language": "Hinglish", "intent": "REQUEST", "concept": "TEA", "container": "PACKET", "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "do chai chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "TEA", "container": "PACKET", "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "give me one sugar", "language": "English", "intent": "REQUEST", "concept": "SUGAR", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek sugar dena", "language": "Hinglish", "intent": "REQUEST", "concept": "SUGAR", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "do sugar chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "SUGAR", "container": null, "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "give me one cheeni", "language": "English", "intent": "REQUEST", "concept": "SUGAR", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek cheeni dena", "language": "Hinglish", "intent": "REQUEST", "concept": "SUGAR", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "do cheeni chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "SUGAR", "container": null, "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "give me one rice", "language": "English", "intent": "REQUEST", "concept": "RICE", "container": "BAG", "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek rice dena", "language": "Hinglish", "intent": "REQUEST", "concept": "RICE", "container": "BAG", "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "do rice chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "RICE", "container": "BAG", "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "give me one chawal", "language": "English", "intent": "REQUEST", "concept": "RICE", "container": "BAG", "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek chawal dena", "language": "Hinglish", "intent": "REQUEST", "concept": "RICE", "container": "BAG", "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "do chawal chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "RICE", "container": "BAG", "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "give me one egg", "language": "English", "intent": "REQUEST", "concept": "EGG", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek egg dena", "language": "Hinglish", "intent": "REQUEST", "concept": "EGG", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "do egg chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "EGG", "container": null, "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "give me one ande", "language": "English", "intent": "REQUEST", "concept": "EGG", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek ande dena", "language": "Hinglish", "intent": "REQUEST", "concept": "EGG", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "do ande chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "EGG", "container": null, "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "give me one biscuit", "language": "English", "intent": "REQUEST", "concept": "BISCUIT", "container": "PACKET", "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek biscuit dena", "language": "Hinglish", "intent": "REQUEST", "concept": "BISCUIT", "container": "PACKET", "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "do biscuit chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "BISCUIT", "container": "PACKET", "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "give me one book", "language": "English", "intent": "REQUEST", "concept": "BOOK", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek book dena", "language": "Hinglish", "intent": "REQUEST", "concept": "BOOK", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "do book chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "BOOK", "container": null, "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "mujhe red shirt chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "SHIRT", "container": null, "quantity": 1, "attributes": {"colour": "RED"}, "paraphrase_group": null}
+{"text": "please mujhe red shirt chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "SHIRT", "container": null, "quantity": 1, "attributes": {"colour": "RED"}, "paraphrase_group": null}
+{"text": "give me black shoes", "language": "English", "intent": "REQUEST", "concept": "SHOES", "container": null, "quantity": 1, "attributes": {"colour": "BLACK"}, "paraphrase_group": null}
+{"text": "please give me black shoes", "language": "English", "intent": "REQUEST", "concept": "SHOES", "container": null, "quantity": 1, "attributes": {"colour": "BLACK"}, "paraphrase_group": null}
+{"text": "white pen dena", "language": "Hinglish", "intent": "REQUEST", "concept": "PEN", "container": null, "quantity": 1, "attributes": {"colour": "WHITE"}, "paraphrase_group": null}
+{"text": "please white pen dena", "language": "Hinglish", "intent": "REQUEST", "concept": "PEN", "container": null, "quantity": 1, "attributes": {"colour": "WHITE"}, "paraphrase_group": null}
+{"text": "large shirt pack kar do", "language": "Hinglish", "intent": "REQUEST", "concept": "SHIRT", "container": null, "quantity": 1, "attributes": {"size": "LARGE"}, "paraphrase_group": null}
+{"text": "please large shirt pack kar do", "language": "Hinglish", "intent": "REQUEST", "concept": "SHIRT", "container": null, "quantity": 1, "attributes": {"size": "LARGE"}, "paraphrase_group": null}
+{"text": "bada shirt chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "SHIRT", "container": null, "quantity": 1, "attributes": {"size": "LARGE"}, "paraphrase_group": null}
+{"text": "please bada shirt chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "SHIRT", "container": null, "quantity": 1, "attributes": {"size": "LARGE"}, "paraphrase_group": null}
+{"text": "chhota soap dena", "language": "Hinglish", "intent": "REQUEST", "concept": "SOAP", "container": null, "quantity": 1, "attributes": {"size": "SMALL"}, "paraphrase_group": null}
+{"text": "please chhota soap dena", "language": "Hinglish", "intent": "REQUEST", "concept": "SOAP", "container": null, "quantity": 1, "attributes": {"size": "SMALL"}, "paraphrase_group": null}
+{"text": "small pen give please", "language": "English", "intent": "REQUEST", "concept": "PEN", "container": null, "quantity": 1, "attributes": {"size": "SMALL"}, "paraphrase_group": null}
+{"text": "please small pen give please", "language": "English", "intent": "REQUEST", "concept": "PEN", "container": null, "quantity": 1, "attributes": {"size": "SMALL"}, "paraphrase_group": null}
+{"text": "chilled water bottle dena", "language": "Hinglish", "intent": "REQUEST", "concept": "WATER", "container": null, "quantity": 1, "attributes": {"state": "COLD"}, "paraphrase_group": null}
+{"text": "please chilled water bottle dena", "language": "Hinglish", "intent": "REQUEST", "concept": "WATER", "container": null, "quantity": 1, "attributes": {"state": "COLD"}, "paraphrase_group": null}
+{"text": "cold milk milega", "language": "Hinglish", "intent": "AVAILABILITY", "concept": "MILK", "container": null, "quantity": 1, "attributes": {"state": "COLD"}, "paraphrase_group": null}
+{"text": "please cold milk milega", "language": "Hinglish", "intent": "AVAILABILITY", "concept": "MILK", "container": null, "quantity": 1, "attributes": {"state": "COLD"}, "paraphrase_group": null}
+{"text": "hot tea please", "language": "English", "intent": "REQUEST", "concept": "TEA", "container": null, "quantity": 1, "attributes": {"state": "HOT"}, "paraphrase_group": null}
+{"text": "please hot tea please", "language": "English", "intent": "REQUEST", "concept": "TEA", "container": null, "quantity": 1, "attributes": {"state": "HOT"}, "paraphrase_group": null}
+{"text": "garam chai dena", "language": "Hinglish", "intent": "REQUEST", "concept": "TEA", "container": null, "quantity": 1, "attributes": {"state": "HOT"}, "paraphrase_group": null}
+{"text": "please garam chai dena", "language": "Hinglish", "intent": "REQUEST", "concept": "TEA", "container": null, "quantity": 1, "attributes": {"state": "HOT"}, "paraphrase_group": null}
+{"text": "naya shirt dikhao", "language": "Hinglish", "intent": "REQUEST", "concept": "SHIRT", "container": null, "quantity": 1, "attributes": {"state": "NEW"}, "paraphrase_group": null}
+{"text": "please naya shirt dikhao", "language": "Hinglish", "intent": "REQUEST", "concept": "SHIRT", "container": null, "quantity": 1, "attributes": {"state": "NEW"}, "paraphrase_group": null}
+{"text": "show me new shoes", "language": "English", "intent": "REQUEST", "concept": "SHOES", "container": null, "quantity": 1, "attributes": {"state": "NEW"}, "paraphrase_group": null}
+{"text": "please show me new shoes", "language": "English", "intent": "REQUEST", "concept": "SHOES", "container": null, "quantity": 1, "attributes": {"state": "NEW"}, "paraphrase_group": null}
+{"text": "green bag chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "BAG", "container": null, "quantity": 1, "attributes": {"colour": "GREEN"}, "paraphrase_group": null}
+{"text": "please green bag chahiye", "language": "Hinglish", "intent": "REQUEST", "concept": "BAG", "container": null, "quantity": 1, "attributes": {"colour": "GREEN"}, "paraphrase_group": null}
+{"text": "yellow pen dena", "language": "Hinglish", "intent": "REQUEST", "concept": "PEN", "container": null, "quantity": 1, "attributes": {"colour": "YELLOW"}, "paraphrase_group": null}
+{"text": "please yellow pen dena", "language": "Hinglish", "intent": "REQUEST", "concept": "PEN", "container": null, "quantity": 1, "attributes": {"colour": "YELLOW"}, "paraphrase_group": null}
+{"text": "paani hai kya", "language": "Hinglish", "intent": "AVAILABILITY", "concept": "WATER", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "milk available hai", "language": "Hinglish", "intent": "AVAILABILITY", "concept": "MILK", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "do you have bread", "language": "English", "intent": "AVAILABILITY", "concept": "BREAD", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "is soap available", "language": "English", "intent": "AVAILABILITY", "concept": "SOAP", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "chawal milega", "language": "Hinglish", "intent": "AVAILABILITY", "concept": "RICE", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "sugar stock me hai kya", "language": "Hinglish", "intent": "AVAILABILITY", "concept": "SUGAR", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "eggs hai kya", "language": "Hinglish", "intent": "AVAILABILITY", "concept": "EGG", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "biscuit milega kya", "language": "Hinglish", "intent": "AVAILABILITY", "concept": "BISCUIT", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "do you have pens", "language": "English", "intent": "AVAILABILITY", "concept": "PEN", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "shoes stock me hai", "language": "Hinglish", "intent": "AVAILABILITY", "concept": "SHOES", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "தண்ணீர் இருக்கிறதா", "language": "Tamil", "intent": "AVAILABILITY", "concept": "WATER", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "பால் உள்ளதா", "language": "Tamil", "intent": "AVAILABILITY", "concept": "MILK", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "ரொட்டி இருக்கா", "language": "Tamil", "intent": "AVAILABILITY", "concept": "BREAD", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "coffee available hai kya", "language": "Hinglish", "intent": "AVAILABILITY", "concept": "COFFEE", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "book milega", "language": "Hinglish", "intent": "AVAILABILITY", "concept": "BOOK", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "medicine hai kya", "language": "Hinglish", "intent": "AVAILABILITY", "concept": "MEDICINE", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "tea available", "language": "English", "intent": "AVAILABILITY", "concept": "TEA", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "bag milega", "language": "Hinglish", "intent": "AVAILABILITY", "concept": "BAG", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "chocolates hai kya", "language": "Hinglish", "intent": "AVAILABILITY", "concept": "ITEM", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "is cold water there", "language": "English", "intent": "AVAILABILITY", "concept": "WATER", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "cash chalega kya", "language": "Hinglish", "intent": "PAYMENT", "concept": "CASH", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "I will pay with cash", "language": "English", "intent": "PAYMENT", "concept": "CASH", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "online payment hai", "language": "Hinglish", "intent": "PAYMENT", "concept": "UPI", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "scanner kahan hai", "language": "Hinglish", "intent": "PAYMENT", "concept": "UPI", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "can I scan and pay", "language": "English", "intent": "PAYMENT", "concept": "UPI", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "bill de do", "language": "Hinglish", "intent": "PAYMENT", "concept": "BILL", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "please give the bill", "language": "English", "intent": "PAYMENT", "concept": "BILL", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "receipt milega", "language": "Hinglish", "intent": "PAYMENT", "concept": "BILL", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "change hai kya", "language": "Hinglish", "intent": "PAYMENT", "concept": "CHANGE", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "do you have change", "language": "English", "intent": "PAYMENT", "concept": "CHANGE", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "chhutte paise nahi hai", "language": "Hinglish", "intent": "PAYMENT", "concept": "CHANGE", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "discount milega kya", "language": "Hinglish", "intent": "PAYMENT", "concept": "DISCOUNT", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "any discount available", "language": "English", "intent": "PAYMENT", "concept": "DISCOUNT", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "kam karo thoda", "language": "Hinglish", "intent": "PAYMENT", "concept": "DISCOUNT", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "card chalega", "language": "Hinglish", "intent": "PAYMENT", "concept": "PAYMENT", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "payment kaise karu", "language": "Hinglish", "intent": "PAYMENT", "concept": "PAYMENT", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "Google Pay chalega", "language": "Hinglish", "intent": "PAYMENT", "concept": "UPI", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "PhonePe accept karte ho", "language": "Hinglish", "intent": "PAYMENT", "concept": "UPI", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "பணம் ரொக்கமாக தருகிறேன்", "language": "Tamil", "intent": "PAYMENT", "concept": "CASH", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "பில் கொடுங்கள்", "language": "Tamil", "intent": "PAYMENT", "concept": "BILL", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "billing counter kahan hai", "language": "Hinglish", "intent": "DIRECTION", "concept": "COUNTER", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "where is the cash counter", "language": "English", "intent": "DIRECTION", "concept": "COUNTER", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "exit kidhar hai", "language": "Hinglish", "intent": "DIRECTION", "concept": "EXIT", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "where is the exit", "language": "English", "intent": "DIRECTION", "concept": "EXIT", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "bahar jane ka rasta", "language": "Hinglish", "intent": "DIRECTION", "concept": "EXIT", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "water section kahan hai", "language": "Hinglish", "intent": "DIRECTION", "concept": "WHERE", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "where are the shirts", "language": "English", "intent": "DIRECTION", "concept": "WHERE", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "shoes kahan milenge", "language": "Hinglish", "intent": "DIRECTION", "concept": "WHERE", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "grocery kidhar hai", "language": "Hinglish", "intent": "DIRECTION", "concept": "WHERE", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "store kitne baje band hoga", "language": "Hinglish", "intent": "DIRECTION", "concept": "STORE", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "கவுண்ட்டர் எங்கே உள்ளது", "language": "Tamil", "intent": "DIRECTION", "concept": "COUNTER", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "வெளியேறும் வழி எங்கு", "language": "Tamil", "intent": "DIRECTION", "concept": "EXIT", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "where is the billing", "language": "English", "intent": "DIRECTION", "concept": "COUNTER", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "shop exit kidhar hai", "language": "Hinglish", "intent": "DIRECTION", "concept": "EXIT", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "kahan milega", "language": "Hinglish", "intent": "DIRECTION", "concept": "WHERE", "container": null, "quantity": null, "attributes": {}, "paraphrase_group": null}
+{"text": "iska price kitna hai", "language": "Hinglish", "intent": "QUESTION", "concept": "THIS", "container": null, "quantity": 1, "attributes": {"query": "PRICE"}, "paraphrase_group": null}
+{"text": "how much for this", "language": "English", "intent": "QUESTION", "concept": "THIS", "container": null, "quantity": 1, "attributes": {"query": "PRICE"}, "paraphrase_group": null}
+{"text": "iska rate kya hai", "language": "Hinglish", "intent": "QUESTION", "concept": "THIS", "container": null, "quantity": 1, "attributes": {"query": "PRICE"}, "paraphrase_group": null}
+{"text": "aur koi colour hai", "language": "Hinglish", "intent": "AVAILABILITY", "concept": "THIS", "container": null, "quantity": 1, "attributes": {"query": "colour"}, "paraphrase_group": null}
+{"text": "any other color", "language": "English", "intent": "AVAILABILITY", "concept": "THIS", "container": null, "quantity": 1, "attributes": {"query": "colour"}, "paraphrase_group": null}
+{"text": "doosra color dikhao", "language": "Hinglish", "intent": "REQUEST", "concept": "THIS", "container": null, "quantity": 2, "attributes": {"query": "colour"}, "paraphrase_group": null}
+{"text": "aur ek dena", "language": "Hinglish", "intent": "REQUEST", "concept": "THIS", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "give one more", "language": "English", "intent": "REQUEST", "concept": "THIS", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
+{"text": "ek aur pack kar do", "language": "Hinglish", "intent": "REQUEST", "concept": "THIS", "container": null, "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "do de do", "language": "Hinglish", "intent": "REQUEST", "concept": "THIS", "container": null, "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "bada size hai kya", "language": "Hinglish", "intent": "AVAILABILITY", "concept": "THIS", "container": null, "quantity": 1, "attributes": {"size": "LARGE"}, "paraphrase_group": null}
+{"text": "do you have bigger size", "language": "English", "intent": "AVAILABILITY", "concept": "THIS", "container": null, "quantity": 2, "attributes": {"size": "LARGE"}, "paraphrase_group": null}
+{"text": "chhota size dikhaiye", "language": "Hinglish", "intent": "REQUEST", "concept": "THIS", "container": null, "quantity": 1, "attributes": {"size": "SMALL"}, "paraphrase_group": null}
+{"text": "ye wala pack kar do", "language": "Hinglish", "intent": "REQUEST", "concept": "THIS", "container": null, "quantity": 2, "attributes": {}, "paraphrase_group": null}
+{"text": "pack this one please", "language": "English", "intent": "REQUEST", "concept": "THIS", "container": null, "quantity": 1, "attributes": {}, "paraphrase_group": null}
