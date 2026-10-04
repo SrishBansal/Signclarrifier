@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Place clarifysign_bilstm.pt, holistic_landmarker.task, signs.json in ./models/
+# Place these 4 files in ./models/ before running:
+#   clarifysign_bilstm.pt   signs.json   metrics.json   holistic_landmarker.task
 # Then: ./run.sh  ->  http://localhost:8000
 set -e
 PORT="${PORT:-8000}"

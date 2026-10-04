@@ -126,10 +126,14 @@ intent_cues:
     - - how
       - much
   AVAILABILITY:
-    phrases:
+    tokens:
     - milega
+    phrases:
+    - milega kya
     - hai kya
     - irukka
+    - ek bottle water milega
+    - paani milega
     hi_tokens:
     - उपलब्ध
     ta_tokens:

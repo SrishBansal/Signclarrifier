@@ -23,10 +23,6 @@ __all__ = [
     "NaturalLanguageRealizer",
     "SignLibrary",
     "AvatarRenderer",
-    "ASRProvider",
-    "TTSProvider",
-    "MockASRProvider",
-    "MockTTSProvider",
 ]
 
 
@@ -52,7 +48,5 @@ def __getattr__(name: str):
     if name == "AvatarRenderer":
         from .renderer import AvatarRenderer
         return AvatarRenderer
-    if name in ("ASRProvider", "MockASRProvider", "ServerWhisperASRProvider", "TTSProvider", "MockTTSProvider", "ServerTTSProvider"):
-        from .speech import ASRProvider, MockASRProvider, ServerWhisperASRProvider, TTSProvider, MockTTSProvider, ServerTTSProvider
-        return locals()[name]
     raise AttributeError(f"module 'core' has no attribute '{name}'")
+

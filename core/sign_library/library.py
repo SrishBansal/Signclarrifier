@@ -187,7 +187,7 @@ class SignLibrary:
                     "sign_index": seq_idx,
                     "is_transition": True,
                     "progress": 0.0,
-                    "gloss": f"→ {sign_id.upper()}",
+                    "gloss": f"-> {sign_id.upper()}",
                     "status": status
                 })
 
@@ -229,7 +229,7 @@ class SignLibrary:
                 "sign_index": -1,
                 "is_transition": True,
                 "progress": 1.0,
-                "gloss": "→ Rest",
+                "gloss": "-> Rest",
                 "status": "rest"
             })
 

@@ -1,8 +1,11 @@
 """
 ISL Sequence Planner for ClarifySign.
 Implements Rule 1 & Rule 2: Strictly decoupled from natural language.
-Converts SemanticState into an ordered list of concept IDs based on ISL grammar rules.
+Converts SemanticState into an ordered list of CONCEPT IDs based on ISL grammar rules.
 Has NO web or framework dependencies.
+
+IMPORTANT: This planner returns CONCEPT IDs throughout. The server resolves sign_ids
+and sets kind/gloss from the ontology. No entry is ever dropped.
 """
 
 import os
@@ -13,7 +16,12 @@ from .ontology import get_ontology, Ontology
 
 
 class ISLPlanner:
-    """Deterministic grammar planner for Indian Sign Language concept sequences."""
+    """Deterministic grammar planner for Indian Sign Language concept sequences.
+
+    Returns CONCEPT IDs only - the server resolves sign_ids via the ontology.
+    Greeting intent adds HELLO as lead-in, then continues with remaining content.
+    No entry is ever dropped; concepts without signs get kind='nosign' in the server.
+    """
 
     def __init__(self, rules_path: Optional[str] = None, ontology: Optional[Ontology] = None):
         if rules_path is None:
@@ -29,8 +37,29 @@ class ISLPlanner:
         with open(self.rules_path, "r", encoding="utf-8") as f:
             self.rules = yaml.safe_load(f) or {}
 
+    def _qty_concept(self, q: int) -> Optional[str]:
+        """Map integer quantity to a quantity CONCEPT ID via grammar_rules.yaml."""
+        qty_word = self.rules.get("quantity_words", {}).get(q)
+        if qty_word:
+            return str(qty_word).upper()
+        return None
+
+    def _action_concept(self, raw_text: str) -> str:
+        """Return the action CONCEPT ID for REQUEST intents."""
+        if "buy" in (raw_text or "").lower():
+            return "BUY"
+        return "GIVE"
+
     def plan(self, state: SemanticState) -> List[str]:
-        """Translates a SemanticState into an ordered list of ISL concept IDs."""
+        """Translate a SemanticState into an ordered list of CONCEPT IDs.
+
+        Rules:
+        - Returns CONCEPT IDs only, never sign_ids.
+        - Greeting intent adds HELLO as lead-in, then continues planning remaining content.
+        - Social concepts (THANKYOU) in items produce their concept directly.
+        - No entry is ever dropped; concepts without signs keep kind='nosign' in the server.
+        - Ordering: [GREETING] [TOPIC] [CONTAINER] [ATTRS] [QTY] [ACTION] [NEGATION] [QUESTION]
+        """
         sequence: List[str] = []
 
         if not state:
@@ -38,108 +67,128 @@ class ISLPlanner:
 
         intent = state.intent or Intent.UNKNOWN
 
-        # 1. Greetings (GREET intent or social lead)
-        if intent == Intent.GREET:
-            return ["HELLO"]
+        # Pure social intents (CONFIRM / REJECT)
         if intent == Intent.CONFIRM:
             return ["YES"]
         if intent == Intent.REJECT:
             return ["NO"]
 
-        # Collect components
-        greeting_signs = []
-        topic_signs = []
-        container_signs = []
-        attr_signs = []
-        quantity_signs = []
-        action_signs = []
-        negation_signs = []
-        question_signs = []
+        # Detect greeting lead-in and separate social vs content items
+        has_greeting_intent = (intent == Intent.GREET)
+        social_items: List[str] = []
+        content_items = []
+        for it in state.items:
+            cid = it.concept.upper()
+            cat = self.ontology.get_category(cid) if not cid.startswith("OOV_") else None
+            if cat == "social":
+                social_items.append(cid)
+            else:
+                content_items.append(it)
+
+        greeting_prefix: List[str] = []
+        if has_greeting_intent or "HELLO" in social_items:
+            greeting_prefix = ["HELLO"]
+
+        # Pure THANKYOU (no other content)
+        if "THANKYOU" in social_items and not content_items:
+            return ["THANKYOU"]
+
+        # Pure GREET with no content
+        if has_greeting_intent and not content_items and all(s == "HELLO" for s in social_items):
+            return ["HELLO"]
+        if has_greeting_intent and not content_items and not social_items:
+            return ["HELLO"]
+
+        # Collect plan components using CONCEPT IDs
+        topic_concepts: List[str] = []
+        container_concepts: List[str] = []
+        attr_concepts: List[str] = []
+        quantity_concepts: List[str] = []
+        action_concepts: List[str] = []
+        negation_concepts: List[str] = []
+        question_concepts: List[str] = []
 
         # Items & Referents (Topic)
-        if state.items:
-            for item in state.items:
+        items_to_plan = content_items if content_items else state.items
+        if items_to_plan:
+            for item in items_to_plan:
                 cid = item.concept.upper()
                 if cid.startswith("OOV_") or cid.startswith("FS_"):
-                    topic_signs.append(cid)  # OOV: keep as-is, kind=nosign
-                elif cid != "THIS" and cid != "ITEM":
-                    topic_signs.append(self.ontology.get_sign_id(cid))
+                    topic_concepts.append(cid)
+                elif cid not in ("THIS", "ITEM"):
+                    topic_concepts.append(cid)
                 elif state.current_focus_referent:
-                    ref_cid = state.current_focus_referent.upper()
-                    topic_signs.append(self.ontology.get_sign_id(ref_cid))
+                    topic_concepts.append(state.current_focus_referent.upper())
 
                 # Container
                 if item.container:
-                    cont_id = item.container.upper()
-                    container_signs.append(self.ontology.get_sign_id(cont_id))
+                    container_concepts.append(item.container.upper())
 
                 # Attributes (Colour, Size, State)
                 if item.attributes:
                     for k in ("colour", "size", "state"):
                         val = item.attributes.get(k)
                         if val:
-                            attr_signs.append(self.ontology.get_sign_id(str(val).upper()))
+                            attr_concepts.append(str(val).upper())
 
-                # Quantity (In ISL: Topic + Container + Quantity)
+                # Quantity -> concept ID via grammar_rules.yaml
                 if item.quantity is not None:
-                    q_val = item.quantity
-                    qty_word = self.rules.get("quantity_words", {}).get(q_val, str(q_val))
-                    quantity_signs.append(self.ontology.get_sign_id(qty_word))
+                    qc = self._qty_concept(item.quantity)
+                    if qc:
+                        quantity_concepts.append(qc)
 
         elif state.current_focus_referent:
-            topic_signs.append(self.ontology.get_sign_id(state.current_focus_referent.upper()))
+            topic_concepts.append(state.current_focus_referent.upper())
 
         # Intent-driven Actions & Predicates
         if intent == Intent.QUESTION:
-            # Check if asking for price/cost
-            if any(it.concept in ("PRICE", "COST") for it in state.items) or "price" in state.active_attributes:
-                action_signs.append("COST")
-            question_signs.append("QUESTION")
+            if any(it.concept in ("PRICE", "COST") for it in (items_to_plan or [])) or \
+               "price" in (state.active_attributes or {}):
+                action_concepts.append("PRICE")
+            question_concepts.append("QUESTION")
 
         elif intent == Intent.AVAILABILITY:
-            action_signs.append("HAVE")
-            question_signs.append("QUESTION")
+            action_concepts.append("HAVE")
+            question_concepts.append("QUESTION")
 
         elif intent == Intent.PAYMENT:
             pay_concept = None
-            for it in state.items:
-                if it.concept in ("UPI", "CASH", "QR", "CHANGE", "BILL"):
-                    pay_concept = it.concept
+            for it in (items_to_plan or []):
+                cat = self.ontology.get_category(it.concept) if self.ontology.is_valid_concept(it.concept) else None
+                if cat == "commercial":
+                    pay_concept = it.concept.upper()
                     break
-            if pay_concept:
-                action_signs.append(self.ontology.get_sign_id(pay_concept))
-            else:
-                action_signs.append("PAYMENT")
-            
+            action_concepts.append(pay_concept if pay_concept else "PAYMENT")
             if "?" in (state.raw_text or "") or state.polarity == "neutral":
-                question_signs.append("QUESTION")
+                question_concepts.append("QUESTION")
 
         elif intent == Intent.DIRECTION:
-            action_signs.append("WHERE")
-            question_signs.append("QUESTION")
+            action_concepts.append("WHERE")
+            question_concepts.append("QUESTION")
 
-        elif intent == Intent.REQUEST:
-            action_signs.append("BUY" if "buy" in (state.raw_text or "").lower() else "GIVE")
+        elif intent in (Intent.REQUEST, Intent.GREET) and content_items:
+            action_concepts.append(self._action_concept(state.raw_text))
 
-        # Negation handling: Placed after the predicate/action or at end of topic
+        # Negation handling
         if state.negation:
-            negation_signs.append("NO")
+            negation_concepts.append("NO")
 
         # Assemble strictly according to ISL Topic-Comment ordering rules:
-        # [GREETING] -> [TOPIC_ENTITY] -> [CONTAINER] -> [ATTRIBUTES] -> [QUANTITY] -> [ACTION_PREDICATE] -> [NEGATION] -> [QUESTION_MARKER]
+        # [GREETING] [TOPIC_ENTITY] [CONTAINER] [ATTRIBUTES] [QUANTITY]
+        # [ACTION_PREDICATE] [NEGATION] [QUESTION_MARKER]
         sequence = (
-            greeting_signs +
-            topic_signs +
-            container_signs +
-            attr_signs +
-            quantity_signs +
-            action_signs +
-            negation_signs +
-            question_signs
+            greeting_prefix +
+            topic_concepts +
+            container_concepts +
+            attr_concepts +
+            quantity_concepts +
+            action_concepts +
+            negation_concepts +
+            question_concepts
         )
 
         # De-duplicate consecutive identical signs while preserving order
-        deduped = []
+        deduped: List[str] = []
         for s in sequence:
             if not deduped or deduped[-1] != s:
                 deduped.append(s)

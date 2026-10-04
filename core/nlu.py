@@ -2,6 +2,8 @@
 """
 NLU Engine for ClarifySign.
 All cue sets are loaded from ontology.intent_cues; no inline vocabularies.
+Question-mark detection runs on the RAW text (before normalize_text strips punctuation).
+Social concepts (HELLO, THANKYOU) are detected via the ontology category index.
 """
 import re
 from typing import Dict, Any, Optional, List, Callable
@@ -30,16 +32,21 @@ class NLUParser:
         return self._utterance_to_state(utterance, current_state)
 
     def parse_utterance(self, text: str, language: str = "English") -> Utterance:
+        raw_text = text  # preserve for "?" detection
         norm = self.ontology.normalize_text(text)
         tokens = norm.split()
         negation = self._detect_negation(tokens)
-        intent = self._detect_intent(norm, tokens, negation)
+        intent = self._detect_intent(norm, tokens, negation, raw_text)
         referent = self._detect_referent(tokens)
         quantity = self._extract_quantity(norm, tokens)
         attributes = self._extract_attributes(norm, tokens)
         container = self._extract_container(tokens)
         products = self._extract_products(tokens)
+        social = self._extract_social(tokens)   # HELLO, THANKYOU etc.
         items: List[Item] = []
+        # Add social items first (they go into items for planner to detect)
+        for sc in social:
+            items.append(Item(concept=sc))
         if products:
             for p in products:
                 items.append(Item(concept=p, container=container, quantity=quantity, attributes=attributes))
@@ -61,11 +68,20 @@ class NLUParser:
         return set(self._cues.get(intent_key, {}).get("phrases") or [])
 
     def _detect_negation(self, tokens: List[str]) -> bool:
-        # ASCII-only tokens; script-specific words handled by ontology synonym lookup
-        neg = {"nahi", "nahin", "na", "mat", "not", "no", "never", "illai", "vendaam", "dont"}
-        return any(t in neg for t in tokens)
+        # Load negation synonyms from NO concept in ontology
+        no_concept = self.ontology.concepts.get("NO", {})
+        neg_set = set()
+        for syn_list in (no_concept.get("synonyms") or {}).values():
+            for s in (syn_list or []):
+                w = str(s).lower().strip()
+                if w and " " not in w:
+                    neg_set.add(w)
+        # Fallback core tokens always included (structural, not vocabulary)
+        neg_set.update({"nahi", "nahin", "na", "mat", "not", "no", "never", "illai", "vendaam", "dont"})
+        return any(t in neg_set for t in tokens)
 
     def _detect_referent(self, tokens: List[str]) -> Optional[str]:
+        # Referent pronouns - structural function words, not domain vocab
         ref = {"ye", "yeh", "this", "it", "iska", "iski", "iske", "that", "wo", "woh", "uske",
                "idhu", "adhu", "antha"}
         return "THIS" if any(t in ref for t in tokens) else None
@@ -75,11 +91,18 @@ class NLUParser:
         if digits:
             try: return int(digits[0])
             except ValueError: pass
-        qty_map = {"ek": 1, "one": 1, "oru": 1, "do": 2, "two": 2, "rendu": 2,
-                   "teen": 3, "three": 3, "moonu": 3, "chaar": 4, "char": 4, "four": 4,
-                   "paanch": 5, "panch": 5, "five": 5}
+        # Load quantity word mapping from ontology synonym index (ONE, TWO ... FIVE)
+        qty_map: Dict[str, int] = {}
+        for q_concept, q_val in [("ONE", 1), ("TWO", 2), ("THREE", 3), ("FOUR", 4), ("FIVE", 5)]:
+            d = self.ontology.concepts.get(q_concept, {})
+            for syn_list in (d.get("synonyms") or {}).values():
+                for s in (syn_list or []):
+                    w = str(s).lower().strip()
+                    if w and " " not in w:
+                        qty_map[w] = q_val
         for t in tokens:
-            if t in qty_map: return qty_map[t]
+            if t in qty_map:
+                return qty_map[t]
         return None
 
     def _extract_container(self, tokens: List[str]) -> Optional[str]:
@@ -110,12 +133,49 @@ class NLUParser:
                     products.append(cid)
         return products
 
-    def _detect_intent(self, norm: str, tokens: List[str], negation: bool) -> Intent:
+    def _extract_social(self, tokens: List[str]) -> List[str]:
+        """Extract social concepts (HELLO, THANKYOU, etc.) via ontology category 'social'."""
+        social = []
+        for t in tokens:
+            cid = self.ontology.resolve_concept(t)
+            if cid and self.ontology.get_category(cid) == "social" and cid not in social:
+                social.append(cid)
+        # Also check multi-word phrases (e.g. "thank you")
+        norm_joined = " ".join(tokens)
+        for cid in self.ontology.category_index.get("social", []):
+            d = self.ontology.concepts.get(cid, {})
+            for syn_list in (d.get("synonyms") or {}).values():
+                for s in (syn_list or []):
+                    sn = self.ontology.normalize_text(str(s))
+                    if sn and sn in norm_joined and cid not in social:
+                        social.append(cid)
+        # YES and NO are CONFIRM/REJECT sentinels, not display-social
+        return [c for c in social if c not in ("YES", "NO")]
+
+    def _detect_intent(self, norm: str, tokens: List[str], negation: bool, raw_text: str = "") -> Intent:
         def has_tok(key): return bool(self._cue_tokens(key) & set(tokens))
         def has_phrase(key): return any(p in norm for p in self._cue_phrases(key))
 
-        if has_tok("GREET") or has_phrase("GREET"): return Intent.GREET
-        if self.ontology.resolve_concept(norm) == "HELLO": return Intent.GREET
+        # GREET - if only greet tokens are present, return GREET.
+        # If GREET tokens co-occur with QUESTION cues, let QUESTION win so the
+        # planner can add the QUESTION marker while still prepending HELLO.
+        is_greet = has_tok("GREET") or has_phrase("GREET") or (self.ontology.resolve_concept(norm) == "HELLO")
+        bigrams = self._cues.get("QUESTION", {}).get("bigrams", [])
+        has_question = (has_tok("QUESTION") or has_phrase("QUESTION") or
+                        any(all(w in tokens for w in bg) for bg in bigrams))
+        has_avail = has_phrase("AVAILABILITY") or has_tok("AVAILABILITY")
+        if is_greet and not has_question and not has_avail:
+            return Intent.GREET
+        # If greet + question both present, fall through (HELLO added via social items)
+
+        # Pure social (THANKYOU etc.) - detect from ontology
+        social_concepts = self._extract_social(tokens)
+        if social_concepts and all(self.ontology.get_category(c) == "social" for c in social_concepts):
+            # Check it's truly a pure social utterance (no product content)
+            products = self._extract_products(tokens)
+            if not products:
+                # THANKYOU -> INFORM (the planner converts it to [THANKYOU])
+                return Intent.INFORM
 
         cues = self._cues
         max_confirm = cues.get("CONFIRM", {}).get("max_tokens", 3)
@@ -126,18 +186,30 @@ class NLUParser:
 
         if has_tok("PAYMENT") or has_phrase("PAYMENT"): return Intent.PAYMENT
 
-        bigrams = cues.get("QUESTION", {}).get("bigrams", [])
+        bigrams_q = self._cues.get("QUESTION", {}).get("bigrams", [])
         if has_tok("QUESTION") or has_phrase("QUESTION") or any(
-                all(w in tokens for w in bg) for bg in bigrams):
+                all(w in tokens for w in bg) for bg in bigrams_q):
             return Intent.QUESTION
 
-        if has_phrase("AVAILABILITY") or has_tok("AVAILABILITY"): return Intent.AVAILABILITY
+        # AVAILABILITY detection: check raw text for "?" plus availability phrase, or cue tokens
+        has_q_mark = "?" in raw_text
+        if has_phrase("AVAILABILITY") or has_tok("AVAILABILITY"):
+            return Intent.AVAILABILITY
+        # "paani hai?" / "blue shirt medium mein hai?" -> AVAILABILITY
+        if has_q_mark and has_tok("QUESTION_WORDS"):
+            pass  # falls through to QUESTION below
+        if has_q_mark:
+            # Check if asking about existence vs price
+            price_tok = self._cue_tokens("QUESTION")
+            if price_tok & set(tokens):
+                return Intent.QUESTION
+            return Intent.AVAILABILITY
 
         if has_tok("DIRECTION"): return Intent.DIRECTION
 
         if has_phrase("REQUEST") or has_tok("REQUEST"): return Intent.REQUEST
 
-        if "?" in norm or has_tok("QUESTION_WORDS"): return Intent.QUESTION
+        if has_tok("QUESTION_WORDS"): return Intent.QUESTION
 
         return Intent.REQUEST if any(w in norm for w in ("chahiye", "give", "de ")) else Intent.INFORM
 
@@ -159,15 +231,23 @@ class NLUParser:
                               negation=utterance.negation, polarity=utterance.polarity,
                               confidence=utterance.confidence, raw_text=utterance.text,
                               language=utterance.language)
-        if utterance.items and utterance.items[0].concept not in ("THIS", "ITEM"):
-            state.current_focus_referent = utterance.items[0].concept
+        # Identify non-social items for referent tracking
+        non_social = [it for it in utterance.items
+                      if self.ontology.get_category(it.concept) != "social"]
+        if non_social and non_social[0].concept not in ("THIS", "ITEM"):
+            state.current_focus_referent = non_social[0].concept
         elif utterance.referent and current_state and current_state.current_focus_referent:
             state.current_focus_referent = current_state.current_focus_referent
             if state.items:
-                state.items[0].concept = current_state.current_focus_referent
+                # Replace placeholder THIS/ITEM with actual referent
+                for it in state.items:
+                    if it.concept in ("THIS", "ITEM"):
+                        it.concept = current_state.current_focus_referent
         if state.items:
-            state.quantity = state.items[0].quantity
-            state.active_attributes = state.items[0].attributes
+            non_social_items = [it for it in state.items if self.ontology.get_category(it.concept) != "social"]
+            if non_social_items:
+                state.quantity = non_social_items[0].quantity
+                state.active_attributes = non_social_items[0].attributes
         elif current_state:
             state.current_focus_referent = current_state.current_focus_referent
         if current_state:

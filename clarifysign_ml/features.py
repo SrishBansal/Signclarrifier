@@ -7,12 +7,17 @@ Layout (225 dims): left hand 63 | right hand 63 | pose 99.
 - Detector runs in IMAGE mode per frame (no tracking state), so train and serve behave identically.
 - Feed UNMIRRORED frames. If the browser preview is mirrored, send the raw frame, not the mirrored one.
 """
+import os
 import numpy as np
 
 FEATURE_DIM = 225
 SEQ_LEN = 48
 LH, RH, POSE = slice(0, 63), slice(63, 126), slice(126, 225)
 ACT_Y = 1.3  # a wrist higher than this (shoulder widths below shoulder line) counts as "signing". Verify per dataset.
+
+# Training data was extracted at 16:9 (y multiplied by 1.8 in Kaggle notebook).
+# Live webcam frames may differ; LandmarkExtractor scales y to match.
+FEATURE_ASPECT = float(os.environ.get("FEATURE_ASPECT", str(16.0 / 9.0)))
 
 
 def _arr(lms, n):
@@ -96,18 +101,48 @@ class LandmarkExtractor:
             output_segmentation_mask=False,
         )
         self.det = vision.HolisticLandmarker.create_from_options(opts)
-        self.last = {"lh": False, "rh": False, "pose": False}
+        self.last = {"lh": False, "rh": False, "pose": False, "aspect": None, "y_scale": 1.0}
 
     def __call__(self, frame_bgr):
         import cv2
+        h, w = frame_bgr.shape[:2]
+        aspect = w / h if h > 0 else 1.0
+        # Scale y coordinates so that training-time aspect ratio is reproduced.
+        # k = 1.0 for 16:9 frames; k ~ 1.33 for 4:3 frames.
+        k = FEATURE_ASPECT / aspect if aspect > 1e-3 else 1.0
+
         rgb = np.ascontiguousarray(cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB))
         res = self.det.detect(self._mp.Image(image_format=self._mp.ImageFormat.SRGB, data=rgb))
+
+        def _scale_y(lm_list):
+            """Return a copy of landmark list with y * k."""
+            if not lm_list:
+                return lm_list
+            # MediaPipe landmark objects are NormalizedLandmark; wrap as simple objects
+            class _LM:
+                __slots__ = ("x", "y", "z")
+                def __init__(self, x, y, z):
+                    self.x = x; self.y = y; self.z = z
+            scaled = []
+            for grp in ([lm_list] if not hasattr(lm_list[0], "__iter__") else lm_list):
+                try:
+                    scaled.append([_LM(lm.x, lm.y * k, lm.z) for lm in grp])
+                except TypeError:
+                    scaled.append([_LM(lm.x, lm.y * k, lm.z) for lm in lm_list])
+                    break
+            return scaled if scaled else lm_list
+
+        lh = _scale_y(res.left_hand_landmarks) if res.left_hand_landmarks else None
+        rh = _scale_y(res.right_hand_landmarks) if res.right_hand_landmarks else None
+        pose = _scale_y(res.pose_landmarks) if res.pose_landmarks else None
+
         self.last = {"lh": bool(res.left_hand_landmarks), "rh": bool(res.right_hand_landmarks),
-                     "pose": bool(res.pose_landmarks)}
-        return landmarks_to_features(res.left_hand_landmarks, res.right_hand_landmarks, res.pose_landmarks)
+                     "pose": bool(res.pose_landmarks), "aspect": round(aspect, 3), "y_scale": round(k, 4)}
+        return landmarks_to_features(lh, rh, pose)
 
     def close(self):
         self.det.close()
+
 
 
 def extract_video(path, extractor, max_width=640, target_fps=15.0):

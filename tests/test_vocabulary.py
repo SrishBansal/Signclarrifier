@@ -73,7 +73,10 @@ def test_no_non_ascii_string_literals_in_source():
     assert not violations, "Non-ASCII string literals in source:\n" + "\n".join(violations[:10])
 
 def test_no_large_inline_string_collections():
-    """No set/list/dict literals with >=5 string constants in domain Python files."""
+    """No set/list/dict literals with >=5 string constants in domain Python files.
+    For ast.Dict, only the VALUES are checked (not keys), since metadata dicts
+    with string keys (like sign metadata) are structural, not vocabulary collections.
+    """
     violations = []
     for fp in _py_files():
         if not _is_domain(fp):
@@ -84,10 +87,16 @@ def test_no_large_inline_string_collections():
         except SyntaxError:
             continue
         for node in ast.walk(tree):
-            if isinstance(node, (ast.Set, ast.List, ast.Dict)):
-                elts = [k for k in node.keys if k is not None] if isinstance(node, ast.Dict) else node.elts
-                str_elts = [e for e in elts if isinstance(e, ast.Constant) and isinstance(e.value, str)]
+            if isinstance(node, (ast.Set, ast.List)):
+                str_elts = [e for e in node.elts if isinstance(e, ast.Constant) and isinstance(e.value, str)]
                 if len(str_elts) >= 5:
                     rel = fp.relative_to(ROOT)
                     violations.append(f"{rel}:{node.lineno}: {len(str_elts)} strings")
+            elif isinstance(node, ast.Dict):
+                # Only check VALUES, not keys — metadata dicts with string keys are structural
+                str_vals = [v for v in node.values if v is not None and isinstance(v, ast.Constant) and isinstance(v.value, str)]
+                if len(str_vals) >= 5:
+                    rel = fp.relative_to(ROOT)
+                    violations.append(f"{rel}:{node.lineno}: {len(str_vals)} string values")
     assert not violations, "Large inline string literals in domain source:\n" + "\n".join(violations[:15])
+

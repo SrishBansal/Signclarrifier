@@ -447,6 +447,82 @@ def test_canonical_signature():
           f"sig1_intent={sig1['intent']}, sig2_intent={sig2['intent']}")
 
 
+# ── 9. Step 2 Acceptance Tests ────────────────────────────────────────────
+def test_step2_acceptance():
+    """STEP 2 required acceptance tests."""
+    ont = get_ontology()
+    parser = NLUParser(ont)
+    planner = ISLPlanner(ontology=ont)
+
+    # (A) Three paraphrases give the same canonical_signature:
+    #     intent=REQUEST, WATER, container=BOTTLE, quantity=1
+    paraphrases = [
+        ("Mujhe ek bottle paani chahiye", "Hinglish"),
+        ("Bhai ek bottle paani dena", "Hinglish"),
+        ("Mujhe paani ki bottle chahiye", "Hinglish"),
+    ]
+    sigs = [parser.parse(t, l).canonical_signature() for t, l in paraphrases]
+    for i, sig in enumerate(sigs):
+        concepts = [it["concept"] for it in sig.get("items", [])]
+        check(f"step2_paraphrase_{i}_water", "WATER" in concepts, f"sig={sig}")
+        check(f"step2_paraphrase_{i}_bottle",
+              any(it.get("container") == "BOTTLE" for it in sig.get("items", [])),
+              f"sig={sig}")
+
+    # (B) Availability for water questions
+    av1 = parser.parse("Ek bottle water milega?", "Hinglish")
+    check("step2_availability_milega", av1.intent == Intent.AVAILABILITY,
+          f"intent={av1.intent}")
+    av2 = parser.parse("Bhai paani hai?", "Hinglish")
+    check("step2_availability_hai", av2.intent == Intent.AVAILABILITY,
+          f"intent={av2.intent}")
+
+    # (C) "hello blue shirt price kitna hai" -> plan starts HELLO, contains SHIRT, BLUE, QUESTION
+    hello_state = parser.parse("hello blue shirt price kitna hai", "Hinglish")
+    hello_plan = planner.plan(hello_state)
+    check("step2_hello_lead_in", hello_plan and hello_plan[0] == "HELLO",
+          f"plan={hello_plan}")
+    check("step2_hello_shirt_in_plan", "SHIRT" in hello_plan,
+          f"plan={hello_plan}")
+    check("step2_hello_blue_in_plan", "BLUE" in hello_plan,
+          f"plan={hello_plan}")
+    check("step2_hello_question_marker", "QUESTION" in hello_plan,
+          f"plan={hello_plan}")
+
+    # (D) "Bhai mujhe ek bottle paani chahiye" -> plan has WATER, BOTTLE, ONE, GIVE, none dropped
+    full_state = parser.parse("Bhai mujhe ek bottle paani chahiye", "Hinglish")
+    full_plan = planner.plan(full_state)
+    check("step2_water_in_plan", "WATER" in full_plan, f"plan={full_plan}")
+    check("step2_bottle_in_plan", "BOTTLE" in full_plan, f"plan={full_plan}")
+    check("step2_one_in_plan", "ONE" in full_plan, f"plan={full_plan}")
+    check("step2_give_in_plan", "GIVE" in full_plan, f"plan={full_plan}")
+
+    # (E) Social concepts
+    ty_state = parser.parse("thank you", "English")
+    ty_plan = planner.plan(ty_state)
+    check("step2_thankyou_plan", ty_plan == ["THANKYOU"],
+          f"plan={ty_plan}")
+
+    nm_state = parser.parse("namaste", "Hinglish")
+    nm_plan = planner.plan(nm_state)
+    check("step2_namaste_hello", nm_plan == ["HELLO"],
+          f"plan={nm_plan}")
+
+    # (F) Multi-turn: "iska price kitna hai" after "red pen chahiye" -> PEN in plan
+    dm = DialogueManager(ont)
+    pen_state = parser.parse("red pen chahiye", "Hinglish")
+    dm.update_from_shopkeeper(pen_state)
+    price_state = parser.parse("iska price kitna hai", "Hinglish")
+    price_dm_state = dm.update_from_shopkeeper(price_state)
+    price_plan = planner.plan(price_dm_state)
+    check("step2_multiturn_pen_focus",
+          price_dm_state.current_focus_referent == "PEN",
+          f"focus={price_dm_state.current_focus_referent}")
+    check("step2_multiturn_pen_in_plan",
+          "PEN" in price_plan,
+          f"plan={price_plan}")
+
+
 # ── Run all ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     test_ontology()
@@ -457,6 +533,7 @@ if __name__ == "__main__":
     test_eval()
     test_no_sentence_to_animation()
     test_canonical_signature()
+    test_step2_acceptance()
 
     print(f"\n{'='*60}")
     print(f"SEMANTIC CORE TESTS: {passed} passed, {failed} failed")
@@ -464,4 +541,4 @@ if __name__ == "__main__":
     if failed > 0:
         sys.exit(1)
     else:
-        print("ALL SEMANTIC CORE TESTS PASSED ✓")
+        print("ALL SEMANTIC CORE TESTS PASSED")

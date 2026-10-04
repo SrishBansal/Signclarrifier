@@ -186,7 +186,7 @@ async function start(){
   if(CFG&&!CFG.recognition_ready){setStatus("error");return}
   inflight=false;
   if(watchdogTimer){clearTimeout(watchdogTimer);watchdogTimer=null;}
-  try{stream=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480},audio:false})}
+  try{stream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720}},audio:false})}
   catch(e){setStatus("error");say($("banner"),"Camera permission was denied.","note err");return}
   $("cam").srcObject=stream;
   say($("banner"),"","note");
