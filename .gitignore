@@ -3,3 +3,5 @@ __pycache__/
 tests/output/
 .DS_Store
 models/*.bak
+research_data/
+learning_queue/

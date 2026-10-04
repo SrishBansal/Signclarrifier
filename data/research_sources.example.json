@@ -1,0 +1,23 @@
+[
+  {
+    "dataset": "iSign",
+    "purpose": "continuous ISL pose/text research",
+    "license": "CC BY-NC-SA 4.0",
+    "access": "gated researcher acceptance required",
+    "split_group": "video_id"
+  },
+  {
+    "dataset": "ISLTranslate",
+    "purpose": "continuous ISL-English pose/text research",
+    "license": "CC BY-NC",
+    "access": "follow source download terms",
+    "split_group": "source_video_id"
+  },
+  {
+    "dataset": "CISLR",
+    "purpose": "isolated ISL vocabulary recognition",
+    "license": "CC BY-NC",
+    "access": "follow source download terms",
+    "split_group": "signer_or_recording_session"
+  }
+]
