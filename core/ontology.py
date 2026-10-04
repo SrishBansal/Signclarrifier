@@ -23,6 +23,7 @@ class Ontology:
         self._lang_meta: List[Dict[str, Any]] = []
         self.intent_cues: Dict[str, Any] = {}
         self.templates: Dict[str, Dict[str, str]] = {}
+        self.customer_templates: Dict[str, Dict[str, str]] = {}
         self.load()
 
     # ── load & validate ───────────────────────────────────────────────────────
@@ -33,6 +34,8 @@ class Ontology:
         self._lang_meta = data.get("languages", [])
         self.intent_cues = data.get("intent_cues", {})
         self.templates = data.get("templates", {})
+        self.customer_templates = data.get("customer_templates", {})
+
 
         # Load include_classes for validation
         inc_path = os.path.join(os.path.dirname(self.yaml_path), "include_classes.txt")

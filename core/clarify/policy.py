@@ -42,7 +42,10 @@ class Dialogue:
         q = plan(self.cand, self.asked, self.cfg)
         if q is None or q["ig"] < self.cfg.get("min_gain", 0.05) or self.turn >= self.cfg.get("max_turns", 2):
             best = max(self.cand, key=self.cand.get)
-            return {"action": "resolved", "concept": best, "how": "best_guess"} if self.turn else {"action": "resign"}
+            # Resolve as best_guess when top1 is decent; resign only when truly uncertain
+            if self.unc["top1"] >= self.cfg.get("best_guess_p", 0.40):
+                return {"action": "resolved", "concept": best, "how": "best_guess"}
+            return {"action": "resign"}
         self.q = q
         self.asked.append(q["id"])
         self.turn += 1

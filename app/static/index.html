@@ -45,8 +45,8 @@ details{margin:0 20px 24px;max-width:1160px;margin-inline:auto}details pre{white
 .gloss-pill{background:#2a2e39;color:#a0aec0;border:1px solid #3c4250;border-radius:12px;padding:3px 10px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s}
 .gloss-pill.active{background:#3182ce;color:#fff;border-color:#63b3ed;box-shadow:0 0 10px rgba(66,153,225,0.7);transform:scale(1.06)}
 .gloss-pill.passed{background:#1a202c;color:#718096;border-color:#2d3748}
-.gloss-pill.unknown{border-color:#ed8936}
-.gloss-pill.unknown.active{background:#dd6b20;border-color:#fbd38d}
+.gloss-pill.nosign{border-color:#ed8936;color:#ed8936}
+.gloss-pill.nosign.active{background:#dd6b20;color:#fff;border-color:#fbd38d}
 .fab{position:absolute;right:14px;bottom:10px;display:flex;gap:8px;align-items:center}
 .fab button{width:40px;height:40px;border-radius:50%;background:#f2a65a;border:none;color:#222;font-size:18px;padding:0;cursor:pointer}
 .fab button:disabled{opacity:0.4;cursor:default}
@@ -55,6 +55,14 @@ details{margin:0 20px 24px;max-width:1160px;margin-inline:auto}details pre{white
 .asr-badge .conf{background:#0284c7;color:#fff;border-radius:4px;padding:2px 6px;font-weight:700;font-size:11px}
 .asr-badge .hint{color:#94a3b8;font-size:12px}
 .stage .pill{position:absolute;left:14px;top:6px;background:#2b2e36;color:#ddd;border-color:#3a3e49}
+.nosign-note{font-size:13px;color:#ed8936;padding:4px 14px;text-align:center}
+.hud{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 0;margin-top:8px;border-top:1px solid var(--line)}
+.hud-chip{font-size:12px;font-weight:700;padding:3px 8px;border-radius:8px;border:1px solid var(--line);background:var(--bg)}
+.hud-chip.ok{background:#dcfce7;color:#15803d;border-color:#86efac}
+.hud-chip.no{background:#fee2e2;color:#b91c1c;border-color:#fca5a5}
+.hud-chip.live{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}
+.hud-chip.prov{background:#f0fdf4;color:#166534;border-radius:6px;font-size:11px}
+.pose-hint{font-size:13px;color:var(--warn);margin-top:6px;display:none}
 .hide{display:none}
 </style>
 </head>
@@ -78,6 +86,17 @@ details{margin:0 20px 24px;max-width:1160px;margin-inline:auto}details pre{white
       <button id="reset" style="margin-top:12px" disabled>Reset</button>
     </div>
     <div class="note" id="banner"></div>
+    <!-- Always-visible HUD driven by diag events -->
+    <div class="hud" id="hud">
+      <span class="hud-chip" id="hud-pose">Pose –</span>
+      <span class="hud-chip" id="hud-lh">LH –</span>
+      <span class="hud-chip" id="hud-rh">RH –</span>
+      <span class="hud-chip live" id="hud-state">watching</span>
+      <span class="hud-chip" id="hud-fps">– fps</span>
+      <span class="hud-chip" id="hud-wrist">wrist –</span>
+      <span class="hud-chip" id="hud-prov" style="display:none"></span>
+    </div>
+    <div class="pose-hint" id="pose-hint">Sit back so your head, shoulders and both hands are in view, with good light.</div>
   </section>
   <section class="card">
     <strong>Conversation</strong>
@@ -109,6 +128,7 @@ details{margin:0 20px 24px;max-width:1160px;margin-inline:auto}details pre{white
       <canvas id="cv" width="520" height="620"></canvas>
       <div class="caption" id="caption"></div>
       <div class="gloss-strip" id="gloss-strip"></div>
+      <div class="nosign-note" id="nosign-note" style="display:none"></div>
       <div class="fab">
         <select class="spd-sel" id="spd" title="Animation speed">
           <option value="0.5">0.5×</option>
@@ -135,6 +155,7 @@ details{margin:0 20px 24px;max-width:1160px;margin-inline:auto}details pre{white
 const $=id=>document.getElementById(id);
 const STATUS={idle:"Ready",listening:"Watching for a sign",signing:"Recognizing…",interpreting:"Working out the meaning…",clarifying:"I need to check something",resolved:"Got it",speaking:"Speaking…",voice:"Listening to you…",generating:"Preparing the sign…",error:"Something went wrong"};
 let CFG=null,ws=null,stream=null,timer=null,watchdogTimer=null,inflight=false,lang=localStorage.getItem("lang")||"en";
+let _poseOkSince=null,_poseHintTimer=null,_warnShown=false;
 const SID=(()=>{let s=sessionStorage.getItem("sid");if(!s){s=crypto.randomUUID();sessionStorage.setItem("sid",s);}return s;})();
 
 function setStatus(k,tone){const t=STATUS[k]||k;$("status").textContent=t;$("status2").textContent=t;
@@ -245,22 +266,44 @@ function ask(q){setStatus("clarifying","warn");const box=$("askbox");box.innerHT
   q.options.forEach(o=>{const b=document.createElement("button");b.textContent=o.text_lang?`${o.label} · ${o.text_lang}`:o.label;
     b.onclick=()=>{box.innerHTML="";ws.send(JSON.stringify({type:"answer",value:o.value}));setStatus("interpreting")};d.querySelector(".opts").appendChild(b)});
   box.appendChild(d)}
+function updateHud(d){
+  const chip=(id,ok,label)=>{const el=$(id);if(!el)return;el.textContent=label;el.className='hud-chip '+(ok?'ok':'no');}
+  chip('hud-pose',d.pose,'Pose '+(d.pose?'✓':'✗'));
+  chip('hud-lh',d.lh,'LH '+(d.lh?'✓':'✗'));
+  chip('hud-rh',d.rh,'RH '+(d.rh?'✓':'✗'));
+  const st=$("hud-state");if(st){st.textContent=d.state||'watching';st.className='hud-chip live';}
+  const fp=$("hud-fps");if(fp)fp.textContent=(d.fps||0)+' fps';
+  const wr=$("hud-wrist");if(wr){
+    if(d.wrist_y!=null)wr.textContent='wrist '+d.wrist_y.toFixed(2)+(d.act_y?' / '+d.act_y:'');
+    else wr.textContent='wrist –';
+  }
+  // Pose-missing hint
+  const hint=$("pose-hint");
+  if(hint){if(!d.pose){if(!_poseHintTimer)_poseHintTimer=setTimeout(()=>{hint.style.display='';_poseHintTimer=null},2000);}else{if(_poseHintTimer){clearTimeout(_poseHintTimer);_poseHintTimer=null}hint.style.display='none';}}
+}
 async function onEvent(e){
   if(e.research||e.top){$("rsout").textContent=JSON.stringify(e.research||{top:e.top},null,2)}
   if(e.type==="ack"){inflight=false;if(watchdogTimer){clearTimeout(watchdogTimer);watchdogTimer=null}return}
-  if(e.type==="diag"){}
+  if(e.type==="diag"){if(e.research)updateHud(e.research);return}
   else if(e.type==="state"){setStatus(e.state)}
   else if(e.type==="provisional"){
     if(e.top&&e.top.length>0){
       const top1=e.top[0];
       setStatus("Recognizing… "+top1.label+" ("+Math.round(top1.p*100)+"%)","live");
+      // Show provisional top-3 as chips in HUD
+      const prov=$("hud-prov");
+      if(prov){prov.style.display='';prov.textContent=e.top.slice(0,3).map(t=>t.label+' '+Math.round(t.p*100)+'%').join(' | ');}
     }
   }
   else if(e.type==="clarify"){ask(e.question)}
   else if(e.type==="resolved"){$("askbox").innerHTML="";setStatus("resolved","live");
     addMsg(`<div class="sub">You signed</div><div class="big">${esc(e.text)}</div><div class="sub">${esc(e.english)}${e.how==="best_guess"?" · best guess":""}</div>`);
+    const prov=$("hud-prov");if(prov)prov.style.display='none';
     if($("auto").checked)await speak(e.text,e.tag);setStatus("listening")}
-  else if(e.type==="resign"){$("askbox").innerHTML="";addMsg(`<div class="sub">${esc(e.message)}</div>`);setStatus("listening")}
+  else if(e.type==="resign"){$("askbox").innerHTML="";
+    addMsg(`<div class="sub">${esc(e.message||"Sign not recognised. Please try again.")}</div>`);
+    setStatus("listening")}
+  else if(e.type==="warn"){if(!_warnShown){_warnShown=true;say($("banner"),e.message,"note");setTimeout(()=>{_warnShown=false;say($("banner"),"","note")},5000);}return}
   else if(e.type==="error"){setStatus("error");say($("banner"),e.message,"note err");stop(false,false)}
 }
 

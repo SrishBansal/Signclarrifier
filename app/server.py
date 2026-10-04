@@ -1,8 +1,8 @@
 """FastAPI shell. All logic lives in core/. No app/semantics or app/clarify imports."""
-import os, json, asyncio, time, uuid
+import io, os, json, asyncio, time, uuid, logging
 import numpy as np, cv2
 from fastapi import FastAPI, WebSocket, Query
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from starlette.staticfiles import StaticFiles
 
 from core.ontology import get_ontology
@@ -12,11 +12,16 @@ from core.planner import ISLPlanner, get_planner
 from core.semantics import NaturalLanguageRealizer
 from .session import SignSession
 
+log = logging.getLogger("clarifysign.server")
+
 HERE = os.path.dirname(__file__)
 MODEL  = os.environ.get("MODEL_PATH",  "models/clarifysign_bilstm.pt")
 TASK   = os.environ.get("TASK_PATH",   "models/holistic_landmarker.task")
 SIGNS  = os.environ.get("SIGNS_PATH",  "models/signs.json")
 PORT   = int(os.environ.get("PORT", "8000"))
+
+# Global last-frame store: sid -> (jpeg_bytes, landmarks_bgr)
+_last_frames: dict = {}
 
 
 def _boot_check(recognizer, ontology):
@@ -52,11 +57,23 @@ def _get_dm(sid: str) -> DialogueManager:
         _sessions[sid] = (DialogueManager(ont), now)
     dm, _ = _sessions[sid]
     _sessions[sid] = (dm, now)
-    # Evict stale
     stale = [k for k, (_, t) in _sessions.items() if now - t > _SESSION_TTL]
     for k in stale:
         del _sessions[k]
     return dm
+
+
+def _draw_landmarks(bgr, ext):
+    """Draw detected landmarks on bgr frame using ext.last metadata (best-effort)."""
+    if bgr is None:
+        return bgr
+    out = bgr.copy()
+    last = getattr(ext, "last", {})
+    color = (0, 255, 0) if last.get("pose") else (0, 0, 255)
+    h, w = out.shape[:2]
+    label = f"pose={'Y' if last.get('pose') else 'N'} lh={'Y' if last.get('lh') else 'N'} rh={'Y' if last.get('rh') else 'N'}"
+    cv2.putText(out, label, (8, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+    return out
 
 
 def create_app(recognizer=None, reason="", extractor_factory=None):
@@ -104,8 +121,7 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
         language = lang_names.get(lang, "English")
         parsed = nlu.parse(text, language, dm.get_state())
         state = dm.update_from_shopkeeper(parsed)
-        plan_items = planner.plan(state)   # list of concept strings
-        # Build plan as dicts with sign_id, gloss, kind
+        plan_items = planner.plan(state)
         plan_dicts = []
         for cid in plan_items:
             if cid is None: continue
@@ -129,6 +145,20 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
             return JSONResponse({"error": "signs.json missing."}, 404)
         return FileResponse(SIGNS, media_type="application/json")
 
+    @app.get("/api/debug/last_frame")
+    def debug_last_frame(sid: str = Query("")):
+        """Return the last received JPEG frame with landmarks drawn, for debugging."""
+        entry = _last_frames.get(sid)
+        if entry is None:
+            # Return a blank 320x240 gray JPEG with a message
+            blank = np.full((240, 320, 3), 80, dtype=np.uint8)
+            cv2.putText(blank, "No frame yet", (60, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2)
+            ok, buf = cv2.imencode(".jpg", blank)
+            return StreamingResponse(io.BytesIO(buf.tobytes()), media_type="image/jpeg")
+        annotated_bgr = entry
+        ok, buf = cv2.imencode(".jpg", annotated_bgr)
+        return StreamingResponse(io.BytesIO(buf.tobytes()), media_type="image/jpeg")
+
     @app.websocket("/ws/sign")
     async def ws_sign(ws: WebSocket, sid: str = Query("")):
         await ws.accept()
@@ -137,23 +167,32 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
         if recognizer is None:
             await ws.send_json({"type": "error", "message": reason}); await ws.close(); return
         dm = _get_dm(sid)
-        sess = SignSession(recognizer, extractor_factory(), dm=dm, decode=dec)
+        ext = extractor_factory()
+        sess = SignSession(recognizer, ext, dm=dm, decode=dec)
         loop = asyncio.get_running_loop()
         await ws.send_json({"type": "state", "state": "listening"})
+        _warn_shown = set()
         try:
             while True:
                 msg = await ws.receive()
                 if msg["type"] == "websocket.disconnect":
                     break
                 if msg.get("bytes"):
+                    raw_bytes = msg["bytes"]
                     try:
-                        img = dec(msg["bytes"])
-                        events = await loop.run_in_executor(None, sess.on_frame, msg["bytes"]) if img is not None else []
+                        img = dec(raw_bytes)
+                        events = await loop.run_in_executor(None, sess.on_frame, raw_bytes) if img is not None else []
+                        # Store annotated last frame for /api/debug/last_frame
+                        if img is not None:
+                            _last_frames[sid] = _draw_landmarks(img, ext)
                         for e in events:
                             await ws.send_json(e)
                     except Exception as ex:
-                        import logging; logging.exception("frame error: %s", ex)
-                        await ws.send_json({"type": "error", "message": f"Frame error: {ex}"})
+                        log.warning("frame error sid=%s: %s", sid, ex)
+                        warn_key = str(type(ex).__name__)
+                        if warn_key not in _warn_shown:
+                            _warn_shown.add(warn_key)
+                            await ws.send_json({"type": "warn", "message": f"Frame processing issue: {ex}"})
                     await ws.send_json({"type": "ack"})
                 elif msg.get("text"):
                     try:
@@ -167,13 +206,14 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
                         elif mtype == "reset":
                             sess.reset(); await ws.send_json({"type": "state", "state": "listening"})
                         else:
-                            await ws.send_json({"type": "error", "message": f"Unknown type: {mtype}"})
+                            await ws.send_json({"type": "warn", "message": f"Unknown type: {mtype}"})
                     except Exception as ex:
-                        import logging; logging.exception("ws msg error: %s", ex)
-                        await ws.send_json({"type": "error", "message": str(ex)})
+                        log.exception("ws msg error: %s", ex)
+                        await ws.send_json({"type": "warn", "message": str(ex)})
         finally:
-            close = getattr(sess.ext, "close", None)
+            close = getattr(ext, "close", None)
             if close: close()
+            _last_frames.pop(sid, None)
 
     return app
 

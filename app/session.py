@@ -1,15 +1,22 @@
 """Per-connection logic. Imports from core only; no app.semantics / app.clarify."""
+import os
 import time
+import logging
 import numpy as np
 from clarifysign_ml.stream import StreamingSession
-from clarifysign_ml.features import POSE, LH, RH, frame_activity
+from clarifysign_ml.features import POSE, LH, RH, frame_activity, ACT_Y as _DEFAULT_ACT_Y
 from core.clarify import Dialogue, uncertainty
 from core.ontology import get_ontology
 from core.dialogue import DialogueManager
 from core.semantics import NaturalLanguageRealizer
 
+log = logging.getLogger("clarifysign.session")
+
 # language code -> (name, BCP-47 tag)
 _LANG_MAP = {"en": ("English", "en-IN"), "hi": ("Hindi", "hi-IN"), "ta": ("Tamil", "ta-IN")}
+
+# ACT_Y overridable by env; default unchanged
+_ACT_Y = float(os.environ.get("ACT_Y", str(_DEFAULT_ACT_Y)))
 
 
 class SignSession:
@@ -28,6 +35,11 @@ class SignSession:
         self._n = 0
         self.dialogue_start_time = None
         self.clarify_timeout = clarify_timeout
+        # Per-second server log stats
+        self._stat_t = time.time()
+        self._stat_frames = 0
+        self._stat_pose = 0; self._stat_lh = 0; self._stat_rh = 0
+        self._stat_wrist_min = float("inf"); self._stat_wrist_max = float("-inf")
 
     def _probs(self, seq48):
         return self.rec.probs(seq48)
@@ -50,25 +62,33 @@ class SignSession:
         """Build Direction B resolved event from concept_id (a sign_id / INCLUDE class)."""
         ont_concept = self.ont.concept_for_sign(concept_id)
         if ont_concept is None:
-            # sign_id not in ontology — should be blocked at boot, but guard anyway
             ont_concept = concept_id.upper()
-        real = NaturalLanguageRealizer.realize(self.dm.state, _LANG_MAP[self.lang][0], self.ont)
+        lang_name = _LANG_MAP[self.lang][0]
+        real = NaturalLanguageRealizer.realize(
+            self.dm.state, lang_name, self.ont, perspective="customer"
+        )
+        text = real["text"]
+        # Fallback: if realizer returned empty, use the sign's label in selected language
+        if not text or not text.strip():
+            if self.ont.is_valid_concept(ont_concept):
+                text = self._label(ont_concept)
+            else:
+                text = concept_id.lower()
         _name, tag = _LANG_MAP.get(self.lang, ("English", "en-IN"))
         return {"type": "resolved", "label": concept_id, "concept": ont_concept,
-                "how": how, "text": real["text"],
+                "how": how, "text": text,
                 "english": self.ont.label(ont_concept, "en") if self.ont.is_valid_concept(ont_concept) else concept_id,
                 "lang": self.lang, "tag": tag, "research": diag}
 
     def _events_from_action(self, act, probs, diag):
         if act["action"] == "resolved":
-            concept_id = act["concept"]  # this is a recognizer class = sign_id
-            # Apply to dialogue manager
+            concept_id = act["concept"]
             try:
-                dm_res = self.dm.update_from_deaf_sign(concept_id, probs[self.rec.classes.index(concept_id)]
-                                                       if concept_id in self.rec.classes else 1.0,
-                                                       _LANG_MAP[self.lang][0])
+                self.dm.update_from_deaf_sign(concept_id, probs[self.rec.classes.index(concept_id)]
+                                              if concept_id in self.rec.classes else 1.0,
+                                              _LANG_MAP[self.lang][0])
             except (ValueError, KeyError):
-                dm_res = None
+                pass
             self.dialogue = None
             self.dialogue_start_time = None
             return [self._resolved_event(concept_id, act["how"], diag)]
@@ -76,7 +96,6 @@ class SignSession:
             opts = []
             for o in act["question"]["options"]:
                 o = dict(o)
-                cid_upper = o["value"].upper()
                 ont_c = self.ont.concept_for_sign(o["value"])
                 if ont_c:
                     o["label"] = self._label(ont_c)
@@ -87,6 +106,18 @@ class SignSession:
         self.dialogue = None
         self.dialogue_start_time = None
         return [{"type": "resign", "message": "I couldn't tell. Please sign again.", "research": diag}]
+
+    def _maybe_log_stats(self):
+        now = time.time()
+        if now - self._stat_t >= 1.0:
+            wmin = self._stat_wrist_min if self._stat_wrist_min != float("inf") else None
+            wmax = self._stat_wrist_max if self._stat_wrist_max != float("-inf") else None
+            log.info("frames=%d pose=%d lh=%d rh=%d wrist_y=[%.2f,%.2f] state=%s",
+                     self._stat_frames, self._stat_pose, self._stat_lh, self._stat_rh,
+                     wmin or 0, wmax or 0, self.stream.state)
+            self._stat_t = now
+            self._stat_frames = 0; self._stat_pose = 0; self._stat_lh = 0; self._stat_rh = 0
+            self._stat_wrist_min = float("inf"); self._stat_wrist_max = float("-inf")
 
     def on_frame(self, jpeg):
         now = time.time()
@@ -115,10 +146,22 @@ class SignSession:
         has_pose = bool(p.any())
         wrist_y = float(min(p[15, 1], p[16, 1])) if has_pose else None
         lh_det = bool(feat[LH].any()); rh_det = bool(feat[RH].any())
-        act = frame_activity(feat, self.stream.act_y)
+        act = frame_activity(feat, _ACT_Y)
+
+        # Update per-second stats
+        self._stat_frames += 1
+        if has_pose: self._stat_pose += 1
+        if lh_det: self._stat_lh += 1
+        if rh_det: self._stat_rh += 1
+        if wrist_y is not None:
+            self._stat_wrist_min = min(self._stat_wrist_min, wrist_y)
+            self._stat_wrist_max = max(self._stat_wrist_max, wrist_y)
+        self._maybe_log_stats()
 
         diag_frame = {"fps": round(self._fps, 1), "lh": lh_det, "rh": rh_det,
                       "pose": has_pose, "activity": act, "state": self.stream.state,
+                      "wrist_y": round(wrist_y, 3) if wrist_y is not None else None,
+                      "act_y": _ACT_Y,
                       "aspect": getattr(self.ext, "last", {}).get("aspect"),
                       "y_scale": getattr(self.ext, "last", {}).get("y_scale")}
         out = [{"type": "diag", "research": diag_frame}]

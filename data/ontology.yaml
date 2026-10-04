@@ -215,6 +215,34 @@ templates:
     REQUEST: தயவுசெய்து {quantity} {container} {product} கொடுங்கள்.
     PAYMENT: '{method} மூலம் பணம் செலுத்த வேண்டும்.'
     DEFAULT: '{product}'
+customer_templates:
+  en:
+    GREET: Hello.
+    CONFIRM: Yes.
+    REJECT: No.
+    PRICE_Q: How much is this {product}?
+    AVAIL_Q: Do you have {product}?
+    REQUEST: I want {quantity} {container} {product}.
+    PAYMENT: I want to pay by {method}.
+    DEFAULT: '{product}'
+  hi:
+    GREET: नमस्ते।
+    CONFIRM: हाँ।
+    REJECT: नहीं।
+    PRICE_Q: इस {product} का दाम क्या है?
+    AVAIL_Q: क्या आपके पास {product} है?
+    REQUEST: मुझे {quantity} {container} {product} चाहिए।
+    PAYMENT: मैं {method} से भुगतान करना चाहता हूँ।
+    DEFAULT: '{product}'
+  ta:
+    GREET: வணக்கம்.
+    CONFIRM: ஆம்.
+    REJECT: இல்லை.
+    PRICE_Q: இந்த {product} விலை என்ன?
+    AVAIL_Q: உங்களிடம் {product} இருக்கிறதா?
+    REQUEST: எனக்கு {quantity} {container} {product} வேண்டும்.
+    PAYMENT: '{method} மூலம் பணம் செலுத்த விரும்புகிறேன்.'
+    DEFAULT: '{product}'
 concepts:
   WATER:
     category: product

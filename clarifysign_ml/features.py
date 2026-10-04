@@ -88,37 +88,72 @@ def prepare_sequence(seq, act_y=ACT_Y):
 
 
 class LandmarkExtractor:
-    """MediaPipe Holistic Landmarker (Tasks API, CPU). Raises if the model cannot load. No silent fallback."""
+    """MediaPipe Holistic Landmarker (Tasks API, CPU). Raises if the model cannot load. No silent fallback.
+    Resizes every frame to a fixed 640px width to avoid SegmentationSmoothingCalculator size-change errors.
+    """
+
+    _TARGET_W = 640
 
     def __init__(self, model_path):
         import mediapipe as mp
         from mediapipe.tasks.python import vision, BaseOptions
         self._mp = mp
-        opts = vision.HolisticLandmarkerOptions(
-            base_options=BaseOptions(model_asset_path=model_path, delegate=BaseOptions.Delegate.CPU),
-            running_mode=vision.RunningMode.IMAGE,
+        self._vision = vision
+        self._BaseOptions = BaseOptions
+        self._model_path = model_path
+        self.det = None
+        self._last_hw = None  # (h, w) after resize
+        self.last = {"lh": False, "rh": False, "pose": False, "aspect": None, "y_scale": 1.0}
+        self._build_detector()
+
+    def _build_detector(self):
+        opts = self._vision.HolisticLandmarkerOptions(
+            base_options=self._BaseOptions(
+                model_asset_path=self._model_path,
+                delegate=self._BaseOptions.Delegate.CPU),
+            running_mode=self._vision.RunningMode.IMAGE,
             output_face_blendshapes=False,
             output_segmentation_mask=False,
         )
-        self.det = vision.HolisticLandmarker.create_from_options(opts)
-        self.last = {"lh": False, "rh": False, "pose": False, "aspect": None, "y_scale": 1.0}
+        if self.det is not None:
+            try: self.det.close()
+            except Exception: pass
+        self.det = self._vision.HolisticLandmarker.create_from_options(opts)
 
     def __call__(self, frame_bgr):
         import cv2
+        import logging
+        h_orig, w_orig = frame_bgr.shape[:2]
+
+        # Resize to fixed width = 640, preserve aspect
+        if w_orig != self._TARGET_W:
+            new_h = max(1, int(h_orig * self._TARGET_W / max(1, w_orig)))
+            frame_bgr = cv2.resize(frame_bgr, (self._TARGET_W, new_h))
+
         h, w = frame_bgr.shape[:2]
-        aspect = w / h if h > 0 else 1.0
-        # Scale y coordinates so that training-time aspect ratio is reproduced.
-        # k = 1.0 for 16:9 frames; k ~ 1.33 for 4:3 frames.
-        k = FEATURE_ASPECT / aspect if aspect > 1e-3 else 1.0
+        aspect_orig = w_orig / h_orig if h_orig > 0 else 1.0
+        k = FEATURE_ASPECT / aspect_orig if aspect_orig > 1e-3 else 1.0
+
+        # Recreate detector if frame size changed (prevents SegmentationSmoothingCalculator crash)
+        hw = (h, w)
+        if self._last_hw is not None and hw != self._last_hw:
+            logging.getLogger("clarifysign.features").info(
+                "Frame size changed %s->%s, recreating detector", self._last_hw, hw)
+            self._build_detector()
+        self._last_hw = hw
 
         rgb = np.ascontiguousarray(cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB))
-        res = self.det.detect(self._mp.Image(image_format=self._mp.ImageFormat.SRGB, data=rgb))
+        try:
+            res = self.det.detect(self._mp.Image(image_format=self._mp.ImageFormat.SRGB, data=rgb))
+        except Exception as exc:
+            logging.getLogger("clarifysign.features").warning("detect() failed: %s", exc)
+            self.last = {"lh": False, "rh": False, "pose": False,
+                         "aspect": round(aspect_orig, 3), "y_scale": round(k, 4)}
+            return np.zeros(FEATURE_DIM, np.float32)
 
         def _scale_y(lm_list):
-            """Return a copy of landmark list with y * k."""
             if not lm_list:
                 return lm_list
-            # MediaPipe landmark objects are NormalizedLandmark; wrap as simple objects
             class _LM:
                 __slots__ = ("x", "y", "z")
                 def __init__(self, x, y, z):
@@ -132,16 +167,19 @@ class LandmarkExtractor:
                     break
             return scaled if scaled else lm_list
 
-        lh = _scale_y(res.left_hand_landmarks) if res.left_hand_landmarks else None
-        rh = _scale_y(res.right_hand_landmarks) if res.right_hand_landmarks else None
-        pose = _scale_y(res.pose_landmarks) if res.pose_landmarks else None
+        lh   = _scale_y(res.left_hand_landmarks)  if res.left_hand_landmarks  else None
+        rh   = _scale_y(res.right_hand_landmarks) if res.right_hand_landmarks else None
+        pose = _scale_y(res.pose_landmarks)        if res.pose_landmarks        else None
 
         self.last = {"lh": bool(res.left_hand_landmarks), "rh": bool(res.right_hand_landmarks),
-                     "pose": bool(res.pose_landmarks), "aspect": round(aspect, 3), "y_scale": round(k, 4)}
+                     "pose": bool(res.pose_landmarks), "aspect": round(aspect_orig, 3), "y_scale": round(k, 4)}
         return landmarks_to_features(lh, rh, pose)
 
     def close(self):
-        self.det.close()
+        if self.det is not None:
+            try: self.det.close()
+            except Exception: pass
+
 
 
 

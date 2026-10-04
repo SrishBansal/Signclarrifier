@@ -8,12 +8,22 @@ from .models import SemanticState, Intent
 
 class NaturalLanguageRealizer:
     @staticmethod
-    def realize(state: SemanticState, language: str = "English", ontology: Ontology = None) -> Dict[str, Any]:
+    def realize(state: SemanticState, language: str = "English",
+                ontology: Ontology = None, perspective: str = "shopkeeper") -> Dict[str, Any]:
+        """Realize a SemanticState as natural language text.
+
+        Args:
+            perspective: "shopkeeper" (Direction A, default) uses templates;
+                         "customer" (Direction B) uses customer_templates.
+        """
         ont = ontology or get_ontology()
-        # Map human-readable language name -> code
         lang_map = {"english": "en", "hindi": "hi", "tamil": "ta", "hinglish": "en"}
         lc = lang_map.get(language.lower(), language.lower())
-        tmpls = ont.templates.get(lc, ont.templates.get("en", {}))
+
+        if perspective == "customer":
+            tmpls = ont.customer_templates.get(lc, ont.customer_templates.get("en", {}))
+        else:
+            tmpls = ont.templates.get(lc, ont.templates.get("en", {}))
 
         def label(cid):
             try: return ont.label(cid, lc)
@@ -25,7 +35,7 @@ class NaturalLanguageRealizer:
         items = state.items or []
 
         if intent == Intent.GREET:
-            text = tmpls.get("GREET", "Hello!")
+            text = tmpls.get("GREET", "Hello.")
         elif intent == Intent.CONFIRM:
             text = tmpls.get("CONFIRM", "Yes.")
         elif intent == Intent.REJECT:
@@ -44,7 +54,6 @@ class NaturalLanguageRealizer:
             product = label(it.concept)
             qty = it.quantity or ""
             container = label(it.container) if it.container else ""
-            # Prepend colour/size attribute if present
             attrs = it.attributes or {}
             if "colour" in attrs:
                 product = label(attrs["colour"]) + " " + product
@@ -52,7 +61,7 @@ class NaturalLanguageRealizer:
                 product = label(attrs["size"]) + " " + product
             text = tmpls.get("REQUEST", "Give {quantity} {container} {product}.").format(
                 quantity=qty, container=container, product=product).strip()
-            text = " ".join(text.split())  # collapse extra spaces
+            text = " ".join(text.split())
         else:
             ref = state.current_focus_referent
             product = label(ref) if ref else ""

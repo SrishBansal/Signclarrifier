@@ -9,3 +9,4 @@ lam: 0.1
 min_gain: 0.05
 max_turns: 2
 top_k: 6
+best_guess_p: 0.40

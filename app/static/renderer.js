@@ -7,11 +7,11 @@
  *    - Bones with rounded thick strokes (lineCap="round", lineJoin="round").
  *    - Hands with articulated per-finger bones using real connection tables.
  *    - NO dot clouds.
- * 2. Two-Bone IK for arms (shoulder -> IK elbow -> wrist).
+ * 2. Two-Bone IK for arms (shoulder -> IK elbow -> wrist) - only when recorded elbow missing.
  * 3. Timeline with ease-in-out LERP between clips and rest pose.
  * 4. Controls: configurable speed, pause, resume, replay.
  * 5. Per-sign highlighting synced to a gloss/caption strip.
- * 6. Fallback for missing signs: fingerspell or visible unknown sign marker (NEVER silent skip).
+ * 6. Fallback for missing signs / nosign words: rest hold with orange pill (NEVER scarecrow pose).
  *
  * ZERO dependencies on NLU or planner modules.
  */
@@ -24,11 +24,11 @@
     [0, 1], [0, 5], [5, 9], [9, 13], [13, 17], [0, 17]
   ];
   const HAND_FINGERS = [
-    { name: "thumb", color: "#e17055", segs: [[1, 2], [2, 3], [3, 4]] },
-    { name: "index", color: "#0984e3", segs: [[5, 6], [6, 7], [7, 8]] },
+    { name: "thumb",  color: "#e17055", segs: [[1, 2], [2, 3], [3, 4]] },
+    { name: "index",  color: "#0984e3", segs: [[5, 6], [6, 7], [7, 8]] },
     { name: "middle", color: "#00b894", segs: [[9, 10], [10, 11], [11, 12]] },
-    { name: "ring", color: "#6c5ce7", segs: [[13, 14], [14, 15], [15, 16]] },
-    { name: "pinky", color: "#fd79a8", segs: [[17, 18], [18, 19], [19, 20]] }
+    { name: "ring",   color: "#6c5ce7", segs: [[13, 14], [14, 15], [15, 16]] },
+    { name: "pinky",  color: "#fd79a8", segs: [[17, 18], [18, 19], [19, 20]] }
   ];
 
   // Smoothstep ease-in-out
@@ -36,6 +36,8 @@
     t = Math.max(0, Math.min(1, t));
     return t * t * (3 - 2 * t);
   }
+
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
   // Linear interpolation of 225-dim float arrays with easing
   function lerpFrame(f1, f2, alpha) {
@@ -46,28 +48,56 @@
     return out;
   }
 
+  // 3-frame moving-average smoothing per coordinate.
+  // Skips frames where a hand block is all zeros so rest frames stay clean.
+  function smoothSequence(seq) {
+    if (!seq || seq.length < 3) return seq;
+    const out = [];
+    for (let i = 0; i < seq.length; i++) {
+      const prev = seq[Math.max(0, i - 1)];
+      const curr = seq[i];
+      const next = seq[Math.min(seq.length - 1, i + 1)];
+      const sm = new Float32Array(225);
+      for (let d = 0; d < 225; d++) {
+        // For hand blocks (0-125): skip if the block is all zeros in curr
+        const isLH = d < 63;
+        const isRH = d >= 63 && d < 126;
+        const lhZero = isLH  && !curr.slice(0, 63).some(v => v !== 0);
+        const rhZero = isRH  && !curr.slice(63, 126).some(v => v !== 0);
+        if (lhZero || rhZero) {
+          sm[d] = curr[d];
+        } else {
+          sm[d] = (prev[d] + curr[d] + next[d]) / 3;
+        }
+      }
+      out.push(sm);
+    }
+    return out;
+  }
+
   // Canonical Rest Frame (225 dims)
   function buildRestFrame() {
     const f = new Float32Array(225);
-    // Pose (indices 126..224)
-    // Left shoulder 11 (+0.5, 0), Right shoulder 12 (-0.5, 0)
+    // Pose (indices 126..224): stored at TRAINING scale (y stretched 16/9).
+    // renderFrame will unstretch with U = yUnstretch = 9/16.
     const setPose = (idx, x, y, z) => {
       const base = 126 + idx * 3;
       f[base] = x; f[base + 1] = y; f[base + 2] = z;
     };
-    setPose(0, 0.0, -1.0, -0.3);    // Nose
-    setPose(7, 0.35, -1.0, 0.0);    // Left ear
-    setPose(8, -0.35, -1.0, 0.0);   // Right ear
-    setPose(9, 0.12, -0.85, -0.2);  // Mouth left
-    setPose(10, -0.12, -0.85, -0.2);// Mouth right
-    setPose(11, 0.5, 0.0, 0.0);     // Left shoulder
-    setPose(12, -0.5, 0.0, 0.0);    // Right shoulder
-    setPose(13, 0.58, 1.45, 0.15);  // Left elbow
-    setPose(14, -0.58, 1.45, 0.15); // Right elbow
-    setPose(15, 0.48, 2.75, 0.0);   // Left wrist (relaxed low)
-    setPose(16, -0.48, 2.75, 0.0);  // Right wrist (relaxed low)
-    setPose(23, 0.28, 2.50, 0.0);   // Left hip
-    setPose(24, -0.28, 2.50, 0.0);  // Right hip
+    // y values here are in stretched space; renderFrame applies U before drawing
+    setPose(0,  0.0,  -1.0, -0.3);    // Nose
+    setPose(7,  0.35, -1.0,  0.0);    // Left ear
+    setPose(8, -0.35, -1.0,  0.0);    // Right ear
+    setPose(9,  0.12, -0.85, -0.2);   // Mouth left
+    setPose(10,-0.12, -0.85, -0.2);   // Mouth right
+    setPose(11, 0.5,   0.0,  0.0);    // Left shoulder
+    setPose(12,-0.5,   0.0,  0.0);    // Right shoulder
+    setPose(13, 0.58,  1.45, 0.15);   // Left elbow
+    setPose(14,-0.58,  1.45, 0.15);   // Right elbow
+    setPose(15, 0.48,  2.75, 0.0);    // Left wrist (relaxed low)
+    setPose(16,-0.48,  2.75, 0.0);    // Right wrist (relaxed low)
+    setPose(23, 0.28,  2.50, 0.0);    // Left hip
+    setPose(24,-0.28,  2.50, 0.0);    // Right hip
 
     // Hands: relaxed curl
     const setHand = (isRight, idx, x, y, z) => {
@@ -76,10 +106,10 @@
     };
     [false, true].forEach(isRight => {
       const sign = isRight ? 1.0 : -1.0;
-      setHand(isRight, 0, 0, 0, 0);
-      setHand(isRight, 4, sign * 0.35, 0.40, -0.15);
-      setHand(isRight, 8, sign * 0.10, 0.85, -0.15);
-      setHand(isRight, 12, 0.0, 0.90, -0.15);
+      setHand(isRight,  0,  0,       0,    0);
+      setHand(isRight,  4,  sign * 0.35, 0.40, -0.15);
+      setHand(isRight,  8,  sign * 0.10, 0.85, -0.15);
+      setHand(isRight, 12,  0.0,         0.90, -0.15);
       setHand(isRight, 16, -sign * 0.10, 0.82, -0.15);
       setHand(isRight, 20, -sign * 0.20, 0.70, -0.15);
     });
@@ -88,51 +118,11 @@
 
   const REST_FRAME = buildRestFrame();
 
-  // Visible Unknown Sign Marker Sequence (48 frames)
-  function buildUnknownSignSequence() {
-    const seq = [];
-    const rest = REST_FRAME;
-    for (let i = 0; i < 48; i++) {
-      const t = i / 47;
-      let s;
-      if (t < 0.3) s = 0.5 - 0.5 * Math.cos(Math.PI * (t / 0.3));
-      else if (t < 0.7) s = 1.0 + 0.05 * Math.sin(Math.PI * 2 * (t - 0.3) / 0.4);
-      else s = 0.5 + 0.5 * Math.cos(Math.PI * ((t - 0.7) / 0.3));
-
-      const fr = new Float32Array(rest);
-      // Lift shoulders slightly
-      fr[126 + 11 * 3 + 1] -= 0.12 * s;
-      fr[126 + 12 * 3 + 1] -= 0.12 * s;
-      // Head tilt
-      fr[126 + 0 * 3] += 0.06 * s;
-      // Lift wrists to chest level (y ~ 0.75) and spread outward
-      fr[126 + 15 * 3] = (1 - s) * rest[126 + 15 * 3] + s * 0.65;
-      fr[126 + 15 * 3 + 1] = (1 - s) * rest[126 + 15 * 3 + 1] + s * 0.75;
-      fr[126 + 16 * 3] = (1 - s) * rest[126 + 16 * 3] + s * (-0.65);
-      fr[126 + 16 * 3 + 1] = (1 - s) * rest[126 + 16 * 3 + 1] + s * 0.75;
-
-      // Elbows bent
-      fr[126 + 13 * 3] = (1 - s) * rest[126 + 13 * 3] + s * 0.72;
-      fr[126 + 13 * 3 + 1] = (1 - s) * rest[126 + 13 * 3 + 1] + s * 1.05;
-      fr[126 + 14 * 3] = (1 - s) * rest[126 + 14 * 3] + s * (-0.72);
-      fr[126 + 14 * 3 + 1] = (1 - s) * rest[126 + 14 * 3 + 1] + s * 1.05;
-
-      // Open hands
-      for (let j = 0; j < 21; j++) {
-        fr[j * 3 + 1] = Math.min(1.0, 0.4 + j * 0.03 * s);
-        fr[63 + j * 3 + 1] = Math.min(1.0, 0.4 + j * 0.03 * s);
-      }
-      seq.push(fr);
-    }
-    return seq;
-  }
-
-  const UNKNOWN_SEQUENCE = buildUnknownSignSequence();
-
   // Two-Bone Analytical Inverse Kinematics for arms
+  // l1=0.85, l2=0.8 match typical normalized bone lengths in 16:9 training data
   function solveTwoBoneIK(shoulder, wrist, elbowHint, isLeft, l1, l2) {
-    l1 = l1 || 1.45;
-    l2 = l2 || 1.35;
+    l1 = l1 !== undefined ? l1 : 0.85;
+    l2 = l2 !== undefined ? l2 : 0.80;
     const dx = wrist[0] - shoulder[0];
     const dy = wrist[1] - shoulder[1];
     const d = Math.hypot(dx, dy);
@@ -145,15 +135,12 @@
     const uy = dy / d;
     const normSign = isLeft ? 1.0 : -1.0;
     let vx = -uy * normSign;
-    let vy = ux * normSign;
+    let vy =  ux * normSign;
 
     if (elbowHint) {
       const ehx = elbowHint[0] - shoulder[0];
       const ehy = elbowHint[1] - shoulder[1];
-      if (ehx * vx + ehy * vy < 0) {
-        vx = -vx;
-        vy = -vy;
-      }
+      if (ehx * vx + ehy * vy < 0) { vx = -vx; vy = -vy; }
     }
 
     let ex, ey;
@@ -165,7 +152,7 @@
       ey = shoulder[1] + l1 * uy;
     } else {
       const cosA = (l1 * l1 + d * d - l2 * l2) / (2 * l1 * d);
-      const clampedCosA = Math.max(-1, Math.min(1, cosA));
+      const clampedCosA = clamp(cosA, -1, 1);
       const sinA = Math.sqrt(Math.max(0, 1 - clampedCosA * clampedCosA));
       ex = shoulder[0] + l1 * (clampedCosA * ux + sinA * vx);
       ey = shoulder[1] + l1 * (clampedCosA * uy + sinA * vy);
@@ -184,8 +171,9 @@
       this.options = Object.assign({
         signs: {},
         speed: 1.0,
-        fps: 25,
+        fps: 30,          // raised from 25 to 30
         useIK: true,
+        yUnstretch: 9/16, // compensates 16/9 training aspect; set to 1.0 to disable
         glossStripEl: null,
         captionEl: null,
         statusEl: null,
@@ -231,7 +219,12 @@
     }
 
     setSigns(signs) {
-      this.signs = signs || {};
+      // Smooth each sign sequence once on load
+      this.signs = {};
+      if (!signs) return;
+      for (const [id, seq] of Object.entries(signs)) {
+        this.signs[id] = Array.isArray(seq) ? smoothSequence(seq.map(f => new Float32Array(f))) : seq;
+      }
     }
 
     setSpeed(speed) {
@@ -246,6 +239,9 @@
       const restFrames = Math.max(4, Math.round(6 / this.speed));
       const transFrames = Math.max(4, Math.round(8 / this.speed));
 
+      // Nosign hold length: max(14, round(18/speed)) frames
+      const nosignHold = Math.max(14, Math.round(18 / this.speed));
+
       // 1. Intro rest
       for (let i = 0; i < restFrames; i++) {
         frames.push(REST_FRAME);
@@ -253,41 +249,43 @@
       }
 
       let prevLast = REST_FRAME;
+      const nosignWords = []; // collect English words with no recorded sign
 
       // 2. Sequential signs
       sequence.forEach((item, seqIdx) => {
         // Accept plain string IDs (legacy) or plan-item dicts {sign_id, gloss, kind}
-        let rawId, gloss, kind;
+        let rawId, gloss, kind, conceptEnglish;
         if (typeof item === "string") {
           rawId = item.toLowerCase().trim();
           gloss = rawId.toUpperCase();
           kind = "sign";
+          conceptEnglish = gloss;
         } else {
           rawId = (item.sign_id || item.concept || "").toLowerCase().trim();
           gloss = item.gloss || rawId.toUpperCase();
           kind = item.kind || "sign";
+          conceptEnglish = item.gloss || gloss;
         }
 
-        let signSeq = this.signs[rawId];
-        let status = "native";
+        const signSeq = this.signs[rawId];
 
-        if (kind === "marker") {
-          // Rest-pose hold ~0.4s = ~10 frames at 25fps, with gloss pill
-          const holdCount = Math.max(6, Math.round(10 / this.speed));
+        // Treat marker, nosign, and any sign with no data as a rest hold
+        const isMissingSign = !signSeq || !signSeq.length;
+        if (kind === "marker" || kind === "nosign" || (kind === "sign" && isMissingSign)) {
+          const status = kind === "marker" ? "marker" : "nosign";
+          if (kind === "nosign" || (kind === "sign" && isMissingSign)) {
+            nosignWords.push(conceptEnglish);
+          }
+          const holdCount = nosignHold;
           glossItems.push({ id: rawId, label: gloss, index: seqIdx,
-            startFrame: frames.length, endFrame: frames.length + holdCount - 1, status: "marker" });
+            startFrame: frames.length, endFrame: frames.length + holdCount - 1, status });
           for (let f = 0; f < holdCount; f++) {
             frames.push(REST_FRAME);
             metadata.push({ signId: rawId, signIndex: seqIdx, isTrans: false,
-              progress: f / holdCount, gloss, status: "marker" });
+              progress: f / holdCount, gloss, status });
           }
           prevLast = REST_FRAME;
           return;
-        }
-
-        if (!signSeq || !signSeq.length) {
-          status = kind === "nosign" ? "nosign" : "unknown";
-          signSeq = UNKNOWN_SEQUENCE;
         }
 
         // Ease-in-out LERP transition from previous pose to first frame
@@ -296,7 +294,7 @@
           const alpha = easeInOut(t / transFrames);
           frames.push(lerpFrame(prevLast, firstFrame, alpha));
           metadata.push({ signId: rawId, signIndex: seqIdx, isTrans: true,
-            progress: 0, gloss: `→ ${gloss}`, status });
+            progress: 0, gloss: `-> ${gloss}`, status: "native" });
         }
 
         const startFrame = frames.length;
@@ -306,10 +304,10 @@
           const progress = f / Math.max(1, signFrameCount - 1);
           const rawIdx = Math.min(totalRaw - 1, Math.floor(progress * (totalRaw - 1)));
           frames.push(signSeq[rawIdx]);
-          metadata.push({ signId: rawId, signIndex: seqIdx, isTrans: false, progress, gloss, status });
+          metadata.push({ signId: rawId, signIndex: seqIdx, isTrans: false, progress, gloss, status: "native" });
         }
         const endFrame = frames.length - 1;
-        glossItems.push({ id: rawId, label: gloss, index: seqIdx, startFrame, endFrame, status });
+        glossItems.push({ id: rawId, label: gloss, index: seqIdx, startFrame, endFrame, status: "native" });
         prevLast = signSeq[totalRaw - 1];
       });
 
@@ -317,7 +315,7 @@
       for (let t = 0; t < transFrames; t++) {
         const alpha = easeInOut(t / transFrames);
         frames.push(lerpFrame(prevLast, REST_FRAME, alpha));
-        metadata.push({ signId: "REST", signIndex: -1, isTrans: true, progress: 1, gloss: "→ Rest", status: "rest" });
+        metadata.push({ signId: "REST", signIndex: -1, isTrans: true, progress: 1, gloss: "-> Rest", status: "rest" });
       }
 
       for (let i = 0; i < restFrames; i++) {
@@ -325,7 +323,7 @@
         metadata.push({ signId: "REST", signIndex: -1, isTrans: false, progress: 1, gloss: "Done", status: "rest" });
       }
 
-      return { frames, metadata, glossItems };
+      return { frames, metadata, glossItems, nosignWords };
     }
 
     // Playback control
@@ -342,21 +340,20 @@
       this.timeline = compiled.frames;
       this.metadata = compiled.metadata;
       this.glossItems = compiled.glossItems;
+      this.nosignWords = compiled.nosignWords || [];
       this.currentFrameIdx = 0;
       this.isPlaying = true;
       this.isPaused = false;
 
       this.renderGlossStrip();
+      this._renderNosignNote();
       this.tick();
     }
 
     pause() {
       if (this.isPlaying && !this.isPaused) {
         this.isPaused = true;
-        if (this.animTimer) {
-          clearTimeout(this.animTimer);
-          this.animTimer = null;
-        }
+        if (this.animTimer) { clearTimeout(this.animTimer); this.animTimer = null; }
       }
     }
 
@@ -368,18 +365,13 @@
     }
 
     replay() {
-      if (this.activeSequence.length) {
-        this.play(this.activeSequence);
-      }
+      if (this.activeSequence.length) { this.play(this.activeSequence); }
     }
 
     stop() {
       this.isPlaying = false;
       this.isPaused = false;
-      if (this.animTimer) {
-        clearTimeout(this.animTimer);
-        this.animTimer = null;
-      }
+      if (this.animTimer) { clearTimeout(this.animTimer); this.animTimer = null; }
       this.currentFrameIdx = 0;
     }
 
@@ -399,12 +391,10 @@
       const meta = this.metadata[this.currentFrameIdx];
 
       this.renderFrame(frame);
-      this.updateCaption(meta.gloss + (meta.status === "unknown" ? " (unknown sign)" : ""));
+      this.updateCaption(meta.gloss + (meta.status === "nosign" ? " (no sign recorded)" : ""));
       this.highlightGloss(meta.signIndex, meta.progress);
 
-      if (this.options.onFrame) {
-        this.options.onFrame(this.currentFrameIdx, meta);
-      }
+      if (this.options.onFrame) { this.options.onFrame(this.currentFrameIdx, meta); }
 
       this.currentFrameIdx++;
       const frameInterval = Math.round(1000 / this.fps);
@@ -421,12 +411,24 @@
         pill.id = `gloss-pill-${idx}`;
         pill.className = `gloss-pill ${item.status}`;
         pill.textContent = item.label;
-        pill.title = item.status === "unknown" ? "Unknown Sign (Marker Active)" : item.label;
-        pill.onclick = () => {
-          this.currentFrameIdx = item.startFrame;
-        };
+        pill.title = item.status === "nosign" ? "No recorded sign yet" : item.label;
+        pill.onclick = () => { this.currentFrameIdx = item.startFrame; };
         container.appendChild(pill);
       });
+    }
+
+    _renderNosignNote() {
+      // Show a one-line note for words without a recorded sign
+      const el = document.getElementById("nosign-note");
+      if (!el) return;
+      const words = this.nosignWords || [];
+      if (words.length > 0) {
+        el.textContent = "No recorded sign yet for: " + words.join(", ");
+        el.style.display = "";
+      } else {
+        el.textContent = "";
+        el.style.display = "none";
+      }
     }
 
     highlightGloss(activeIdx, progress) {
@@ -463,11 +465,15 @@
       const ox = W * 0.50;
       const oy = H * 0.38;
 
+      // yUnstretch: compensate 16/9 aspect ratio from training
+      const U = (this.options && this.options.yUnstretch !== undefined) ? this.options.yUnstretch : (9 / 16);
+
       g.clearRect(0, 0, W, H);
       g.lineCap = "round";
       g.lineJoin = "round";
 
-      const P = i => [f[126 + i * 3], f[126 + i * 3 + 1], f[126 + i * 3 + 2]];
+      // P(i) applies y-unstretch to pose landmarks
+      const P = i => [f[126 + i * 3], f[126 + i * 3 + 1] * U, f[126 + i * 3 + 2]];
       const ok = i => f[126 + i * 3] !== 0 || f[126 + i * 3 + 1] !== 0;
       const X = p => [ox + p[0] * S, oy + p[1] * S];
 
@@ -483,8 +489,9 @@
       const hasPose = ok(11) && ok(12);
       if (hasPose) {
         const p11 = P(11), p12 = P(12);
-        const p23 = ok(23) ? P(23) : [0.28, 2.5, 0];
-        const p24 = ok(24) ? P(24) : [-0.28, 2.5, 0];
+        // Hips: apply U to default y values (2.5 * U)
+        const p23 = ok(23) ? P(23) : [0.28,  2.5 * U, 0];
+        const p24 = ok(24) ? P(24) : [-0.28, 2.5 * U, 0];
 
         const x11 = X(p11), x12 = X(p12), x23 = X(p23), x24 = X(p24);
         const neckMid = [(p11[0] + p12[0]) * 0.5, (p11[1] + p12[1]) * 0.5, (p11[2] + p12[2]) * 0.5];
@@ -510,7 +517,8 @@
         seg(xNeck, hipMid, this.colors.spine, 3);
 
         // 2. Head & Neck
-        const noseP = ok(0) ? P(0) : [0, -1.0, 0];
+        // Apply U to default nose y (-1.0 * U)
+        const noseP = ok(0) ? P(0) : [0, -1.0 * U, 0];
         const xNose = X(noseP);
         const headCenter = [xNeck[0] * 0.2 + xNose[0] * 0.8, xNeck[1] * 0.2 + xNose[1] * 0.8];
 
@@ -547,12 +555,20 @@
         const mouthY = headCenter[1] + ry * 0.45;
         seg([headCenter[0] - rx * 0.2, mouthY], [headCenter[0] + rx * 0.2, mouthY], this.colors.headStroke, 3);
 
-        // 3. Arms with Two-Bone IK
+        // 3. Arms
+        // Use recorded elbows (pose 13/14) when available.
+        // Call solveTwoBoneIK only when elbow is missing, with l1=0.85 l2=0.8.
+
         // Left Arm (pose 11 -> 13 -> 15)
-        const p15 = ok(15) ? P(15) : [0.48, 2.75, 0];
-        let p13 = ok(13) ? P(13) : null;
-        if (this.useIK && p15) {
-          p13 = solveTwoBoneIK(p11, p15, p13, true);
+        // Apply U to default wrist y (2.75 * U)
+        const p15 = ok(15) ? P(15) : [0.48,  2.75 * U, 0];
+        let p13;
+        if (ok(13)) {
+          p13 = P(13);  // use recorded elbow
+        } else if (this.useIK && p15) {
+          p13 = solveTwoBoneIK(p11, p15, null, true, 0.85, 0.8);
+        } else {
+          p13 = [p11[0] + 0.08, (p11[1] + p15[1]) * 0.5, 0];
         }
         const x13 = X(p13), x15 = X(p15);
         seg(x11, x13, this.colors.armL, 12);
@@ -561,10 +577,14 @@
         g.beginPath(); g.arc(x13[0], x13[1], 6, 0, Math.PI * 2); g.fill();
 
         // Right Arm (pose 12 -> 14 -> 16)
-        const p16 = ok(16) ? P(16) : [-0.48, 2.75, 0];
-        let p14 = ok(14) ? P(14) : null;
-        if (this.useIK && p16) {
-          p14 = solveTwoBoneIK(p12, p16, p14, false);
+        const p16 = ok(16) ? P(16) : [-0.48, 2.75 * U, 0];
+        let p14;
+        if (ok(14)) {
+          p14 = P(14);  // use recorded elbow
+        } else if (this.useIK && p16) {
+          p14 = solveTwoBoneIK(p12, p16, null, false, 0.85, 0.8);
+        } else {
+          p14 = [p12[0] - 0.08, (p12[1] + p16[1]) * 0.5, 0];
         }
         const x14 = X(p14), x16 = X(p16);
         seg(x12, x14, this.colors.armR, 12);
@@ -574,17 +594,21 @@
       }
 
       // 4. Hands with Per-Finger Articulated Bones
-      const handScale = S * 0.40;
+      // Left hand: block [0,63), pose wrist 15; Right hand: block [63,126), pose wrist 16
       [[0, 15], [63, 16]].forEach(([offset, wristPoseIdx]) => {
         const blk = f.slice(offset, offset + 63);
         const hasHand = blk.some(v => v !== 0);
         if (!hasHand || !ok(wristPoseIdx)) return;
 
-        const wP = P(wristPoseIdx);
+        const wP = P(wristPoseIdx);  // already unscaled by P()
+        // wrist-to-middle-fingertip distance in hand-block space, with U applied to y
+        const dd = Math.hypot(blk[36], blk[37] * U) || 1;
+        const hs = clamp(0.5 / dd, 0.25, 1.2);  // hand scale
+
         const joints = [];
         for (let i = 0; i < 21; i++) {
-          const jx = ox + (wP[0] + blk[i * 3] * 0.45) * S;
-          const jy = oy + (wP[1] + blk[i * 3 + 1] * 0.45) * S;
+          const jx = ox + (wP[0] + blk[i * 3]     * hs) * S;
+          const jy = oy + (wP[1] + blk[i * 3 + 1] * U * hs) * S;
           joints.push([jx, jy]);
         }
 
@@ -593,7 +617,7 @@
         g.beginPath();
         [0, 1, 5, 9, 13, 17].forEach((idx, k) => {
           if (k === 0) g.moveTo(joints[idx][0], joints[idx][1]);
-          else g.lineTo(joints[idx][0], joints[idx][1]);
+          else         g.lineTo(joints[idx][0], joints[idx][1]);
         });
         g.closePath();
         g.fill();
@@ -629,7 +653,8 @@
       REST_FRAME,
       solveTwoBoneIK,
       easeInOut,
-      lerpFrame
+      lerpFrame,
+      smoothSequence
     };
   }
 
