@@ -139,9 +139,8 @@ class SignSession:
 
         frame_input = self.decode(jpeg) if self.decode is not None else jpeg
         feat = self.ext(frame_input)
-        if not feat.any():
-            return []
-
+        # Emit diagnostics even when detection failed.  The client relies on these
+        # events to keep the camera HUD and the "sit back" guidance current.
         p = feat[POSE].reshape(33, 3)
         has_pose = bool(p.any())
         wrist_y = float(min(p[15, 1], p[16, 1])) if has_pose else None
@@ -165,6 +164,11 @@ class SignSession:
                       "aspect": getattr(self.ext, "last", {}).get("aspect"),
                       "y_scale": getattr(self.ext, "last", {}).get("y_scale")}
         out = [{"type": "diag", "research": diag_frame}]
+
+        # A missing landmark frame is not a recognizer input, but it is still a
+        # valid camera frame (and has already updated the diagnostics above).
+        if not feat.any():
+            return out
 
         for e in self.stream.push(feat):
             if e["type"] == "sign_start":

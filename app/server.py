@@ -64,7 +64,7 @@ def _get_dm(sid: str) -> DialogueManager:
 
 
 def _draw_landmarks(bgr, ext):
-    """Draw detected landmarks on bgr frame using ext.last metadata (best-effort)."""
+    """Draw the latest detected landmarks on a camera frame (best-effort)."""
     if bgr is None:
         return bgr
     out = bgr.copy()
@@ -73,6 +73,11 @@ def _draw_landmarks(bgr, ext):
     h, w = out.shape[:2]
     label = f"pose={'Y' if last.get('pose') else 'N'} lh={'Y' if last.get('lh') else 'N'} rh={'Y' if last.get('rh') else 'N'}"
     cv2.putText(out, label, (8, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+    points = last.get("landmarks", {})
+    colors = {"pose": (0, 255, 0), "lh": (255, 140, 0), "rh": (0, 180, 255)}
+    for part, part_points in points.items():
+        for x, y in part_points:
+            cv2.circle(out, (round(x * w), round(y * h)), 2, colors.get(part, color), -1)
     return out
 
 

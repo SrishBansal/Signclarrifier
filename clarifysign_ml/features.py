@@ -171,8 +171,20 @@ class LandmarkExtractor:
         rh   = _scale_y(res.right_hand_landmarks) if res.right_hand_landmarks else None
         pose = _scale_y(res.pose_landmarks)        if res.pose_landmarks        else None
 
+        # Keep lightweight normalized coordinates for the debug-frame endpoint.
+        # They are intentionally the detector's original image coordinates, not
+        # normalized training features.
+        def _debug_points(groups):
+            if not groups:
+                return []
+            points = groups[0] if hasattr(groups[0], "__iter__") else groups
+            return [(float(lm.x), float(lm.y)) for lm in points]
+
         self.last = {"lh": bool(res.left_hand_landmarks), "rh": bool(res.right_hand_landmarks),
-                     "pose": bool(res.pose_landmarks), "aspect": round(aspect_orig, 3), "y_scale": round(k, 4)}
+                     "pose": bool(res.pose_landmarks), "aspect": round(aspect_orig, 3), "y_scale": round(k, 4),
+                     "landmarks": {"lh": _debug_points(res.left_hand_landmarks),
+                                   "rh": _debug_points(res.right_hand_landmarks),
+                                   "pose": _debug_points(res.pose_landmarks)}}
         return landmarks_to_features(lh, rh, pose)
 
     def close(self):
