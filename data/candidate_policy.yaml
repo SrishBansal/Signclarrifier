@@ -1,0 +1,6 @@
+# Candidate models never overwrite models/ automatically.
+# All comparisons are against the frozen current baseline test metrics.
+promotion:
+  min_top1_gain: 0.03
+  min_macro_f1_gain: 0.03
+  max_ece_increase: 0.00

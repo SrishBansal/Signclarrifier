@@ -26,6 +26,7 @@ class ManifestSample:
     group_id: str
     split: str
     feature_path: str
+    label: str = ""
     signer_id: str = ""
     text: str = ""
 
@@ -135,7 +136,7 @@ def promote_reviewed_features(queue_root: str | Path, approved_ids: Iterable[str
         if row["label"] not in allowed:
             raise ValueError(f"label {row['label']!r} is not an allowed recognizer class")
         samples.append(ManifestSample("local-consented", record_id, record_id, split,
-                                      row["feature_path"], text="", signer_id=""))
+                                      row["feature_path"], label=row["label"], text="", signer_id=""))
     existing = load_manifest(manifest_path) if Path(manifest_path).exists() else []
     write_manifest(manifest_path, [*existing, *samples])
     return samples
