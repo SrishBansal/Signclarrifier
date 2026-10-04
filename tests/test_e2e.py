@@ -86,7 +86,15 @@ def _understand(client, text, lang, sid=None):
 def test_understand_response_shape():
     client = TestClient(make_app())
     j, _ = _understand(client, "shirt", "en")
-    assert "heard" in j and "plan" in j and "text" in j
+    assert "heard" in j and "plan" in j and "text" in j and "coverage" in j
+
+
+def test_understand_marks_unrepresented_sentence_content():
+    client = TestClient(make_app())
+    j, _ = _understand(client, "hello how are you", "en")
+    assert j["plan"][0]["concept"] == "HELLO"
+    assert not j["coverage"]["complete"]
+    assert "are" in j["coverage"]["unmapped_tokens"]
 
 
 def test_understand_plan_has_kind():

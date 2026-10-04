@@ -1,0 +1,6 @@
+# Product release policy.  Keep thresholds in data rather than hidden in code.
+# A candidate must pass this gate before the UI can describe recognition as
+# demo-ready.  Independent signer/video-group evaluation remains mandatory.
+demo_audit:
+  min_demo_top1: 0.90
+  min_demo_label_probability: 0.50

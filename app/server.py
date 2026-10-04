@@ -1,6 +1,7 @@
 """FastAPI shell. All logic lives in core/. No app/semantics or app/clarify imports."""
 import io, os, json, asyncio, time, uuid, logging
 import numpy as np, cv2
+import yaml
 from fastapi import FastAPI, WebSocket, Query
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from starlette.staticfiles import StaticFiles
@@ -18,6 +19,7 @@ HERE = os.path.dirname(__file__)
 MODEL  = os.environ.get("MODEL_PATH",  "models/clarifysign_bilstm.pt")
 TASK   = os.environ.get("TASK_PATH",   "models/holistic_landmarker.task")
 SIGNS  = os.environ.get("SIGNS_PATH",  "models/signs.json")
+RECOGNIZER_POLICY = os.environ.get("RECOGNIZER_POLICY_PATH", "data/recognizer_policy.yaml")
 PORT   = int(os.environ.get("PORT", "8000"))
 
 # Global last-frame store: sid -> (jpeg_bytes, landmarks_bgr)
@@ -44,6 +46,20 @@ def load_backend():
         return None, f"Missing MediaPipe model at {TASK}."
     from clarifysign_ml.predict import Recognizer
     return Recognizer(MODEL), ""
+
+
+def _recognition_audit(recognizer):
+    """Audit installed assets once at boot; never turn an audit error into a crash."""
+    if recognizer is None or not os.path.exists(SIGNS) or not os.path.exists(RECOGNIZER_POLICY):
+        return None
+    try:
+        from clarifysign_ml.audit import audit_demo_library
+        with open(RECOGNIZER_POLICY, encoding="utf-8") as handle:
+            policy = (yaml.safe_load(handle) or {}).get("demo_audit", {})
+        return audit_demo_library(recognizer, SIGNS, policy)
+    except Exception as exc:
+        log.warning("recognition audit unavailable: %s", exc)
+        return {"passing": False, "error": str(exc)}
 
 
 # Session store: sid -> (DialogueManager, last_access_time)
@@ -91,6 +107,7 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
         _boot_check(recognizer, ont)
     except RuntimeError as e:
         reason = str(e); recognizer = None
+    recognition_audit = _recognition_audit(recognizer)
 
     if extractor_factory is None:
         from clarifysign_ml.features import LandmarkExtractor
@@ -117,7 +134,12 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
                     for cid, d in ont.concepts.items()]
         return {"languages": langs, "concepts": concepts,
                 "recognition_ready": recognizer is not None, "reason": reason,
-                "signs_available": os.path.exists(SIGNS)}
+                "signs_available": os.path.exists(SIGNS),
+                "recognition": {
+                    "mode": "isolated_sign",
+                    "class_count": len(recognizer.classes) if recognizer is not None else 0,
+                    "demo_audit": recognition_audit,
+                }}
 
     @app.get("/api/understand")
     def understand(text: str = Query(""), lang: str = Query(""), sid: str = Query("")):
@@ -139,11 +161,23 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
                 "kind": ont.kind(cid),
             })
         real = NaturalLanguageRealizer.realize(state, language, ont)
+        tokens = ont.normalize_text(text).split()
+        cue_tokens = {token for cue in ont.intent_cues.values()
+                      for field in ("tokens", "hi_tokens", "ta_tokens", "bn_tokens", "te_tokens")
+                      for token in cue.get(field, [])}
+        unmapped_tokens = [token for token in tokens
+                           if ont.resolve_concept(token) is None and token not in cue_tokens]
+        unrecorded = [entry["gloss"] for entry in plan_dicts if entry["kind"] != "sign"]
         return {"heard": text, "sid": sid,
                 "state": {"intent": state.intent.value if state.intent else None,
                           "focus": state.current_focus_referent,
                           "items": [it.canonical_dict() for it in state.items]},
-                "plan": plan_dicts, "text": real["text"]}
+                "plan": plan_dicts, "text": real["text"],
+                "coverage": {
+                    "complete": not unmapped_tokens and not unrecorded,
+                    "unmapped_tokens": unmapped_tokens,
+                    "unrecorded_concepts": unrecorded,
+                }}
 
     @app.get("/api/signs")
     def signs():

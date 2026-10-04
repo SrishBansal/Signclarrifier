@@ -111,6 +111,7 @@ canvas{width:100%;max-width:420px;background:var(--canvas);border-radius:12px;bo
 const $=id=>document.getElementById(id);
 const STATUS={idle:"Ready",listening:"Watching for a sign",signing:"Recognizing…",interpreting:"Working out the meaning…",clarifying:"I need to check something",resolved:"Got it",speaking:"Speaking…",voice:"Listening to you…",generating:"Preparing the sign…",error:"Something went wrong"};
 let CFG=null,ws=null,stream=null,timer=null,watchdogTimer=null,inflight=false,lang=localStorage.getItem("lang")||"en";
+let animationReady=false;
 let _poseOkSince=null,_poseHintTimer=null,_warnShown=false;
 const SID=(()=>{let s=sessionStorage.getItem("sid");if(!s){s=crypto.randomUUID();sessionStorage.setItem("sid",s);}return s;})();
 
@@ -126,8 +127,13 @@ fetch("/api/config").then(r=>r.json()).then(c=>{CFG=c;
     $("go").disabled=true;
     say($("banner"),c.reason,"note err");
   }
-  $("scope").textContent="Supported signs: "+c.concepts.map(x=>x.english).join(", ")+".";
-  if(!c.signs_available)$("scope").textContent+=" Sign animations are not installed yet (models/signs.json missing).";
+  const r=c.recognition||{};
+  $("scope").textContent=`This research prototype has ${r.class_count||0} recorded isolated signs. It does not translate arbitrary sentences.`;
+  const audit=r.demo_audit;
+  if(audit && !audit.passing){
+    $("scope").textContent+=` Model quality gate not met (${Math.round((audit.top1||0)*100)}% agreement with its recorded demonstrations); use camera results as experimental only.`;
+  }
+  if(!c.signs_available)$("scope").textContent+=" Sign animations are not installed yet.";
   loadSigns();checkVoice();initFromUrl();});
 $("lang").onchange=()=>{lang=$("lang").value;localStorage.setItem("lang",lang);checkVoice();if(ws&&ws.readyState===1)ws.send(JSON.stringify({type:"config",lang}))};
 $("rs").onchange=()=>$("rsbox").classList.toggle("hide",!$("rs").checked);
@@ -287,10 +293,14 @@ function initRenderer(){
 }
 
 function loadSigns(){
+  $("send").disabled=true;
   fetch("/api/signs").then(r=>r.ok?r.json():null).then(j=>{
+    if(!j || !Object.keys(j).length)throw new Error("The recorded sign library is unavailable.");
     SIGNS=j;
     initRenderer();
-  }).catch(()=>{});
+    animationReady=true;
+    $("send").disabled=false;
+  }).catch(()=>{say($("scope"),"Recorded sign animations could not be loaded. Refresh and try again.","note err");});
 }
 
 function drawFrame(f){
@@ -343,6 +353,7 @@ $("dl").onclick=()=>{const c=$("cv");if(!window.MediaRecorder||!c.captureStream)
 $("link").onclick=()=>{const u=`${location.origin}/?tab=voice&lang=${lang}&text=${encodeURIComponent($("txt").value)}`;
   (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>say($("scope"),"Link copied. It works on this computer while the app is running.","note")).catch(()=>say($("scope"),u,"note"))};
 async function understand(text){
+  if(!animationReady){say($("scope"),"The sign library is still loading. Please wait a moment.","note err");return;}
   const submit=$("send"), originalLabel=submit.textContent;
   submit.disabled=true;submit.textContent="Preparing…";
   $("txt").value=text;
@@ -363,6 +374,11 @@ async function understand(text){
     }
     lastInfo=plan;
     $("matched").textContent=(j.text||plan.map(p=>p.gloss).join(" "));
+    const coverage=j.coverage||{};
+    if(!coverage.complete){
+      const missing=[...(coverage.unmapped_tokens||[]),...(coverage.unrecorded_concepts||[])];
+      say($("scope"),`Showing only the recorded portion. Not represented: ${missing.join(", ")||"some sentence content"}.`,"note err");
+    }
     play(plan);
   }catch(err){
     setStatus("error");
