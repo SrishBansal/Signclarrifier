@@ -31,3 +31,11 @@
 
 ## Port
 - Default: **8000**. Set `PORT=` env var to override.
+## Languages added (Task: 5-language support)
+
+Bengali (bn, bn-IN) and Telugu (te, te-IN) added as full active languages.
+All data in data/ontology.yaml. No Python logic changed for language routing.
+Translations are machine-authored drafts: have a native speaker review.
+Note: Web Speech API Bengali/Telugu voice availability varies by OS and browser.
+On devices without a native bn-IN or te-IN voice, the browser falls back to
+its default synthesis engine (already handled by speech.js getBestVoice()).

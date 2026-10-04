@@ -5,7 +5,7 @@ Single source of truth: data/ontology.yaml.
 Fails loudly at load if sign_ids duplicate, are not in include_classes.txt,
 or any concept lacks a label in any declared non-NLU-input-only language.
 """
-import os, re
+import os, re, unicodedata
 from typing import Dict, Any, Optional, List
 import yaml
 
@@ -95,7 +95,7 @@ class Ontology:
     @staticmethod
     def _norm(text: str) -> str:
         t = text.lower().strip()
-        t = re.sub(r"[^\w\s\u0900-\u097F\u0B80-\u0BFF]", " ", t)
+        t = "".join(ch if (ch.isalnum() or ch.isspace() or unicodedata.category(ch).startswith("M")) else " " for ch in t)
         return re.sub(r"\s+", " ", t).strip()
 
     # keep old name for callers
@@ -104,7 +104,7 @@ class Ontology:
     @staticmethod
     def normalize_text(text: str) -> str:
         t = text.lower().strip()
-        t = re.sub(r"[^\w\s\u0900-\u097F\u0B80-\u0BFF]", " ", t)
+        t = "".join(ch if (ch.isalnum() or ch.isspace() or unicodedata.category(ch).startswith("M")) else " " for ch in t)
         return re.sub(r"\s+", " ", t).strip()
 
     def is_valid_concept(self, concept_id: str) -> bool:

@@ -30,21 +30,22 @@ def fit(Xtr, ytr, Xva, yva, n_classes, device="cpu", epochs=80, patience=12, lr=
     cnt = np.bincount(ytr, minlength=n_classes).astype(np.float32)
     w = torch.tensor(cnt.sum() / (n_classes * np.maximum(cnt, 1)), device=device)
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-2)
-    sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, epochs)
+    sched = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(opt, T_0=30, T_mult=2)
     Xt, yt = torch.tensor(Xtr, device=device), torch.tensor(ytr, device=device)
     Xv, yv = torch.tensor(Xva, device=device), torch.tensor(yva, device=device)
-    best, best_state, bad = 1e9, None, 0
+    best_acc, best_state, bad = -1.0, None, 0
     for ep in range(epochs):
         model.train(); perm = torch.randperm(len(Xt), device=device)
         for i in range(0, len(Xt), 32):
             b = perm[i:i + 32]
             loss = F.cross_entropy(model(augment(Xt[b])), yt[b], weight=w, label_smoothing=0.05)
             opt.zero_grad(); loss.backward(); nn.utils.clip_grad_norm_(model.parameters(), 1.0); opt.step()
-        sched.step(); model.eval()
+            sched.step(ep + i / max(1, len(Xt) // 32))
+        model.eval()
         with torch.no_grad():
             lo = model(Xv); vl = F.cross_entropy(lo, yv).item(); va = (lo.argmax(1) == yv).float().mean().item()
         if ep % 5 == 0: log(f"ep {ep:3d} val_loss {vl:.3f} val_acc {va:.3f}")
-        if vl < best: best, best_state, bad = vl, {k: v.clone() for k, v in model.state_dict().items()}, 0
+        if va > best_acc: best_acc, best_state, bad = va, {k: v.clone() for k, v in model.state_dict().items()}, 0
         else:
             bad += 1
             if bad >= patience: break

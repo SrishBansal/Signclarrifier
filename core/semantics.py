@@ -17,7 +17,7 @@ class NaturalLanguageRealizer:
                          "customer" (Direction B) uses customer_templates.
         """
         ont = ontology or get_ontology()
-        lang_map = {"english": "en", "hindi": "hi", "tamil": "ta", "hinglish": "en"}
+        lang_map = {entry["name"].lower(): entry["code"] for entry in ont.languages()}
         lc = lang_map.get(language.lower(), language.lower())
 
         if perspective == "customer":

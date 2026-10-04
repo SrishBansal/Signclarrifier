@@ -52,18 +52,20 @@ def make_app(sign_id="shirt"):
 
 # ── /api/config ───────────────────────────────────────────────────────────────
 
-def test_config_has_en_hi_ta():
+def test_config_matches_active_ontology_languages():
     client = TestClient(make_app())
     r = client.get("/api/config")
     assert r.status_code == 200
     codes = {l["code"] for l in r.json()["languages"]}
-    assert {"en", "hi", "ta"} == codes, f"unexpected codes: {codes}"
+    expected = {l["code"] for l in get_ontology().languages() if not l.get("nlu_input_only")}
+    assert expected == codes, f"unexpected codes: {codes}"
 
 
-def test_config_no_mr_bn_te():
+def test_config_hides_nlu_only_languages():
     client = TestClient(make_app())
     codes = {l["code"] for l in client.get("/api/config").json()["languages"]}
-    assert "mr" not in codes and "bn" not in codes and "te" not in codes
+    hidden = {l["code"] for l in get_ontology().languages() if l.get("nlu_input_only")}
+    assert not (codes & hidden)
 
 
 def test_config_has_concepts():

@@ -11,7 +11,9 @@
   const LANG_TAGS = {
     en: "en-IN",
     hi: "hi-IN",
-    ta: "ta-IN"
+    ta: "ta-IN",
+    bn: "bn-IN",
+    te: "te-IN"
   };
 
   /**

@@ -62,7 +62,10 @@ class NLUParser:
 
     def _cue_tokens(self, intent_key: str) -> set:
         c = self._cues.get(intent_key, {})
-        return set((c.get("tokens") or []) + (c.get("hi_tokens") or []) + (c.get("ta_tokens") or []))
+        base = c.get("tokens") or []
+        for key in ("hi_tokens", "ta_tokens", "bn_tokens", "te_tokens"):
+            base = base + (c.get(key) or [])
+        return set(base)
 
     def _cue_phrases(self, intent_key: str) -> set:
         return set(self._cues.get(intent_key, {}).get("phrases") or [])
