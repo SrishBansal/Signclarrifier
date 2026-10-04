@@ -199,18 +199,18 @@
 
       // Color scheme
       this.colors = {
-        torso: "#415482",
-        torsoStroke: "#28375a",
-        spine: "#28375a",
-        neck: "#e0b6a0",
-        head: "#eecab2",
-        headStroke: "#c39b82",
-        eyes: "#2d3441",
-        armL: "#4e6eaf",
-        armR: "#3e5c9b",
-        joint: "#233050",
-        palm: "#e6c0a8",
-        palmStroke: "#c39b82"
+        torso: "#198478",
+        torsoStroke: "#07554e",
+        spine: "#064c46",
+        neck: "#d9a98e",
+        head: "#f0c6aa",
+        headStroke: "#b77f69",
+        eyes: "#173334",
+        armL: "#32a193",
+        armR: "#16776e",
+        joint: "#063f3c",
+        palm: "#efc0a2",
+        palmStroke: "#b77f69"
       };
 
       if (this.canvas) {
