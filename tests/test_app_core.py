@@ -12,8 +12,9 @@ CLASSES = [d["sign_id"] for d in ONT.concepts.values() if d.get("sign_id")]
 # ── Language / realizer ────────────────────────────────────────────────────────
 
 def test_every_concept_has_label_in_three_languages():
+    active_codes = [entry["code"] for entry in ONT.languages() if not entry.get("nlu_input_only")]
     for cid, d in ONT.concepts.items():
-        for lc in ("en", "hi", "ta"):
+        for lc in active_codes:
             assert lc in d.get("label", {}), f"{cid} missing label[{lc!r}]"
 
 
@@ -23,7 +24,7 @@ def test_realizer_produces_non_empty_text():
     state = SemanticState(intent=Intent.QUESTION,
                           items=[Item(concept="SHIRT")],
                           current_focus_referent="SHIRT")
-    for lang in ("English", "Hindi", "Tamil"):
+    for lang in (entry["name"] for entry in ONT.languages() if not entry.get("nlu_input_only")):
         r = NaturalLanguageRealizer.realize(state, lang, ONT)
         assert r.get("text"), f"empty text for {lang}"
 
@@ -34,7 +35,7 @@ def test_customer_realizer_uses_direction_b_templates():
     from core.models import SemanticState, Intent
     state = SemanticState(intent=Intent.GREET)
     assert NaturalLanguageRealizer.realize(state, "English", ONT)["text"] != "Hello."
-    for language in ("English", "Hindi", "Tamil"):
+    for language in (entry["name"] for entry in ONT.languages() if not entry.get("nlu_input_only")):
         assert NaturalLanguageRealizer.realize(state, language, ONT, perspective="customer")["text"]
 
 
@@ -115,6 +116,27 @@ def test_session_emits_diag_when_pose_is_missing():
     events = SignSession(FakeRec(), FakeExt()).on_frame(b"unused")
     assert events[0]["type"] == "diag"
     assert events[0]["research"]["pose"] is False
+
+
+def test_session_uses_ontology_language_metadata_for_direction_b():
+    """Every active ontology language can drive resolved text and its TTS tag."""
+    from app.session import SignSession
+
+    class FakeRec:
+        classes = ["shirt"]
+        def probs(self, x): return np.array([1.0])
+
+    class FakeExt:
+        def __call__(self, f): return np.zeros(225, dtype=np.float32)
+
+    for language in (entry for entry in ONT.languages() if not entry.get("nlu_input_only")):
+        session = SignSession(FakeRec(), FakeExt(), lang=language["code"])
+        event = session._events_from_action(
+            {"action": "resolved", "concept": "shirt", "how": "confident"},
+            np.array([1.0]), {})[0]
+        assert event["lang"] == language["code"]
+        assert event["tag"] == language["speech_tag"]
+        assert event["text"]
 
 
 # ── NLU smoke ────────────────────────────────────────────────────────────────

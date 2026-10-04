@@ -12,9 +12,6 @@ from core.semantics import NaturalLanguageRealizer
 
 log = logging.getLogger("clarifysign.session")
 
-# language code -> (name, BCP-47 tag)
-_LANG_MAP = {"en": ("English", "en-IN"), "hi": ("Hindi", "hi-IN"), "ta": ("Tamil", "ta-IN")}
-
 # ACT_Y overridable by env; default unchanged
 _ACT_Y = float(os.environ.get("ACT_Y", str(_DEFAULT_ACT_Y)))
 
@@ -25,8 +22,10 @@ class SignSession:
         self.rec = recognizer
         self.ext = extractor
         self.ont = get_ontology()
+        self._languages = {entry["code"]: entry for entry in self.ont.languages()
+                           if not entry.get("nlu_input_only")}
         self.dm = dm or DialogueManager(self.ont)
-        self.lang = lang
+        self.set_lang(lang)
         self.decode = decode
         self.stream = StreamingSession(self._probs, fps=10, provisional_every=6)
         self.dialogue = None
@@ -45,9 +44,12 @@ class SignSession:
         return self.rec.probs(seq48)
 
     def set_lang(self, lang):
-        if lang not in _LANG_MAP:
+        if lang not in self._languages:
             raise ValueError(f"unsupported language {lang!r}")
         self.lang = lang
+
+    def _language_meta(self):
+        return self._languages[self.lang]
 
     def _label(self, concept_id):
         try: return self.ont.label(concept_id, self.lang)
@@ -63,9 +65,9 @@ class SignSession:
         ont_concept = self.ont.concept_for_sign(concept_id)
         if ont_concept is None:
             ont_concept = concept_id.upper()
-        lang_name = _LANG_MAP[self.lang][0]
+        language = self._language_meta()
         real = NaturalLanguageRealizer.realize(
-            self.dm.state, lang_name, self.ont, perspective="customer"
+            self.dm.state, language["name"], self.ont, perspective="customer"
         )
         text = real["text"]
         # Fallback: if realizer returned empty, use the sign's label in selected language
@@ -74,11 +76,10 @@ class SignSession:
                 text = self._label(ont_concept)
             else:
                 text = concept_id.lower()
-        _name, tag = _LANG_MAP.get(self.lang, ("English", "en-IN"))
         return {"type": "resolved", "label": concept_id, "concept": ont_concept,
                 "how": how, "text": text,
                 "english": self.ont.label(ont_concept, "en") if self.ont.is_valid_concept(ont_concept) else concept_id,
-                "lang": self.lang, "tag": tag, "research": diag}
+                "lang": self.lang, "tag": language["speech_tag"], "research": diag}
 
     def _events_from_action(self, act, probs, diag):
         if act["action"] == "resolved":
@@ -86,7 +87,7 @@ class SignSession:
             try:
                 self.dm.update_from_deaf_sign(concept_id, probs[self.rec.classes.index(concept_id)]
                                               if concept_id in self.rec.classes else 1.0,
-                                              _LANG_MAP[self.lang][0])
+                                              self._language_meta()["name"])
             except (ValueError, KeyError):
                 pass
             self.dialogue = None

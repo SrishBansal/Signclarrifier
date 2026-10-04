@@ -121,6 +121,13 @@ def test_understand_same_core_concepts_across_langs():
         assert isinstance(j["plan"], list), f"plan not list for {lang}"
 
 
+def test_understand_uses_ontology_language_name_for_every_active_language():
+    client = TestClient(make_app())
+    for language in (entry for entry in get_ontology().languages() if not entry.get("nlu_input_only")):
+        j, _ = _understand(client, "shirt", language["code"])
+        assert j["text"], language
+
+
 # ── Boot check ────────────────────────────────────────────────────────────────
 
 def test_boot_refuses_class_not_in_ontology():

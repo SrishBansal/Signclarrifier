@@ -142,7 +142,7 @@ let lastAsrText = "", lastAsrConfidence = 1.0;
 function checkVoice(){
   if(!CFG)return;
   const l=CFG.languages.find(x=>x.code===lang);
-  const vs = ttsProvider.getVoices(lang);
+  const vs = ttsProvider.getVoices(l ? l.tag : navigator.language);
   $("voicenote").textContent=vs.length?"":`No native ${l ? l.name : lang} voice on this device. Fallback synthesis will be used.`;
 }
 if("speechSynthesis" in window) speechSynthesis.onvoiceschanged=checkVoice;
@@ -150,7 +150,7 @@ if("speechSynthesis" in window) speechSynthesis.onvoiceschanged=checkVoice;
 function speak(text,tag){
   setStatus("speaking","live");
   return ttsProvider.speak(text, {
-    lang: lang,
+    lang: tag || (CFG?.languages.find(x=>x.code===lang)?.tag || navigator.language),
     cancelPrevious: true,
     onEnd: ()=>{ setStatus("idle"); },
     onError: ()=>{ setStatus("idle"); }
@@ -378,7 +378,7 @@ $("say").onclick=async()=>{
   const l=CFG.languages.find(x=>x.code===lang);
   const speakText = lastInfo.length ? lastInfo.map(c=>c.text).join(" ") : $("txt").value;
   if(!speakText) return;
-  await speak(speakText, l ? l.tag : "hi-IN");
+  await speak(speakText, l ? l.tag : navigator.language);
   setStatus("idle");
 };
 
@@ -408,7 +408,7 @@ $("mic").onclick=()=>{
   $("mic").setAttribute("aria-pressed","true");
 
   activeProvider.start({
-    lang: lang,
+    lang: CFG?.languages.find(x=>x.code===lang)?.tag || navigator.language,
     onStart: ()=>{
       isMicActive = true;
       $("mic").setAttribute("aria-pressed","true");

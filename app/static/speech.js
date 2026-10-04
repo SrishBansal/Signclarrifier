@@ -8,13 +8,9 @@
 (function (global) {
   "use strict";
 
-  const LANG_TAGS = {
-    en: "en-IN",
-    hi: "hi-IN",
-    ta: "ta-IN",
-    bn: "bn-IN",
-    te: "te-IN"
-  };
+  function languageTag(lang) {
+    return lang || (typeof navigator !== "undefined" ? navigator.language : "");
+  }
 
   /**
    * ==========================================
@@ -37,7 +33,7 @@
 
     start(options) {
       const opts = Object.assign({
-        lang: "hi",
+        lang: "",
         onStart: null,
         onResult: null,
         onError: null,
@@ -59,7 +55,7 @@
       try {
         const root = typeof window !== "undefined" ? window : global;
         const recognition = new this.SRClass();
-        recognition.lang = LANG_TAGS[opts.lang] || opts.lang || "hi-IN";
+        recognition.lang = languageTag(opts.lang);
         recognition.continuous = false;
         recognition.interimResults = true;
         recognition.maxAlternatives = 3;
@@ -166,7 +162,7 @@
       if (!this.synth) return [];
       const vs = this.synth.getVoices();
       if (!lang) return vs;
-      const targetTag = LANG_TAGS[lang] || lang;
+      const targetTag = languageTag(lang);
       const base = targetTag.split("-")[0].toLowerCase();
       return vs.filter(v => {
         const vLang = v.lang.replace("_", "-").toLowerCase();
@@ -177,7 +173,7 @@
     getBestVoice(lang) {
       const candidates = this.getVoices(lang);
       if (!candidates.length) return null;
-      const targetTag = (LANG_TAGS[lang] || lang).toLowerCase();
+      const targetTag = languageTag(lang).toLowerCase();
       const exact = candidates.find(v => v.lang.replace("_", "-").toLowerCase() === targetTag);
       return exact || candidates[0];
     }
@@ -192,7 +188,7 @@
 
     speak(text, options) {
       const opts = Object.assign({
-        lang: "hi",
+        lang: "",
         voice: null,
         rate: 1.0,
         pitch: 1.0,
@@ -227,7 +223,7 @@
           utterance.voice = voiceObj;
           utterance.lang = voiceObj.lang;
         } else {
-          utterance.lang = LANG_TAGS[opts.lang] || opts.lang || "hi-IN";
+          utterance.lang = languageTag(opts.lang);
         }
         utterance.rate = opts.rate || 1.0;
         utterance.pitch = opts.pitch || 1.0;
@@ -263,7 +259,6 @@
 
   if (typeof module !== "undefined" && module.exports) {
     module.exports = {
-      LANG_TAGS,
       WebSpeechASRProvider,
       WebSpeechTTSProvider
     };

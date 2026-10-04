@@ -85,6 +85,8 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
     if recognizer is None and not reason:
         recognizer, reason = load_backend()
     ont = get_ontology()
+    language_by_code = {entry["code"]: entry for entry in ont.languages()}
+    default_language = next(entry for entry in ont.languages() if not entry.get("nlu_input_only"))
     try:
         _boot_check(recognizer, ont)
     except RuntimeError as e:
@@ -118,12 +120,11 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
                 "signs_available": os.path.exists(SIGNS)}
 
     @app.get("/api/understand")
-    def understand(text: str = Query(""), lang: str = "en", sid: str = Query("")):
+    def understand(text: str = Query(""), lang: str = Query(""), sid: str = Query("")):
         if not sid:
             sid = str(uuid.uuid4())
         dm = _get_dm(sid)
-        lang_names = {"en": "English", "hi": "Hindi", "ta": "Tamil", "hinglish": "Hinglish"}
-        language = lang_names.get(lang, "English")
+        language = language_by_code.get(lang, default_language)["name"]
         parsed = nlu.parse(text, language, dm.get_state())
         state = dm.update_from_shopkeeper(parsed)
         plan_items = planner.plan(state)
