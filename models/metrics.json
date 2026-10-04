@@ -1,58 +1,81 @@
 {
  "classes": [
+  "bag",
   "bank",
   "biglarge",
+  "bill",
   "black",
   "blue",
+  "book",
+  "brown",
+  "card",
   "cellphone",
+  "cheap",
+  "cold",
+  "dress",
+  "expensive",
   "good",
+  "green",
+  "grey",
+  "hat",
   "hello",
   "hot",
+  "laptop",
+  "market",
+  "medicine",
+  "money",
   "new",
+  "newspaper",
+  "orange",
+  "pant",
   "pen",
+  "pencil",
+  "pink",
+  "price",
   "red",
+  "ring",
+  "shirt",
   "shoes",
+  "skirt",
   "smalllittle",
+  "soap",
   "storeorshop",
+  "suit",
+  "telephone",
+  "television",
   "thankyou",
   "tshirt",
-  "white"
+  "white",
+  "yellow"
  ],
  "metrics": {
   "val": {
-   "n": 54,
-   "top1": 0.7037037037037037,
-   "top3": 0.9814814814814815,
-   "macro_f1": 0.642131398013751,
-   "ece": 0.15719625298623682
+   "n": 145,
+   "top1": 0.5310344827586206,
+   "top3": 0.8137931034482758,
+   "macro_f1": 0.4929355668486103,
+   "ece": 0.135809833530722
   },
   "test": {
-   "n": 60,
-   "top1": 0.65,
-   "top3": 0.8666666666666667,
-   "macro_f1": 0.567519735166794,
-   "ece": 0.1919965078433355
+   "n": 152,
+   "top1": 0.4868421052631579,
+   "top3": 0.7368421052631579,
+   "macro_f1": 0.43406404470234256,
+   "ece": 0.11398451167501901
   }
  },
  "meta": {
-  "mediapipe": "1.0.1",
-  "n_clips": 340,
+  "source": "swaptr/indian-sign-language-mediapipe-holistic-landmarks",
+  "n_clips": 833,
   "split": "session-group proxy (INCLUDE has no signer IDs); NOT proven signer-independent",
-  "metrics": {
-   "val": {
-    "n": 54,
-    "top1": 0.7037037037037037,
-    "top3": 0.9814814814814815,
-    "macro_f1": 0.642131398013751,
-    "ece": 0.15719625298623682
-   },
-   "test": {
-    "n": 60,
-    "top1": 0.65,
-    "top3": 0.8666666666666667,
-    "macro_f1": 0.567519735166794,
-    "ece": 0.1919965078433355
-   }
-  }
+  "hand_assignment": "direct",
+  "low_session_classes": {
+   "10": 2,
+   "13": 2
+  },
+  "ontology_sign_ids": 47,
+  "matched_classes": 47,
+  "missing_from_dataset": [],
+  "unused_dataset_labels": 215
  }
 }
