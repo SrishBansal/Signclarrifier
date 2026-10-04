@@ -36,11 +36,11 @@ def fit(Xtr, ytr, Xva, yva, n_classes, device="cpu", epochs=80, patience=12, lr=
     best_acc, best_state, bad = -1.0, None, 0
     for ep in range(epochs):
         model.train(); perm = torch.randperm(len(Xt), device=device)
-        for i in range(0, len(Xt), 32):
+        for batch_index, i in enumerate(range(0, len(Xt), 32)):
             b = perm[i:i + 32]
             loss = F.cross_entropy(model(augment(Xt[b])), yt[b], weight=w, label_smoothing=0.05)
             opt.zero_grad(); loss.backward(); nn.utils.clip_grad_norm_(model.parameters(), 1.0); opt.step()
-            sched.step(ep + i / max(1, len(Xt) // 32))
+            sched.step(ep + batch_index / max(1, len(Xt) // 32))
         model.eval()
         with torch.no_grad():
             lo = model(Xv); vl = F.cross_entropy(lo, yv).item(); va = (lo.argmax(1) == yv).float().mean().item()

@@ -1,9 +1,18 @@
 import numpy as np, sys, os
+import inspect
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from clarifysign_ml.features import (landmarks_to_features, frame_activity, trim_active, to_fixed,
                                      prepare_sequence, FEATURE_DIM, SEQ_LEN, POSE)
 from clarifysign_ml.dataset import session_groups, group_split
 from clarifysign_ml.stream import StreamingSession
+from clarifysign_ml.train import fit
+
+
+def test_warm_restart_scheduler_advances_by_batch_index():
+    """Scheduler progress must use batches, not the raw sample offset."""
+    src = inspect.getsource(fit)
+    assert "CosineAnnealingWarmRestarts" in src
+    assert "batch_index / max(1, len(Xt) // 32)" in src
 
 
 class LM:
