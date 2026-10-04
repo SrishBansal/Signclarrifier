@@ -185,3 +185,23 @@ def test_shirt_sign_then_price_query_keeps_focus():
     concepts = [c for c in plan if c]
     has_shirt_or_price = any("SHIRT" in c.upper() or "PRICE" in c.upper() for c in concepts)
     assert has_shirt_or_price, f"Expected SHIRT/PRICE in plan, got: {plan}"
+
+
+def test_session_emits_one_second_diagnostics_log(caplog):
+    """A received frame keeps the session alive long enough for useful server logs."""
+    import logging
+    import time
+    from app.session import SignSession
+
+    class Extractor:
+        last = {"aspect": 4 / 3, "y_scale": 1.0}
+
+        def __call__(self, frame):
+            return np.zeros(FEATURE_DIM, dtype=np.float32)
+
+    caplog.set_level(logging.INFO, logger="clarifysign.session")
+    session = SignSession(StubRecognizer(), Extractor())
+    session._stat_t = time.time() - 1.1
+    events = session.on_frame(b"not-used")
+    assert events[0]["type"] == "diag"
+    assert any("frames=1 pose=0 lh=0 rh=0" in row.message for row in caplog.records)

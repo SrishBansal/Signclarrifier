@@ -2,7 +2,7 @@
 import io, os, json, asyncio, time, uuid, logging
 import numpy as np, cv2
 import yaml
-from fastapi import FastAPI, WebSocket, Query
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from starlette.staticfiles import StaticFiles
 
@@ -98,6 +98,16 @@ def _draw_landmarks(bgr, ext):
 
 
 def create_app(recognizer=None, reason="", extractor_factory=None):
+    logging.getLogger("clarifysign").setLevel(logging.INFO)
+    diagnostic_log = os.environ.get("CLARIFYSIGN_DIAGNOSTIC_LOG")
+    if diagnostic_log:
+        diagnostic_logger = logging.getLogger("clarifysign")
+        destination = os.path.abspath(diagnostic_log)
+        if not any(getattr(handler, "baseFilename", None) == destination
+                   for handler in diagnostic_logger.handlers):
+            handler = logging.FileHandler(destination, encoding="utf-8")
+            handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s"))
+            diagnostic_logger.addHandler(handler)
     if recognizer is None and not reason:
         recognizer, reason = load_backend()
     ont = get_ontology()
@@ -204,6 +214,7 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
         await ws.accept()
         if not sid:
             sid = str(uuid.uuid4())
+        log.info("websocket opened sid=%s", sid)
         if recognizer is None:
             await ws.send_json({"type": "error", "message": reason}); await ws.close(); return
         dm = _get_dm(sid)
@@ -214,8 +225,16 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
         _warn_shown = set()
         try:
             while True:
-                msg = await ws.receive()
+                try:
+                    msg = await ws.receive()
+                except WebSocketDisconnect as exc:
+                    log.info("websocket disconnected sid=%s code=%s", sid, exc.code)
+                    break
+                except Exception:
+                    log.exception("websocket receive failed sid=%s", sid)
+                    break
                 if msg["type"] == "websocket.disconnect":
+                    log.info("websocket disconnect event sid=%s code=%s", sid, msg.get("code"))
                     break
                 if msg.get("bytes"):
                     raw_bytes = msg["bytes"]
@@ -254,6 +273,7 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
             close = getattr(ext, "close", None)
             if close: close()
             _last_frames.pop(sid, None)
+            log.info("websocket closed sid=%s", sid)
 
     return app
 

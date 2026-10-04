@@ -14,7 +14,7 @@ select,button,input{font:inherit;color:var(--ink);background:var(--surface-raise
 .tabs{display:flex;gap:4px;max-width:1240px;margin:0 auto;padding:22px clamp(20px,4vw,56px) 0}.tab{border:0;border-radius:11px;padding:10px 16px;color:var(--muted);background:transparent;font-weight:700}.tab.on{background:var(--surface-raised);color:var(--brand);box-shadow:0 0 0 1px var(--line),var(--shadow)}
 main{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(360px,.94fr);gap:20px;padding:20px clamp(20px,4vw,56px) 36px;max-width:1240px;margin:0 auto}@media(max-width:860px){main{grid-template-columns:1fr}.vs{grid-template-columns:1fr!important}.stage{min-height:560px!important}}@media(max-width:560px){header{align-items:flex-start;flex-direction:column;padding:14px 18px}.hdr{width:100%}.hdr select{flex:1}.tabs{padding:14px 18px 0}main{padding:14px 18px 28px}.pane{min-height:390px!important}.stage{min-height:500px!important}.fab{left:14px;right:auto!important}.caption{bottom:100px!important;font-size:19px!important}}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}.video{position:relative;background:linear-gradient(145deg,#213235,#0c1516);border-radius:13px;overflow:hidden;aspect-ratio:4/3;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}.video:after{content:"Camera preview";position:absolute;left:12px;top:10px;padding:4px 8px;border-radius:999px;background:rgba(0,0,0,.45);color:#fff;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
-.pill{display:inline-flex;gap:8px;align-items:center;padding:7px 11px;border-radius:99px;background:var(--surface-raised);border:1px solid var(--line);font-size:13px;font-weight:750;margin-top:14px}.dot{width:9px;height:9px;border-radius:50%;background:var(--muted)}.dot.live{background:var(--ok);animation:p 1.2s infinite}.dot.warn{background:var(--warn)}.dot.err{background:var(--err)}@keyframes p{50%{opacity:.3;transform:scale(.74)}}
+.pill{display:inline-flex;gap:8px;align-items:center;padding:7px 11px;border-radius:99px;background:var(--surface-raised);border:1px solid var(--line);font-size:13px;font-weight:750;margin-top:14px}.beta{background:var(--warn-soft);color:var(--warn);border-color:color-mix(in srgb,var(--warn) 35%,var(--line))}.dot{width:9px;height:9px;border-radius:50%;background:var(--muted)}.dot.live{background:var(--ok);animation:p 1.2s infinite}.dot.warn{background:var(--warn)}.dot.err{background:var(--err)}@keyframes p{50%{opacity:.3;transform:scale(.74)}}
 .log{display:flex;flex-direction:column;gap:10px;min-height:170px;max-height:340px;overflow:auto;margin-top:12px}.msg{border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:12px;padding:13px 14px;background:var(--surface-raised)}.msg .big{font-size:25px;font-weight:760;line-height:1.2;letter-spacing:-.03em;margin:3px 0}.msg .sub{color:var(--muted);font-size:13px}.ask{border:1px solid color-mix(in srgb,var(--accent) 60%,var(--line));border-radius:14px;padding:15px;margin-top:14px;background:var(--accent-soft);box-shadow:0 8px 22px rgba(195,102,35,.08)}.ask strong{display:block;font-size:16px}.opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.opts button{background:var(--surface-raised);font-weight:700}.note{color:var(--muted);font-size:13px;margin-top:9px}.err{color:var(--err)}
 canvas{width:100%;max-width:420px;background:var(--canvas);border-radius:12px;border:1px solid var(--line)}details{margin:0 clamp(20px,4vw,56px) 24px;max-width:1240px;margin-inline:auto}details pre{white-space:pre-wrap;font-size:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px}
 
@@ -38,7 +38,8 @@ canvas{width:100%;max-width:420px;background:var(--canvas);border-radius:12px;bo
     <div class="video"><video id="cam" autoplay playsinline muted></video></div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <span class="pill"><span class="dot" id="dot"></span><span id="status">Ready</span></span>
-      <button class="primary" id="go" style="margin-top:12px">Start camera</button>
+      <button id="go" style="margin-top:12px">Try experimental camera</button>
+      <span class="pill beta">Experimental recognition</span>
       <button id="reset" style="margin-top:12px" disabled>Reset</button>
     </div>
     <div class="note" id="banner" role="status" aria-live="polite"></div>
@@ -167,6 +168,12 @@ function speak(text,tag){
 function addMsg(html){const d=document.createElement("div");d.className="msg";d.innerHTML=html;const L=$("log");
   if(L.querySelector(".note"))L.innerHTML="";L.appendChild(d);L.scrollTop=L.scrollHeight;return d}
 function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function setLiveInference(text){
+  const L=$("log");let d=$("live-inference");
+  if(!d){if(L.querySelector(".note"))L.innerHTML="";d=document.createElement("div");d.id="live-inference";d.className="note";L.appendChild(d)}
+  d.textContent=text;L.scrollTop=L.scrollHeight;
+}
+function clearLiveInference(){const d=$("live-inference");if(d)d.remove()}
 
 async function start(){
   if(CFG&&!CFG.recognition_ready){setStatus("error");return}
@@ -178,15 +185,15 @@ async function start(){
   say($("banner"),"","note");
   ws=new WebSocket((location.protocol==="https:"?"wss://":"ws://")+location.host+"/ws/sign?sid="+encodeURIComponent(SID));
   ws.binaryType="arraybuffer";
-  ws.onopen=()=>{ws.send(JSON.stringify({type:"config",lang}));$("go").textContent="Stop";$("reset").disabled=false;pump()};
-  ws.onmessage=ev=>onEvent(JSON.parse(ev.data));
+  ws.onopen=()=>{ws.send(JSON.stringify({type:"config",lang}));$("go").textContent="Stop camera";$("reset").disabled=false;setLiveInference("Camera connected. Waiting for a complete sign…");pump()};
+  ws.onmessage=ev=>{try{onEvent(JSON.parse(ev.data))}catch(error){console.error("WebSocket event handling failed",error);say($("banner"),"A server event could not be displayed. Please try again.","note err")}};
   ws.onerror=()=>{setStatus("error");say($("banner"),"WebSocket connection error.","note err")};
   ws.onclose=ev=>{
     const wasActive=!!stream;
     stop(false,false);
     if(wasActive){
       setStatus("error");
-      say($("banner"),"Connection to server lost. Click 'Start camera' to reconnect.","note err");
+      say($("banner"),`Camera session ended (code ${ev.code}${ev.reason?`: ${ev.reason}`:""}). Try the experimental camera again.`,"note err");
     }
   };
 }
@@ -198,7 +205,7 @@ function stop(closeWs=true,userInitiated=true){
   ws=null;
   if(stream)stream.getTracks().forEach(t=>t.stop());
   stream=null;$("cam").srcObject=null;
-  $("go").textContent="Start camera";$("reset").disabled=true;$("askbox").innerHTML="";
+  $("go").textContent="Try experimental camera";$("reset").disabled=true;$("askbox").innerHTML="";clearLiveInference();
   if(userInitiated){setStatus("idle");say($("banner"),"","note")}
 }
 $("go").onclick=()=>stream?stop(true,true):start();
@@ -250,22 +257,25 @@ async function onEvent(e){
   if(e.research||e.top){$("rsout").textContent=JSON.stringify(e.research||{top:e.top},null,2)}
   if(e.type==="ack"){inflight=false;if(watchdogTimer){clearTimeout(watchdogTimer);watchdogTimer=null}return}
   if(e.type==="diag"){if(e.research)updateHud(e.research);return}
-  else if(e.type==="state"){setStatus(e.state)}
+  else if(e.type==="state"){setStatus(e.state);if(e.state==="signing")setLiveInference("Sign detected. Reading the movement…");else if(e.state==="interpreting")setLiveInference("Interpreting the completed sign…");else if(e.state==="listening")setLiveInference("Waiting for a complete sign…")}
   else if(e.type==="provisional"){
     if(e.top&&e.top.length>0){
       const top1=e.top[0];
       setStatus("Recognizing… "+top1.label+" ("+Math.round(top1.p*100)+"%)","live");
+      setLiveInference("Still interpreting… best current match: "+top1.label+" ("+Math.round(top1.p*100)+"%).");
       // Show provisional top-3 as chips in HUD
       const prov=$("hud-prov");
       if(prov){prov.style.display='';prov.textContent=e.top.slice(0,3).map(t=>t.label+' '+Math.round(t.p*100)+'%').join(' | ');}
     }
   }
-  else if(e.type==="clarify"){ask(e.question)}
+  else if(e.type==="clarify"){clearLiveInference();addMsg(`<div class="sub">I need a quick clarification</div><div class="big">${esc(e.question.text)}</div>`);ask(e.question)}
   else if(e.type==="resolved"){$("askbox").innerHTML="";setStatus("resolved","live");
+    clearLiveInference();
     addMsg(`<div class="sub">You signed</div><div class="big">${esc(e.text)}</div><div class="sub">${esc(e.english)}${e.how==="best_guess"?" · best guess":""}</div>`);
     const prov=$("hud-prov");if(prov)prov.style.display='none';
     if($("auto").checked)await speak(e.text,e.tag);setStatus("listening")}
   else if(e.type==="resign"){$("askbox").innerHTML="";
+    clearLiveInference();
     addMsg(`<div class="sub">${esc(e.message||"Sign not recognised. Please try again.")}</div>`);
     setStatus("listening")}
   else if(e.type==="warn"){if(!_warnShown){_warnShown=true;say($("banner"),e.message,"note");setTimeout(()=>{_warnShown=false;say($("banner"),"","note")},5000);}return}

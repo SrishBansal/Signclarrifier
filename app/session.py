@@ -11,6 +11,7 @@ from core.dialogue import DialogueManager
 from core.semantics import NaturalLanguageRealizer
 
 log = logging.getLogger("clarifysign.session")
+log.setLevel(logging.INFO)
 
 # ACT_Y overridable by env; default unchanged
 _ACT_Y = float(os.environ.get("ACT_Y", str(_DEFAULT_ACT_Y)))
