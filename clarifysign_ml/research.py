@@ -10,9 +10,10 @@ from dataclasses import dataclass, asdict
 from hashlib import sha256
 import json
 from pathlib import Path
-from typing import Any, Dict, Iterable, List
+from typing import Any, Dict, Iterable, List, Sequence
 
 import numpy as np
+from sklearn.metrics import f1_score
 
 from .features import FEATURE_DIM, SEQ_LEN
 
@@ -107,3 +108,56 @@ def queue_confirmed_features(root: str | Path, features: np.ndarray, label: str,
     with (queue_root / "pending.jsonl").open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(record, sort_keys=True) + "\n")
     return record
+
+
+def promote_reviewed_features(queue_root: str | Path, approved_ids: Iterable[str],
+                              manifest_path: str | Path, allowed_labels: Iterable[str],
+                              split: str = "train") -> List[ManifestSample]:
+    """Promote human-approved queue records into a validated training manifest.
+
+    Approval is explicit and labels are checked against the current recognizer
+    vocabulary. Each queued sequence gets its own group boundary, preventing a
+    sample from silently leaking between data splits.
+    """
+    selected = set(approved_ids)
+    allowed = set(allowed_labels)
+    if not selected:
+        return []
+    pending_path = Path(queue_root) / "pending.jsonl"
+    pending = [json.loads(line) for line in pending_path.read_text(encoding="utf-8").splitlines() if line]
+    by_id = {row["id"]: row for row in pending}
+    unknown = selected - set(by_id)
+    if unknown:
+        raise ValueError(f"unknown queue record(s): {sorted(unknown)!r}")
+    samples = []
+    for record_id in sorted(selected):
+        row = by_id[record_id]
+        if row["label"] not in allowed:
+            raise ValueError(f"label {row['label']!r} is not an allowed recognizer class")
+        samples.append(ManifestSample("local-consented", record_id, record_id, split,
+                                      row["feature_path"], text="", signer_id=""))
+    existing = load_manifest(manifest_path) if Path(manifest_path).exists() else []
+    write_manifest(manifest_path, [*existing, *samples])
+    return samples
+
+
+def group_evaluation(probs: np.ndarray, labels: Sequence[int], group_ids: Sequence[str]) -> Dict[str, Any]:
+    """Return overall and per-group metrics for signer/source-independent reports."""
+    p = np.asarray(probs, dtype=np.float64)
+    y = np.asarray(labels, dtype=int)
+    groups = np.asarray(group_ids, dtype=str)
+    if p.ndim != 2 or len(p) != len(y) or len(y) != len(groups) or not len(y):
+        raise ValueError("probs, labels, and group_ids must be non-empty and aligned")
+    pred = p.argmax(axis=1)
+
+    def metrics(mask):
+        truth, predicted = y[mask], pred[mask]
+        topk = min(3, p.shape[1])
+        return {"n": int(mask.sum()),
+                "top1": float((truth == predicted).mean()),
+                "top3": float(np.mean([truth[i] in np.argsort(-p[mask][i])[:topk] for i in range(len(truth))])),
+                "macro_f1": float(f1_score(truth, predicted, average="macro", zero_division=0))}
+
+    all_rows = np.ones(len(y), dtype=bool)
+    return {"overall": metrics(all_rows),
+            "by_group": {group: metrics(groups == group) for group in sorted(set(groups))}}

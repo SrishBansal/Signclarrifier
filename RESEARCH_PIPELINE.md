@@ -31,3 +31,13 @@ The default queue is a review queue, not online learning:
 
 This design improves reproducibility and privacy without treating unreviewed
 live predictions as training truth.
+
+## Review and evaluation
+
+Use `promote_reviewed_features` only after a human has checked the consent,
+label, and duplicate status of a queue record. The function accepts the current
+recognizer classes, so invalid labels cannot enter a training manifest.
+
+Use `group_evaluation` with signer IDs or source-video IDs after every offline
+run. Report overall top-1/top-3/macro-F1 and every group independently; do not
+claim signer-independent results when only recording sessions are available.
