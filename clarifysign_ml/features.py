@@ -139,6 +139,14 @@ class LandmarkExtractor:
         self._model_path = model_path
         self._hand_model_path = hand_model_path or os.environ.get(
             "HAND_LANDMARKER_TASK", os.path.join(os.path.dirname(model_path), "hand_landmarker.task"))
+        # Holistic model confidences – hand detection is intentionally low (0.1) because
+        # the holistic model is conservative about hands in mixed-crop frames; the
+        # dedicated hand-fallback detector reinforces misses. Pose thresholds stay at
+        # 0.5 (MediaPipe default) so full-body pose is not over-detected.
+        self._holistic_hand_confidence = float(os.environ.get("HOLISTIC_HAND_CONFIDENCE", "0.1"))
+        self._holistic_pose_detection_confidence = float(os.environ.get("HOLISTIC_POSE_DETECTION_CONFIDENCE", "0.5"))
+        self._holistic_pose_landmarks_confidence = float(os.environ.get("HOLISTIC_POSE_LANDMARKS_CONFIDENCE", "0.5"))
+        # Fallback standalone HandLandmarker confidences
         self._hand_detection_confidence = float(os.environ.get("HAND_DETECTION_CONFIDENCE", "0.25"))
         self._hand_presence_confidence = float(os.environ.get("HAND_PRESENCE_CONFIDENCE", "0.25"))
         self._hand_tracking_confidence = float(os.environ.get("HAND_TRACKING_CONFIDENCE", "0.25"))
@@ -156,6 +164,11 @@ class LandmarkExtractor:
             running_mode=self._vision.RunningMode.IMAGE,
             output_face_blendshapes=False,
             output_segmentation_mask=False,
+            # Lower hand threshold so the holistic model detects hands even when
+            # the wrist occupies a non-central crop (the most common live-camera case).
+            min_hand_landmarks_confidence=self._holistic_hand_confidence,
+            min_pose_detection_confidence=self._holistic_pose_detection_confidence,
+            min_pose_landmarks_confidence=self._holistic_pose_landmarks_confidence,
         )
         if self.det is not None:
             try: self.det.close()
