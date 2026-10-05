@@ -2,7 +2,7 @@ import numpy as np, sys, os
 import inspect
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from clarifysign_ml.features import (landmarks_to_features, frame_activity, trim_active, to_fixed,
-                                     prepare_sequence, FEATURE_DIM, SEQ_LEN, POSE)
+                                     prepare_sequence, assign_hands_to_pose, FEATURE_DIM, SEQ_LEN, POSE)
 from clarifysign_ml.dataset import session_groups, group_split
 from clarifysign_ml.stream import StreamingSession
 from clarifysign_ml.train import fit
@@ -44,6 +44,17 @@ def test_pose_is_shoulder_normalised():
     p = feat(True)[POSE].reshape(33, 3)
     assert np.allclose((p[11] + p[12]) / 2, 0, atol=1e-5)
     assert abs(np.linalg.norm(p[11, :2] - p[12, :2]) - 1.0) < 1e-4
+
+
+def test_hand_fallback_uses_pose_wrist_slots_not_selfie_handedness():
+    pose = pose_lms(0.7)
+    pose[15], pose[16] = LM(0.2, 0.7), LM(0.8, 0.7)
+    left_screen = [LM(0.2 + i * .001, 0.7) for i in range(21)]
+    right_screen = [LM(0.8 + i * .001, 0.7) for i in range(21)]
+    lh, rh = assign_hands_to_pose([right_screen, left_screen], pose)
+    assert lh is left_screen and rh is right_screen
+    lh, rh = assign_hands_to_pose([right_screen], pose)
+    assert lh is None and rh is right_screen
 
 
 def test_activity_trim_resample():

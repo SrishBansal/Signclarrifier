@@ -8,6 +8,7 @@ Layout (225 dims): left hand 63 | right hand 63 | pose 99.
 - Feed UNMIRRORED frames. If the browser preview is mirrored, send the raw frame, not the mirrored one.
 """
 import os
+import logging
 import numpy as np
 
 FEATURE_DIM = 225
@@ -18,6 +19,41 @@ ACT_Y = 1.3  # a wrist higher than this (shoulder widths below shoulder line) co
 # Training data was extracted at 16:9 (y multiplied by 1.8 in Kaggle notebook).
 # Live webcam frames may differ; LandmarkExtractor scales y to match.
 FEATURE_ASPECT = float(os.environ.get("FEATURE_ASPECT", str(16.0 / 9.0)))
+
+
+def _first_landmark_group(groups):
+    """Return one landmark group whether Tasks returned a flat or nested list."""
+    if not groups:
+        return None
+    return groups if hasattr(groups[0], "x") else groups[0]
+
+
+def assign_hands_to_pose(hand_groups, pose_groups):
+    """Map detected hands to the pose left/right wrist slots by image position.
+
+    Task handedness labels are defined for mirrored/selfie input.  The application
+    deliberately sends unmirrored frames, so pose-wrist proximity is the stable
+    convention shared with the Holistic features used during training.
+    """
+    groups = [g for g in hand_groups if g and len(g) == 21]
+    pose = _first_landmark_group(pose_groups)
+    if not groups or not pose or len(pose) != 33:
+        return None, None
+    wrists = [(float(pose[15].x), float(pose[15].y)),
+              (float(pose[16].x), float(pose[16].y))]
+
+    def distance(hand, wrist):
+        return (float(hand[0].x) - wrist[0]) ** 2 + (float(hand[0].y) - wrist[1]) ** 2
+
+    if len(groups) == 1:
+        slot = 0 if distance(groups[0], wrists[0]) <= distance(groups[0], wrists[1]) else 1
+        return (groups[0], None) if slot == 0 else (None, groups[0])
+
+    # Select the two hands whose wrists best agree with the pose wrists.  This
+    # also makes the behaviour deterministic if a future model returns extras.
+    best = min(((distance(left, wrists[0]) + distance(right, wrists[1]), left, right)
+                for left in groups for right in groups if left is not right), key=lambda x: x[0])
+    return best[1], best[2]
 
 
 def _arr(lms, n):
@@ -94,14 +130,20 @@ class LandmarkExtractor:
 
     _TARGET_W = 640
 
-    def __init__(self, model_path):
+    def __init__(self, model_path, hand_model_path=None):
         import mediapipe as mp
         from mediapipe.tasks.python import vision, BaseOptions
         self._mp = mp
         self._vision = vision
         self._BaseOptions = BaseOptions
         self._model_path = model_path
+        self._hand_model_path = hand_model_path or os.environ.get(
+            "HAND_LANDMARKER_TASK", os.path.join(os.path.dirname(model_path), "hand_landmarker.task"))
+        self._hand_detection_confidence = float(os.environ.get("HAND_DETECTION_CONFIDENCE", "0.25"))
+        self._hand_presence_confidence = float(os.environ.get("HAND_PRESENCE_CONFIDENCE", "0.25"))
+        self._hand_tracking_confidence = float(os.environ.get("HAND_TRACKING_CONFIDENCE", "0.25"))
         self.det = None
+        self.hand_det = None
         self._last_hw = None  # (h, w) after resize
         self.last = {"lh": False, "rh": False, "pose": False, "aspect": None, "y_scale": 1.0}
         self._build_detector()
@@ -118,11 +160,29 @@ class LandmarkExtractor:
         if self.det is not None:
             try: self.det.close()
             except Exception: pass
+        if self.hand_det is not None:
+            try: self.hand_det.close()
+            except Exception: pass
+        self.hand_det = None
         self.det = self._vision.HolisticLandmarker.create_from_options(opts)
+        if not os.path.isfile(self._hand_model_path):
+            logging.getLogger("clarifysign.features").warning(
+                "Hand fallback disabled: task model is missing at %s", self._hand_model_path)
+            return
+        hand_opts = self._vision.HandLandmarkerOptions(
+            base_options=self._BaseOptions(
+                model_asset_path=self._hand_model_path,
+                delegate=self._BaseOptions.Delegate.CPU),
+            running_mode=self._vision.RunningMode.IMAGE,
+            num_hands=2,
+            min_hand_detection_confidence=self._hand_detection_confidence,
+            min_hand_presence_confidence=self._hand_presence_confidence,
+            min_tracking_confidence=self._hand_tracking_confidence,
+        )
+        self.hand_det = self._vision.HandLandmarker.create_from_options(hand_opts)
 
     def __call__(self, frame_bgr):
         import cv2
-        import logging
         h_orig, w_orig = frame_bgr.shape[:2]
 
         # Resize to fixed width = 640, preserve aspect
@@ -146,7 +206,7 @@ class LandmarkExtractor:
         try:
             res = self.det.detect(self._mp.Image(image_format=self._mp.ImageFormat.SRGB, data=rgb))
         except Exception as exc:
-            logging.getLogger("clarifysign.features").warning("detect() failed: %s", exc)
+            logging.getLogger("clarifysign.features").warning("holistic detect() failed: %s", exc)
             self.last = {"lh": False, "rh": False, "pose": False,
                          "aspect": round(aspect_orig, 3), "y_scale": round(k, 4)}
             return np.zeros(FEATURE_DIM, np.float32)
@@ -167,8 +227,25 @@ class LandmarkExtractor:
                     break
             return scaled if scaled else lm_list
 
-        lh   = _scale_y(res.left_hand_landmarks)  if res.left_hand_landmarks  else None
-        rh   = _scale_y(res.right_hand_landmarks) if res.right_hand_landmarks else None
+        raw_lh = _first_landmark_group(res.left_hand_landmarks)
+        raw_rh = _first_landmark_group(res.right_hand_landmarks)
+        source_lh = "holistic" if raw_lh else "none"
+        source_rh = "holistic" if raw_rh else "none"
+        if self.hand_det is not None and (not raw_lh or not raw_rh):
+            try:
+                hand_res = self.hand_det.detect(self._mp.Image(
+                    image_format=self._mp.ImageFormat.SRGB, data=rgb))
+                fallback_lh, fallback_rh = assign_hands_to_pose(
+                    hand_res.hand_landmarks, res.pose_landmarks)
+                if not raw_lh and fallback_lh:
+                    raw_lh, source_lh = fallback_lh, "hand_fallback"
+                if not raw_rh and fallback_rh:
+                    raw_rh, source_rh = fallback_rh, "hand_fallback"
+            except Exception as exc:
+                logging.getLogger("clarifysign.features").warning("hand fallback detect() failed: %s", exc)
+
+        lh   = _scale_y(raw_lh) if raw_lh else None
+        rh   = _scale_y(raw_rh) if raw_rh else None
         pose = _scale_y(res.pose_landmarks)        if res.pose_landmarks        else None
 
         # Keep lightweight normalized coordinates for the debug-frame endpoint.
@@ -180,16 +257,20 @@ class LandmarkExtractor:
             points = groups[0] if hasattr(groups[0], "__iter__") else groups
             return [(float(lm.x), float(lm.y)) for lm in points]
 
-        self.last = {"lh": bool(res.left_hand_landmarks), "rh": bool(res.right_hand_landmarks),
+        self.last = {"lh": bool(raw_lh), "rh": bool(raw_rh),
                      "pose": bool(res.pose_landmarks), "aspect": round(aspect_orig, 3), "y_scale": round(k, 4),
-                     "landmarks": {"lh": _debug_points(res.left_hand_landmarks),
-                                   "rh": _debug_points(res.right_hand_landmarks),
+                     "hand_source": {"lh": source_lh, "rh": source_rh},
+                     "landmarks": {"lh": _debug_points(raw_lh),
+                                   "rh": _debug_points(raw_rh),
                                    "pose": _debug_points(res.pose_landmarks)}}
         return landmarks_to_features(lh, rh, pose)
 
     def close(self):
         if self.det is not None:
             try: self.det.close()
+            except Exception: pass
+        if self.hand_det is not None:
+            try: self.hand_det.close()
             except Exception: pass
 
 

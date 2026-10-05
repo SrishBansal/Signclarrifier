@@ -2,7 +2,7 @@
 """Capture one direct webcam frame and test ClarifySign's live extractor.
 
 This deliberately bypasses the browser, JPEG/WebSocket transport, and FastAPI.
-It uses the same LandmarkExtractor and holistic_landmarker.task as the app.
+It uses the same LandmarkExtractor, Holistic task, and hand-fallback task as the app.
 """
 from __future__ import annotations
 
@@ -78,6 +78,7 @@ def main() -> int:
     print(f"pose_landmarks={'POPULATED' if detected.get('pose') else 'EMPTY'}")
     print(f"left_hand_landmarks={'POPULATED' if detected.get('lh') else 'EMPTY'}")
     print(f"right_hand_landmarks={'POPULATED' if detected.get('rh') else 'EMPTY'}")
+    print(f"hand_sources={detected.get('hand_source', {})}")
     print(f"extractor_aspect={detected.get('aspect')} y_scale={detected.get('y_scale')}")
     print(f"feature_nonzero={int((features != 0).sum())}/{features.size}")
     return 0
