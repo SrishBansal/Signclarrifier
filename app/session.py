@@ -147,7 +147,10 @@ class SignSession:
         has_pose = bool(p.any())
         wrist_y = float(min(p[15, 1], p[16, 1])) if has_pose else None
         lh_det = bool(feat[LH].any()); rh_det = bool(feat[RH].any())
-        act = frame_activity(feat, _ACT_Y)
+        act = bool(frame_activity(feat, _ACT_Y))
+        extractor_last = getattr(self.ext, "last", {})
+        aspect = extractor_last.get("aspect")
+        y_scale = extractor_last.get("y_scale")
 
         # Update per-second stats
         self._stat_frames += 1
@@ -162,9 +165,9 @@ class SignSession:
         diag_frame = {"fps": round(self._fps, 1), "lh": lh_det, "rh": rh_det,
                       "pose": has_pose, "activity": act, "state": self.stream.state,
                       "wrist_y": round(wrist_y, 3) if wrist_y is not None else None,
-                      "act_y": _ACT_Y,
-                      "aspect": getattr(self.ext, "last", {}).get("aspect"),
-                      "y_scale": getattr(self.ext, "last", {}).get("y_scale")}
+                      "act_y": float(_ACT_Y),
+                      "aspect": float(aspect) if aspect is not None else None,
+                      "y_scale": float(y_scale) if y_scale is not None else None}
         out = [{"type": "diag", "research": diag_frame}]
 
         # A missing landmark frame is not a recognizer input, but it is still a
@@ -179,7 +182,7 @@ class SignSession:
                 out.append({"type": "provisional", "top": self._top(e["probs"])})
             elif e["type"] == "sign_end":
                 probs = e["probs"]
-                diag = {**uncertainty(list(probs)), "frames": e["n_frames"],
+                diag = {**uncertainty(list(map(float, probs))), "frames": int(e["n_frames"]),
                         "top": self._top(probs, 5), "fps": round(self._fps, 1)}
                 out.append({"type": "state", "state": "interpreting"})
                 self.dialogue = Dialogue(list(map(float, probs)), self.rec.classes)

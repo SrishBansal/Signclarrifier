@@ -26,6 +26,39 @@ PORT   = int(os.environ.get("PORT", "8000"))
 _last_frames: dict = {}
 
 
+def _json_native(value):
+    """Convert NumPy values at the websocket boundary to JSON primitives.
+
+    Feature extraction and probability calculations intentionally use NumPy.
+    Starlette's ``send_json`` uses Python's standard JSON encoder, which cannot
+    encode NumPy scalars.  Keeping conversion here makes every websocket event
+    safe, including future diagnostics and clarification payloads.
+    """
+    if isinstance(value, np.ndarray):
+        return [_json_native(item) for item in value.tolist()]
+    if isinstance(value, np.generic):
+        return value.item()
+    if isinstance(value, dict):
+        return {str(key): _json_native(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_json_native(item) for item in value]
+    return value
+
+
+async def _send_event(ws: WebSocket, event: dict, *, sid: str, source: str) -> None:
+    """Send one event with JSON conversion and actionable failure diagnostics."""
+    payload = _json_native(event)
+    try:
+        # Preflight catches unsupported values before the websocket transport
+        # turns them into an opaque per-frame error.
+        json.dumps(payload, allow_nan=False)
+        await ws.send_json(payload)
+    except Exception:
+        log.exception("websocket send failed sid=%s source=%s event_type=%r payload=%r",
+                      sid, source, event.get("type"), payload)
+        raise
+
+
 def _boot_check(recognizer, ontology):
     """Refuse boot if any recognizer class is not an ontology sign_id. Lists offenders."""
     if recognizer is None:
@@ -216,12 +249,14 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
             sid = str(uuid.uuid4())
         log.info("websocket opened sid=%s", sid)
         if recognizer is None:
-            await ws.send_json({"type": "error", "message": reason}); await ws.close(); return
+            await _send_event(ws, {"type": "error", "message": reason}, sid=sid, source="startup")
+            await ws.close()
+            return
         dm = _get_dm(sid)
         ext = extractor_factory()
         sess = SignSession(recognizer, ext, dm=dm, decode=dec)
         loop = asyncio.get_running_loop()
-        await ws.send_json({"type": "state", "state": "listening"})
+        await _send_event(ws, {"type": "state", "state": "listening"}, sid=sid, source="startup")
         _warn_shown = set()
         try:
             while True:
@@ -245,14 +280,15 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
                         if img is not None:
                             _last_frames[sid] = _draw_landmarks(img, ext)
                         for e in events:
-                            await ws.send_json(e)
+                            await _send_event(ws, e, sid=sid, source="frame")
                     except Exception as ex:
-                        log.warning("frame error sid=%s: %s", sid, ex)
+                        log.exception("frame handling failed sid=%s error_type=%s", sid, type(ex).__name__)
                         warn_key = str(type(ex).__name__)
                         if warn_key not in _warn_shown:
                             _warn_shown.add(warn_key)
-                            await ws.send_json({"type": "warn", "message": f"Frame processing issue: {ex}"})
-                    await ws.send_json({"type": "ack"})
+                            await _send_event(ws, {"type": "warn", "message": f"Frame processing issue: {ex}"},
+                                              sid=sid, source="frame-warning")
+                    await _send_event(ws, {"type": "ack"}, sid=sid, source="frame-ack")
                 elif msg.get("text"):
                     try:
                         d = json.loads(msg["text"])
@@ -261,14 +297,16 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
                             sess.set_lang(d.get("lang", "en"))
                         elif mtype == "answer":
                             for e in sess.on_answer(d.get("value")):
-                                await ws.send_json(e)
+                                await _send_event(ws, e, sid=sid, source="answer")
                         elif mtype == "reset":
-                            sess.reset(); await ws.send_json({"type": "state", "state": "listening"})
+                            sess.reset()
+                            await _send_event(ws, {"type": "state", "state": "listening"}, sid=sid, source="reset")
                         else:
-                            await ws.send_json({"type": "warn", "message": f"Unknown type: {mtype}"})
+                            await _send_event(ws, {"type": "warn", "message": f"Unknown type: {mtype}"},
+                                              sid=sid, source="message")
                     except Exception as ex:
                         log.exception("ws msg error: %s", ex)
-                        await ws.send_json({"type": "warn", "message": str(ex)})
+                        await _send_event(ws, {"type": "warn", "message": str(ex)}, sid=sid, source="message-error")
         finally:
             close = getattr(ext, "close", None)
             if close: close()
