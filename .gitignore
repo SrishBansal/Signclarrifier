@@ -5,3 +5,4 @@ tests/output/
 models/*.bak
 research_data/
 learning_queue/
+outputs/
