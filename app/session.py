@@ -71,6 +71,11 @@ class SignSession:
             self.dm.state, language["name"], self.ont, perspective="customer"
         )
         text = real["text"]
+        # Social signs (hello / thank you / please) share one "greeting" effect, so the
+        # GREET template would say "Hello." for every one of them. Show the sign's own label.
+        effect = (self.ont.concepts.get(ont_concept, {}).get("signed_effect") or "")
+        if effect == "greeting" and self.ont.is_valid_concept(ont_concept):
+            text = self._label(ont_concept)
         # Fallback: if realizer returned empty, use the sign's label in selected language
         if not text or not text.strip():
             if self.ont.is_valid_concept(ont_concept):

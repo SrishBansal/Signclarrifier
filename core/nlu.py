@@ -1,4 +1,3 @@
-
 """
 NLU Engine for ClarifySign.
 All cue sets are loaded from ontology.intent_cues; no inline vocabularies.
@@ -150,7 +149,7 @@ class NLUParser:
             for syn_list in (d.get("synonyms") or {}).values():
                 for s in (syn_list or []):
                     sn = self.ontology.normalize_text(str(s))
-                    if sn and sn in norm_joined and cid not in social:
+                    if sn and f" {sn} " in f" {norm_joined} " and cid not in social:  # whole words only: "hi" must not match "shirt"/"this"
                         social.append(cid)
         # YES and NO are CONFIRM/REJECT sentinels, not display-social
         return [c for c in social if c not in ("YES", "NO")]

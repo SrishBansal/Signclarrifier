@@ -1,4 +1,3 @@
-
 """
 Dialogue State Manager for ClarifySign.
 Direction B: update_from_deaf_sign uses concept_for_sign and ontology signed_effect.
@@ -100,6 +99,12 @@ class DialogueManager:
             if self.state.current_focus_referent:
                 focus = self.state.current_focus_referent
                 self.state.items = [Item(concept=focus, attributes=dict(self.state.active_attributes))]
+                self.state.intent = Intent.REQUEST   # never leave a stale GREET/PAYMENT intent behind
+            else:
+                # Bare attribute ("red", "cheap") with no product yet: nothing to compose,
+                # so clear stale state and let the caller show the sign's own label.
+                self.state.items = []
+                self.state.intent = None
         elif effect == "price_query":
             self.state.intent = Intent.QUESTION
             focus = self.state.current_focus_referent
