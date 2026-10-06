@@ -185,7 +185,18 @@ async function start(){
   say($("banner"),"","note");
   ws=new WebSocket((location.protocol==="https:"?"wss://":"ws://")+location.host+"/ws/sign?sid="+encodeURIComponent(SID));
   ws.binaryType="arraybuffer";
-  ws.onopen=()=>{ws.send(JSON.stringify({type:"config",lang}));$("go").textContent="Stop camera";$("reset").disabled=false;setLiveInference("Camera connected. Waiting for a complete sign…");pump()};
+  ws.onopen=()=>{
+    ws.send(JSON.stringify({type:"config",lang}));
+    $("go").textContent="Stop camera";
+    $("reset").disabled=false;
+    setLiveInference("Camera connected. Waiting for a complete sign…");
+    const v=$("cam");
+    if(v.videoWidth){
+      pump();
+    } else {
+      v.addEventListener("loadedmetadata", ()=>pump(), {once:true});
+    }
+  };
   ws.onmessage=ev=>{try{onEvent(JSON.parse(ev.data))}catch(error){console.error("WebSocket event handling failed",error);say($("banner"),"A server event could not be displayed. Please try again.","note err")}};
   ws.onerror=()=>{setStatus("error");say($("banner"),"WebSocket connection error.","note err")};
   ws.onclose=ev=>{

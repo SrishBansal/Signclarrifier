@@ -5,6 +5,7 @@ import yaml
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from starlette.staticfiles import StaticFiles
+from websockets.exceptions import ConnectionClosedOK
 
 from core.ontology import get_ontology
 from core.nlu import NLUParser
@@ -45,14 +46,31 @@ def _json_native(value):
     return value
 
 
-async def _send_event(ws: WebSocket, event: dict, *, sid: str, source: str) -> None:
+async def _send_event(ws: WebSocket, event: dict, *, sid: str, source: str) -> bool:
     """Send one event with JSON conversion and actionable failure diagnostics."""
+    if getattr(ws, "_client_disconnected", False):
+        return False
     payload = _json_native(event)
     try:
         # Preflight catches unsupported values before the websocket transport
         # turns them into an opaque per-frame error.
         json.dumps(payload, allow_nan=False)
         await ws.send_json(payload)
+        return True
+    except (WebSocketDisconnect, ConnectionClosedOK):
+        if not getattr(ws, "_client_disconnected", False):
+            ws._client_disconnected = True
+            log.info("client disconnected sid=%s", sid)
+        return False
+    except RuntimeError as ex:
+        if 'Cannot call "send"' in str(ex):
+            if not getattr(ws, "_client_disconnected", False):
+                ws._client_disconnected = True
+                log.info("client disconnected sid=%s", sid)
+            return False
+        log.exception("websocket send failed sid=%s source=%s event_type=%r payload=%r",
+                      sid, source, event.get("type"), payload)
+        raise
     except Exception:
         log.exception("websocket send failed sid=%s source=%s event_type=%r payload=%r",
                       sid, source, event.get("type"), payload)
@@ -256,20 +274,25 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
         ext = extractor_factory()
         sess = SignSession(recognizer, ext, dm=dm, decode=dec)
         loop = asyncio.get_running_loop()
-        await _send_event(ws, {"type": "state", "state": "listening"}, sid=sid, source="startup")
+        if not await _send_event(ws, {"type": "state", "state": "listening"}, sid=sid, source="startup"):
+            return
         _warn_shown = set()
         try:
             while True:
                 try:
                     msg = await ws.receive()
-                except WebSocketDisconnect as exc:
-                    log.info("websocket disconnected sid=%s code=%s", sid, exc.code)
+                except (WebSocketDisconnect, ConnectionClosedOK) as exc:
+                    if not getattr(ws, "_client_disconnected", False):
+                        ws._client_disconnected = True
+                        log.info("client disconnected sid=%s", sid)
                     break
                 except Exception:
                     log.exception("websocket receive failed sid=%s", sid)
                     break
                 if msg["type"] == "websocket.disconnect":
-                    log.info("websocket disconnect event sid=%s code=%s", sid, msg.get("code"))
+                    if not getattr(ws, "_client_disconnected", False):
+                        ws._client_disconnected = True
+                        log.info("client disconnected sid=%s", sid)
                     break
                 if msg.get("bytes"):
                     raw_bytes = msg["bytes"]
@@ -280,15 +303,23 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
                         if img is not None:
                             _last_frames[sid] = _draw_landmarks(img, ext)
                         for e in events:
-                            await _send_event(ws, e, sid=sid, source="frame")
+                            if not await _send_event(ws, e, sid=sid, source="frame"):
+                                return
+                    except (WebSocketDisconnect, ConnectionClosedOK):
+                        if not getattr(ws, "_client_disconnected", False):
+                            ws._client_disconnected = True
+                            log.info("client disconnected sid=%s", sid)
+                        return
                     except Exception as ex:
                         log.exception("frame handling failed sid=%s error_type=%s", sid, type(ex).__name__)
                         warn_key = str(type(ex).__name__)
                         if warn_key not in _warn_shown:
                             _warn_shown.add(warn_key)
-                            await _send_event(ws, {"type": "warn", "message": f"Frame processing issue: {ex}"},
-                                              sid=sid, source="frame-warning")
-                    await _send_event(ws, {"type": "ack"}, sid=sid, source="frame-ack")
+                            if not await _send_event(ws, {"type": "warn", "message": f"Frame processing issue: {ex}"},
+                                                      sid=sid, source="frame-warning"):
+                                return
+                    if not await _send_event(ws, {"type": "ack"}, sid=sid, source="frame-ack"):
+                        return
                 elif msg.get("text"):
                     try:
                         d = json.loads(msg["text"])
@@ -297,21 +328,31 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
                             sess.set_lang(d.get("lang", "en"))
                         elif mtype == "answer":
                             for e in sess.on_answer(d.get("value")):
-                                await _send_event(ws, e, sid=sid, source="answer")
+                                if not await _send_event(ws, e, sid=sid, source="answer"):
+                                    return
                         elif mtype == "reset":
                             sess.reset()
-                            await _send_event(ws, {"type": "state", "state": "listening"}, sid=sid, source="reset")
+                            if not await _send_event(ws, {"type": "state", "state": "listening"}, sid=sid, source="reset"):
+                                return
                         else:
-                            await _send_event(ws, {"type": "warn", "message": f"Unknown type: {mtype}"},
-                                              sid=sid, source="message")
+                            if not await _send_event(ws, {"type": "warn", "message": f"Unknown type: {mtype}"},
+                                                     sid=sid, source="message"):
+                                return
+                    except (WebSocketDisconnect, ConnectionClosedOK):
+                        if not getattr(ws, "_client_disconnected", False):
+                            ws._client_disconnected = True
+                            log.info("client disconnected sid=%s", sid)
+                        return
                     except Exception as ex:
                         log.exception("ws msg error: %s", ex)
-                        await _send_event(ws, {"type": "warn", "message": str(ex)}, sid=sid, source="message-error")
+                        if not await _send_event(ws, {"type": "warn", "message": str(ex)}, sid=sid, source="message-error"):
+                            return
         finally:
             close = getattr(ext, "close", None)
             if close: close()
             _last_frames.pop(sid, None)
-            log.info("websocket closed sid=%s", sid)
+            if not getattr(ws, "_client_disconnected", False):
+                log.info("websocket closed sid=%s", sid)
 
     return app
 
