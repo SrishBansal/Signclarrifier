@@ -181,7 +181,9 @@ async function start(){
   if(watchdogTimer){clearTimeout(watchdogTimer);watchdogTimer=null;}
   try{stream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720}},audio:false})}
   catch(e){setStatus("error");say($("banner"),"Camera permission was denied.","note err");return}
-  $("cam").srcObject=stream;
+  const v=$("cam");
+  v.srcObject=stream;
+  try{await v.play()}catch(e){}
   say($("banner"),"","note");
   ws=new WebSocket((location.protocol==="https:"?"wss://":"ws://")+location.host+"/ws/sign?sid="+encodeURIComponent(SID));
   ws.binaryType="arraybuffer";

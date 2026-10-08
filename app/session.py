@@ -42,7 +42,35 @@ class SignSession:
         self._stat_wrist_min = float("inf"); self._stat_wrist_max = float("-inf")
 
     def _probs(self, seq48):
-        return self.rec.probs(seq48)
+        seq = np.asarray(seq48, dtype=np.float32)
+        buf_count = len(self.stream.buf) if hasattr(self, "stream") and hasattr(self.stream, "buf") else -1
+        zero_pct = float(np.mean(seq == 0.0) * 100.0)
+        s_min = float(np.min(seq))
+        s_max = float(np.max(seq))
+        s_mean = float(np.mean(seq))
+        s_std = float(np.std(seq))
+        # mean absolute difference between frame 0 and frame 47, and mean consecutive diff
+        frame_diff_0_47 = float(np.mean(np.abs(seq[0] - seq[-1]))) if len(seq) > 1 else 0.0
+        consec_diff = float(np.mean(np.abs(np.diff(seq, axis=0)))) if len(seq) > 1 else 0.0
+
+        probs = self.rec.probs(seq48)
+
+        top5_idx = np.argsort(-probs)[:5]
+        top5 = [(self.rec.classes[i], round(float(probs[i]), 4)) for i in top5_idx]
+
+        diag_msg = (
+            f"\n--- [DIAGNOSTIC INFERENCE WINDOW] ---\n"
+            f"seq48.shape: {seq.shape}\n"
+            f"temporal buffer frame count: {buf_count}\n"
+            f"percentage of zero values: {zero_pct:.2f}%\n"
+            f"stats: min={s_min:.4f}, max={s_max:.4f}, mean={s_mean:.4f}, std={s_std:.4f}\n"
+            f"consecutive frames different: mean_consec_diff={consec_diff:.6f}, frame_0_vs_47_diff={frame_diff_0_47:.6f}\n"
+            f"top-5 predicted: {top5}\n"
+            f"------------------------------------"
+        )
+        print(diag_msg, flush=True)
+        log.info(diag_msg)
+        return probs
 
     def set_lang(self, lang):
         if lang not in self._languages:
