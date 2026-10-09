@@ -42,8 +42,14 @@ intent_cues:
     - प्रणाम
     ta_tokens:
     - வணக்கம்
-    bn_tokens: [নমস্কার, হ্যালো, প্রণাম]
-    te_tokens: [నమస్కారం, హలో, నమస్తే]
+    bn_tokens:
+    - নমস্কার
+    - হ্যালো
+    - প্রণাম
+    te_tokens:
+    - నమస్కారం
+    - హలో
+    - నమస్తే
   CONFIRM:
     tokens:
     - haan
@@ -65,8 +71,14 @@ intent_cues:
     ta_tokens:
     - ஆம்
     - சரி
-    bn_tokens: [হ্যাঁ, ঠিক, সঠিক]
-    te_tokens: [అవును, సరే, నిజం]
+    bn_tokens:
+    - হ্যাঁ
+    - ঠিক
+    - সঠিক
+    te_tokens:
+    - అవును
+    - సరే
+    - నిజం
     max_tokens: 3
   REJECT:
     tokens:
@@ -85,8 +97,14 @@ intent_cues:
     ta_tokens:
     - இல்லை
     - வேண்டாம்
-    bn_tokens: [না, নয়, বাতিল]
-    te_tokens: [కాదు, వద్దు, రద్దు]
+    bn_tokens:
+    - না
+    - নয়
+    - বাতিল
+    te_tokens:
+    - కాదు
+    - వద్దు
+    - రద్దు
     max_tokens: 3
     requires_negation: true
   PAYMENT:
@@ -114,8 +132,16 @@ intent_cues:
     - भुगतान
     ta_tokens:
     - பணம்
-    bn_tokens: [টাকা, পেমেন্ট, বিল, নগদ]
-    te_tokens: [డబ్బు, చెల్లింపు, బిల్లు, నగదు]
+    bn_tokens:
+    - টাকা
+    - পেমেন্ট
+    - বিল
+    - নগদ
+    te_tokens:
+    - డబ్బు
+    - చెల్లింపు
+    - బిల్లు
+    - నగదు
   QUESTION:
     tokens:
     - kitna
@@ -136,8 +162,14 @@ intent_cues:
     ta_tokens:
     - விலை
     - எவ்வளவு
-    bn_tokens: [দাম, কত, মূল্য]
-    te_tokens: [ధర, ఎంత, విలువ]
+    bn_tokens:
+    - দাম
+    - কত
+    - মূল্য
+    te_tokens:
+    - ధర
+    - ఎంత
+    - విలువ
     bigrams:
     - - how
       - much
@@ -154,8 +186,14 @@ intent_cues:
     - उपलब्ध
     ta_tokens:
     - இருக்கிறதா
-    bn_tokens: [আছে, উপলব্ধ, পাবো]
-    te_tokens: [ఉందా, లభ్యం, దొరుకుతుందా]
+    bn_tokens:
+    - আছে
+    - উপলব্ধ
+    - পাবো
+    te_tokens:
+    - ఉందా
+    - లభ్యం
+    - దొరుకుతుందా
   DIRECTION:
     tokens:
     - kahan
@@ -172,8 +210,14 @@ intent_cues:
     ta_tokens:
     - எங்கே
     - எங்கு
-    bn_tokens: [কোথায়, রাস্তা, কাউন্টার]
-    te_tokens: [ఎక్కడ, దారి, కౌంటర్]
+    bn_tokens:
+    - কোথায়
+    - রাস্তা
+    - কাউন্টার
+    te_tokens:
+    - ఎక్కడ
+    - దారి
+    - కౌంటర్
   REQUEST:
     phrases:
     - chahiye
@@ -200,8 +244,16 @@ intent_cues:
     - கொடுங்கள்
     - கொடு
     - வேண்டும்
-    bn_tokens: [চাই, দিন, দেখান, কিনতে]
-    te_tokens: [కావాలి, ఇవ్వండి, చూపించండి, కొనాలి]
+    bn_tokens:
+    - চাই
+    - দিন
+    - দেখান
+    - কিনতে
+    te_tokens:
+    - కావాలి
+    - ఇవ్వండి
+    - చూపించండి
+    - కొనాలి
   QUESTION_WORDS:
     tokens:
     - kya
@@ -302,7 +354,7 @@ customer_templates:
     PAYMENT: నేను {method} ద్వారా చెల్లించాలనుకుంటున్నాను.
     DEFAULT: '{product}'
 concepts:
- WATER:
+  WATER:
     category: product
     sign_id: null
     signed_effect: product
@@ -327,7 +379,7 @@ concepts:
       ta:
       - தண்ணீர்
       - தண்ணி
- BOTTLE:
+  BOTTLE:
     category: container
     sign_id: null
     signed_effect: product
@@ -350,7 +402,7 @@ concepts:
       ta:
       - பாட்டில்
       - குடுவை
- SHIRT:
+  SHIRT:
     category: product
     sign_id: shirt
     signed_effect: product
@@ -374,7 +426,7 @@ concepts:
       ta:
       - சட்டை
       - உடை
- TSHIRT:
+  TSHIRT:
     category: product
     sign_id: tshirt
     signed_effect: product
@@ -398,7 +450,7 @@ concepts:
       - t shirt
       ta:
       - டிசர்ட்
- PEN:
+  PEN:
     category: product
     sign_id: pen
     signed_effect: product
@@ -422,7 +474,7 @@ concepts:
       ta:
       - பேனா
       - எழுதுகோல்
- PENCIL:
+  PENCIL:
     category: product
     sign_id: pencil
     signed_effect: product
@@ -441,7 +493,7 @@ concepts:
       - pencil
       ta:
       - பென்சில்
- SHOES:
+  SHOES:
     category: product
     sign_id: shoes
     signed_effect: product
@@ -470,7 +522,7 @@ concepts:
       - காலணி
       - ஷூ
       - செருப்பு
- PHONE:
+  PHONE:
     category: product
     sign_id: cellphone
     signed_effect: product
@@ -498,7 +550,7 @@ concepts:
       - தொலைபேசி
       - மொபைல்
       - போன்
- TELEPHONE:
+  TELEPHONE:
     category: product
     sign_id: telephone
     signed_effect: product
@@ -519,7 +571,7 @@ concepts:
       - landline
       ta:
       - தொலைபேசி
- MILK:
+  MILK:
     category: product
     sign_id: null
     signed_effect: product
@@ -542,7 +594,7 @@ concepts:
       - milk
       ta:
       - பால்
- BREAD:
+  BREAD:
     category: product
     sign_id: null
     signed_effect: product
@@ -566,7 +618,7 @@ concepts:
       ta:
       - ரொட்டி
       - பிரெட்
- SOAP:
+  SOAP:
     category: product
     sign_id: soap
     signed_effect: product
@@ -589,7 +641,7 @@ concepts:
       ta:
       - சோப்
       - சவர்க்காரம்
- BAG:
+  BAG:
     category: container
     sign_id: bag
     signed_effect: product
@@ -616,7 +668,7 @@ concepts:
       ta:
       - பை
       - பரிவு
- PACKET:
+  PACKET:
     category: container
     sign_id: null
     signed_effect: product
@@ -641,7 +693,7 @@ concepts:
       - pouch
       ta:
       - பாக்கெட்
- TEA:
+  TEA:
     category: product
     sign_id: null
     signed_effect: product
@@ -666,7 +718,7 @@ concepts:
       ta:
       - தேநீர்
       - டீ
- COFFEE:
+  COFFEE:
     category: product
     sign_id: null
     signed_effect: product
@@ -687,7 +739,7 @@ concepts:
       - koffee
       ta:
       - காபி
- RICE:
+  RICE:
     category: product
     sign_id: null
     signed_effect: product
@@ -711,7 +763,7 @@ concepts:
       ta:
       - அரிசி
       - சாதம்
- SUGAR:
+  SUGAR:
     category: product
     sign_id: null
     signed_effect: product
@@ -733,7 +785,7 @@ concepts:
       - sugar
       ta:
       - சர்க்கரை
- EGG:
+  EGG:
     category: product
     sign_id: null
     signed_effect: product
@@ -756,7 +808,7 @@ concepts:
       - egg
       ta:
       - முட்டை
- BISCUIT:
+  BISCUIT:
     category: product
     sign_id: null
     signed_effect: product
@@ -779,7 +831,7 @@ concepts:
       - biskut
       ta:
       - பிஸ்கட்
- BOOK:
+  BOOK:
     category: product
     sign_id: book
     signed_effect: product
@@ -805,7 +857,7 @@ concepts:
       ta:
       - புத்தகம்
       - நோட்டு
- NEWSPAPER:
+  NEWSPAPER:
     category: product
     sign_id: newspaper
     signed_effect: product
@@ -828,7 +880,7 @@ concepts:
       - newspaper
       ta:
       - செய்தித்தாள்
- MEDICINE:
+  MEDICINE:
     category: product
     sign_id: medicine
     signed_effect: product
@@ -855,7 +907,7 @@ concepts:
       ta:
       - மருந்து
       - மாத்திரை
- DRESS:
+  DRESS:
     category: product
     sign_id: dress
     signed_effect: product
@@ -879,7 +931,7 @@ concepts:
       ta:
       - ஆடை
       - சட்டை
- SKIRT:
+  SKIRT:
     category: product
     sign_id: skirt
     signed_effect: product
@@ -898,7 +950,7 @@ concepts:
       - skirt
       ta:
       - பாவாடை
- PANT:
+  PANT:
     category: product
     sign_id: pant
     signed_effect: product
@@ -923,7 +975,7 @@ concepts:
       - jeans
       ta:
       - பேன்ட்
- SUIT:
+  SUIT:
     category: product
     sign_id: suit
     signed_effect: product
@@ -943,7 +995,7 @@ concepts:
       - suit
       ta:
       - சூட்
- TELEVISION:
+  TELEVISION:
     category: product
     sign_id: television
     signed_effect: product
@@ -967,7 +1019,7 @@ concepts:
       ta:
       - தொலைக்காட்சி
       - டிவி
- LAPTOP:
+  LAPTOP:
     category: product
     sign_id: laptop
     signed_effect: product
@@ -988,7 +1040,7 @@ concepts:
       ta:
       - மடிக்கணினி
       - லாப்டாப்
- HAT:
+  HAT:
     category: product
     sign_id: hat
     signed_effect: product
@@ -1011,7 +1063,7 @@ concepts:
       - cap
       ta:
       - தொப்பி
- RING:
+  RING:
     category: product
     sign_id: ring
     signed_effect: product
@@ -1032,7 +1084,7 @@ concepts:
       - ring
       ta:
       - மோதிரம்
- ONE:
+  ONE:
     category: quantity
     sign_id: null
     signed_effect: quantity
@@ -1056,7 +1108,7 @@ concepts:
       ta:
       - ஒன்று
       - ஒரு
- TWO:
+  TWO:
     category: quantity
     sign_id: null
     signed_effect: quantity
@@ -1081,7 +1133,7 @@ concepts:
       ta:
       - இரண்டு
       - ரெண்டு
- THREE:
+  THREE:
     category: quantity
     sign_id: null
     signed_effect: quantity
@@ -1104,7 +1156,7 @@ concepts:
       ta:
       - மூன்று
       - மூணு
- FOUR:
+  FOUR:
     category: quantity
     sign_id: null
     signed_effect: quantity
@@ -1128,7 +1180,7 @@ concepts:
       ta:
       - நான்கு
       - நாலு
- FIVE:
+  FIVE:
     category: quantity
     sign_id: null
     signed_effect: quantity
@@ -1152,7 +1204,7 @@ concepts:
       ta:
       - ஐந்து
       - அஞ்சு
- HALF:
+  HALF:
     category: quantity
     sign_id: null
     signed_effect: quantity
@@ -1174,7 +1226,7 @@ concepts:
       - half
       ta:
       - அரை
- KILO:
+  KILO:
     category: unit
     sign_id: null
     signed_effect: unit
@@ -1197,7 +1249,7 @@ concepts:
       - kg
       ta:
       - கிலோ
- LITRE:
+  LITRE:
     category: unit
     sign_id: null
     signed_effect: unit
@@ -1219,7 +1271,7 @@ concepts:
       - liter
       ta:
       - லிட்டர்
- BLUE:
+  BLUE:
     category: attribute_colour
     sign_id: blue
     signed_effect: attribute
@@ -1245,7 +1297,7 @@ concepts:
       - neeli
       ta:
       - நீலம்
- RED:
+  RED:
     category: attribute_colour
     sign_id: red
     signed_effect: attribute
@@ -1267,7 +1319,7 @@ concepts:
       - red
       ta:
       - சிவப்பு
- BLACK:
+  BLACK:
     category: attribute_colour
     sign_id: black
     signed_effect: attribute
@@ -1291,7 +1343,7 @@ concepts:
       - black
       ta:
       - கருப்பு
- WHITE:
+  WHITE:
     category: attribute_colour
     sign_id: white
     signed_effect: attribute
@@ -1312,7 +1364,7 @@ concepts:
       - white
       ta:
       - வெள்ளை
- GREEN:
+  GREEN:
     category: attribute_colour
     sign_id: green
     signed_effect: attribute
@@ -1335,7 +1387,7 @@ concepts:
       - green
       ta:
       - பச்சை
- YELLOW:
+  YELLOW:
     category: attribute_colour
     sign_id: yellow
     signed_effect: attribute
@@ -1358,7 +1410,7 @@ concepts:
       - yellow
       ta:
       - மஞ்சள்
- ORANGE:
+  ORANGE:
     category: attribute_colour
     sign_id: orange
     signed_effect: attribute
@@ -1379,7 +1431,7 @@ concepts:
       - orange
       ta:
       - ஆரஞ்சு
- BROWN:
+  BROWN:
     category: attribute_colour
     sign_id: brown
     signed_effect: attribute
@@ -1400,7 +1452,7 @@ concepts:
       - brown
       ta:
       - பழுப்பு
- PINK:
+  PINK:
     category: attribute_colour
     sign_id: pink
     signed_effect: attribute
@@ -1420,7 +1472,7 @@ concepts:
       - pink
       ta:
       - இளஞ்சிவப்பு
- GREY:
+  GREY:
     category: attribute_colour
     sign_id: grey
     signed_effect: attribute
@@ -1442,7 +1494,7 @@ concepts:
       - gray
       ta:
       - சாம்பல்
- LARGE:
+  LARGE:
     category: attribute_size
     sign_id: biglarge
     signed_effect: attribute
@@ -1470,7 +1522,7 @@ concepts:
       ta:
       - பெரிய
       - பெரிசு
- SMALL:
+  SMALL:
     category: attribute_size
     sign_id: smalllittle
     signed_effect: attribute
@@ -1496,7 +1548,7 @@ concepts:
       ta:
       - சிறிய
       - சின்ன
- MEDIUM:
+  MEDIUM:
     category: attribute_size
     sign_id: null
     signed_effect: attribute
@@ -1519,7 +1571,7 @@ concepts:
       - darmiyana
       ta:
       - நடுத்தர
- HOT:
+  HOT:
     category: attribute_state
     sign_id: hot
     signed_effect: attribute
@@ -1542,7 +1594,7 @@ concepts:
       ta:
       - சூடான
       - சூடு
- COLD:
+  COLD:
     category: attribute_state
     sign_id: cold
     signed_effect: attribute
@@ -1566,7 +1618,7 @@ concepts:
       ta:
       - குளிர்ந்த
       - ஜில்
- NEW:
+  NEW:
     category: attribute_state
     sign_id: new
     signed_effect: attribute
@@ -1591,7 +1643,7 @@ concepts:
       ta:
       - புதிய
       - புது
- GOOD:
+  GOOD:
     category: attribute_state
     sign_id: good
     signed_effect: attribute
@@ -1614,7 +1666,7 @@ concepts:
       - good
       ta:
       - நல்ல
- EXPENSIVE:
+  EXPENSIVE:
     category: attribute_state
     sign_id: expensive
     signed_effect: attribute
@@ -1637,7 +1689,7 @@ concepts:
       - expensive
       ta:
       - விலை உயர்ந்த
- CHEAP:
+  CHEAP:
     category: attribute_state
     sign_id: cheap
     signed_effect: attribute
@@ -1660,7 +1712,7 @@ concepts:
       - cheap
       ta:
       - மலிவான
- PRICE:
+  PRICE:
     category: commercial
     sign_id: price
     signed_effect: price_query
@@ -1694,7 +1746,7 @@ concepts:
       - விலை
       - எவ்வளவு
       - மதிப்பு
- PAYMENT:
+  PAYMENT:
     category: commercial
     sign_id: null
     signed_effect: payment
@@ -1719,7 +1771,7 @@ concepts:
       ta:
       - பணம்
       - செலுத்துதல்
- CASH:
+  CASH:
     category: commercial
     sign_id: null
     signed_effect: payment
@@ -1743,7 +1795,7 @@ concepts:
       ta:
       - ரொக்கம்
       - கேஷ்
- UPI:
+  UPI:
     category: commercial
     sign_id: null
     signed_effect: payment
@@ -1776,7 +1828,7 @@ concepts:
       ta:
       - யுபிஐ
       - ஸ்கேன்
- CARD:
+  CARD:
     category: commercial
     sign_id: card
     signed_effect: payment
@@ -1799,7 +1851,7 @@ concepts:
       - credit card
       ta:
       - கார்டு
- CHANGE:
+  CHANGE:
     category: commercial
     sign_id: null
     signed_effect: payment
@@ -1823,7 +1875,7 @@ concepts:
       - change
       ta:
       - சில்லறை
- BILL:
+  BILL:
     category: commercial
     sign_id: bill
     signed_effect: price_query
@@ -1847,7 +1899,7 @@ concepts:
       ta:
       - பில்
       - ரசீது
- DISCOUNT:
+  DISCOUNT:
     category: commercial
     sign_id: null
     signed_effect: price_query
@@ -1872,7 +1924,7 @@ concepts:
       - kam
       ta:
       - தள்ளுபடி
- MONEY:
+  MONEY:
     category: commercial
     sign_id: money
     signed_effect: payment
@@ -1895,7 +1947,7 @@ concepts:
       - money
       ta:
       - பணம்
- HELLO:
+  HELLO:
     category: social
     sign_id: hello
     signed_effect: greeting
@@ -1910,9 +1962,6 @@ concepts:
       - hello
       - hi
       - hey
-      - good morning
-      - good evening
-      - good afternoon
       hi:
       - नमस्ते
       - नमस्कार
@@ -1925,7 +1974,7 @@ concepts:
       ta:
       - வணக்கம்
       - ஹலோ
- THANKYOU:
+  THANKYOU:
     category: social
     sign_id: thankyou
     signed_effect: greeting
@@ -1952,7 +2001,7 @@ concepts:
       ta:
       - நன்றி
       - ரொம்ப நன்றி
- PLEASE:
+  PLEASE:
     category: social
     sign_id: null
     signed_effect: greeting
@@ -1975,7 +2024,7 @@ concepts:
       - zara
       ta:
       - தயவுசெய்து
- 'YES':
+  'YES':
     category: social
     sign_id: null
     signed_effect: confirm
@@ -2011,7 +2060,7 @@ concepts:
       - ஆம்
       - சரி
       - ஆமாம்
- 'NO':
+  'NO':
     category: social
     sign_id: null
     signed_effect: reject
@@ -2041,7 +2090,7 @@ concepts:
       ta:
       - இல்லை
       - வேண்டாம்
- BUY:
+  BUY:
     category: action
     sign_id: null
     signed_effect: product
@@ -2066,7 +2115,7 @@ concepts:
       ta:
       - வாங்குதல்
       - வாங்க
- GIVE:
+  GIVE:
     category: action
     sign_id: null
     signed_effect: product
@@ -2094,7 +2143,7 @@ concepts:
       ta:
       - கொடு
       - தாருங்கள்
- SHOW:
+  SHOW:
     category: action
     sign_id: null
     signed_effect: product
@@ -2120,7 +2169,7 @@ concepts:
       ta:
       - காட்டு
       - காட்டுங்கள்
- HAVE:
+  HAVE:
     category: action
     sign_id: null
     signed_effect: product
@@ -2149,7 +2198,7 @@ concepts:
       ta:
       - உள்ளது
       - இருக்கிறதா
- PACK:
+  PACK:
     category: action
     sign_id: null
     signed_effect: product
@@ -2172,7 +2221,7 @@ concepts:
       - pack kar do
       ta:
       - பேக்
- QUESTION:
+  QUESTION:
     category: grammar
     sign_id: null
     signed_effect: marker
@@ -2192,7 +2241,7 @@ concepts:
       - '?'
       ta:
       - '?'
- WHERE:
+  WHERE:
     category: spatial
     sign_id: null
     signed_effect: product
@@ -2216,7 +2265,7 @@ concepts:
       ta:
       - எங்கே
       - எங்கு
- STORE:
+  STORE:
     category: spatial
     sign_id: storeorshop
     signed_effect: product
@@ -2240,7 +2289,7 @@ concepts:
       - store
       ta:
       - கடை
- COUNTER:
+  COUNTER:
     category: spatial
     sign_id: null
     signed_effect: product
@@ -2263,7 +2312,7 @@ concepts:
       - billing counter
       ta:
       - கவுண்ட்டர்
- EXIT:
+  EXIT:
     category: spatial
     sign_id: null
     signed_effect: product
@@ -2286,7 +2335,7 @@ concepts:
       - bahar
       ta:
       - வெளியேறும் வழி
- BANK:
+  BANK:
     category: spatial
     sign_id: bank
     signed_effect: product
@@ -2309,7 +2358,7 @@ concepts:
       ta:
       - வங்கி
       - ஏடிஐம்
- MARKET:
+  MARKET:
     category: spatial
     sign_id: market
     signed_effect: product
@@ -2333,3 +2382,1801 @@ concepts:
       ta:
       - சந்தை
       - மார்க்கெட்
+  AFTERNOON:
+    category: time
+    label:
+      bn: দুপুর
+      en: afternoon
+      hi: दोपहर
+      ta: மதியம்
+      te: మధ్యాహ్నం
+    sign_id: afternoon
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - দুপুর
+      en: []
+      hi:
+      - दोपहर
+      hinglish:
+      - dopahar
+      ta:
+      - மதியம்
+      te:
+      - మధ్యాహ్నం
+  ALIVE:
+    category: descriptor
+    label:
+      bn: জীবিত
+      en: alive
+      hi: जीवित
+      ta: உயிருடன்
+      te: సజీవ
+    sign_id: alive
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - জীবিত
+      en:
+      - living
+      hi:
+      - जीवित
+      hinglish:
+      - zinda
+      - jeevit
+      ta:
+      - உயிருடன்
+      te:
+      - సజీవ
+  ALRIGHT:
+    category: descriptor
+    label:
+      bn: ঠিক আছে
+      en: alright
+      hi: ठीक है
+      ta: சரி
+      te: సరే
+    sign_id: alright
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - ঠিক আছে
+      en:
+      - all right
+      hi: []
+      hinglish:
+      - thik hai
+      ta: []
+      te:
+      - సరే
+  BAD:
+    category: attribute_state
+    label:
+      bn: খারাপ
+      en: bad
+      hi: बुरा
+      ta: மோசம்
+      te: చెడు
+    sign_id: bad
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - খারাপ
+      en: []
+      hi:
+      - बुरा
+      hinglish:
+      - kharab
+      - bura
+      ta:
+      - மோசம்
+      te:
+      - చెడు
+  BEAUTIFUL:
+    category: attribute_state
+    label:
+      bn: সুন্দর
+      en: beautiful
+      hi: सुंदर
+      ta: அழகான
+      te: అందమైన
+    sign_id: beautiful
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - সুন্দর
+      en:
+      - pretty
+      hi:
+      - सुंदर
+      hinglish:
+      - sundar
+      - khoobsurat
+      ta:
+      - அழகான
+      te:
+      - అందమైన
+  BLIND:
+    category: descriptor
+    label:
+      bn: অন্ধ
+      en: blind
+      hi: अंधा
+      ta: பார்வையற்ற
+      te: గుడ్డి
+    sign_id: blind
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - অন্ধ
+      en: []
+      hi:
+      - अंधा
+      hinglish:
+      - andha
+      ta:
+      - பார்வையற்ற
+      te:
+      - గుడ్డి
+  CLEAN:
+    category: attribute_state
+    label:
+      bn: পরিষ্কার
+      en: clean
+      hi: साफ़
+      ta: சுத்தமான
+      te: శుభ్రమైన
+    sign_id: clean
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - পরিষ্কার
+      en: []
+      hi:
+      - साफ़
+      hinglish:
+      - saaf
+      - saf
+      ta:
+      - சுத்தமான
+      te:
+      - శుభ్రమైన
+  CLOTHING:
+    category: product
+    label:
+      bn: পোশাক
+      en: clothing
+      hi: कपड़े
+      ta: உடை
+      te: దుస్తులు
+    sign_id: clothing
+    signed_effect: product
+    synonyms:
+      bn:
+      - পোশাক
+      en:
+      - clothes
+      - garment
+      - garments
+      hi:
+      - कपड़े
+      hinglish:
+      - kapde
+      ta: []
+      te:
+      - దుస్తులు
+  COLOUR:
+    category: product
+    label:
+      bn: রং
+      en: colour
+      hi: रंग
+      ta: நிறம்
+      te: రంగు
+    sign_id: colour
+    signed_effect: product
+    synonyms:
+      bn:
+      - রং
+      en:
+      - color
+      - colours
+      - colors
+      hi:
+      - रंग
+      hinglish:
+      - rang
+      ta:
+      - நிறம்
+      te:
+      - రంగు
+  COOL:
+    category: attribute_state
+    label:
+      bn: শীতল
+      en: cool
+      hi: शीतल
+      ta: குளிர்ச்சியான
+      te: చల్లని
+    sign_id: cool
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - শীতল
+      en: []
+      hi: []
+      hinglish: []
+      ta:
+      - குளிர்ச்சியான
+      te:
+      - చల్లని
+  CURVED:
+    category: attribute_state
+    label:
+      bn: বাঁকা
+      en: curved
+      hi: मुड़ा हुआ
+      ta: வளைந்த
+      te: వంకర
+    sign_id: curved
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - বাঁকা
+      en:
+      - curve
+      - bent
+      hi:
+      - मुड़ा हुआ
+      hinglish:
+      - teda
+      ta:
+      - வளைந்த
+      te:
+      - వంకర
+  DEAD:
+    category: descriptor
+    label:
+      bn: মৃত
+      en: dead
+      hi: मृत
+      ta: இறந்த
+      te: చనిపోయిన
+    sign_id: dead
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - মৃত
+      en: []
+      hi:
+      - मृत
+      hinglish:
+      - mrit
+      ta:
+      - இறந்த
+      te:
+      - చనిపోయిన
+  DEAF:
+    category: descriptor
+    label:
+      bn: বধির
+      en: deaf
+      hi: बहरा
+      ta: காது கேளாத
+      te: చెవిటి
+    sign_id: deaf
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - বধির
+      en: []
+      hi:
+      - बहरा
+      hinglish:
+      - behra
+      ta:
+      - காது கேளாத
+      te:
+      - చెవిటి
+  DEEP:
+    category: attribute_size
+    label:
+      bn: গভীর
+      en: deep
+      hi: गहरा
+      ta: ஆழமான
+      te: లోతైన
+    sign_id: deep
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - গভীর
+      en: []
+      hi:
+      - गहरा
+      hinglish:
+      - gehra
+      - gahra
+      ta:
+      - ஆழமான
+      te:
+      - లోతైన
+  DIRTY:
+    category: attribute_state
+    label:
+      bn: নোংরা
+      en: dirty
+      hi: गंदा
+      ta: அழுக்கான
+      te: మురికి
+    sign_id: dirty
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - নোংরা
+      en: []
+      hi:
+      - गंदा
+      hinglish:
+      - ganda
+      - gandi
+      ta:
+      - அழுக்கான
+      te:
+      - మురికి
+  DRY:
+    category: attribute_state
+    label:
+      bn: শুকনো
+      en: dry
+      hi: सूखा
+      ta: வறண்ட
+      te: పొడి
+    sign_id: dry
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - শুকনো
+      en: []
+      hi:
+      - सूखा
+      hinglish:
+      - sukha
+      - sookha
+      ta:
+      - வறண்ட
+      te:
+      - పొడి
+  EVENING:
+    category: time
+    label:
+      bn: সন্ধ্যা
+      en: evening
+      hi: शाम
+      ta: மாலை
+      te: సాయంత్రం
+    sign_id: evening
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - সন্ধ্যা
+      en: []
+      hi:
+      - शाम
+      hinglish:
+      - shaam
+      ta:
+      - மாலை
+      te:
+      - సాయంత్రం
+  FAMOUS:
+    category: descriptor
+    label:
+      bn: বিখ্যাত
+      en: famous
+      hi: प्रसिद्ध
+      ta: பிரபலமான
+      te: ప్రసిద్ధ
+    sign_id: famous
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - বিখ্যাত
+      en:
+      - popular
+      hi:
+      - प्रसिद्ध
+      hinglish:
+      - mashhoor
+      - prasiddh
+      ta:
+      - பிரபலமான
+      te:
+      - ప్రసిద్ధ
+  FAST:
+    category: attribute_state
+    label:
+      bn: দ্রুত
+      en: fast
+      hi: तेज़
+      ta: வேகமான
+      te: వేగంగా
+    sign_id: fast
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - দ্রুত
+      en:
+      - quick
+      - quickly
+      hi:
+      - तेज़
+      hinglish:
+      - tez
+      - jaldi
+      ta:
+      - வேகமான
+      te:
+      - వేగంగా
+  FEMALE:
+    category: descriptor
+    label:
+      bn: মহিলা
+      en: female
+      hi: महिला
+      ta: பெண்
+      te: స్త్రీ
+    sign_id: female
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - মহিলা
+      en:
+      - woman
+      - women
+      - lady
+      - ladies
+      hi:
+      - महिला
+      hinglish:
+      - mahila
+      - aurat
+      ta:
+      - பெண்
+      te:
+      - స్త్రీ
+  FLAT:
+    category: attribute_state
+    label:
+      bn: সমতল
+      en: flat
+      hi: सपाट
+      ta: தட்டையான
+      te: చదునైన
+    sign_id: flat
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - সমতল
+      en: []
+      hi:
+      - सपाट
+      hinglish:
+      - sapaat
+      - chapta
+      ta:
+      - தட்டையான
+      te:
+      - చదునైన
+  FRIDAY:
+    category: time
+    label:
+      bn: শুক্রবার
+      en: friday
+      hi: शुक्रवार
+      ta: வெள்ளிக்கிழமை
+      te: శుక్రవారం
+    sign_id: friday
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - শুক্রবার
+      en: []
+      hi:
+      - शुक्रवार
+      hinglish:
+      - shukravar
+      ta:
+      - வெள்ளிக்கிழமை
+      te:
+      - శుక్రవారం
+  GOODAFTERNOON:
+    category: social
+    label:
+      bn: শুভ অপরাহ্ন
+      en: good afternoon
+      hi: शुभ दोपहर
+      ta: இனிய மதிய வணக்கம்
+      te: శుభ మధ్యాహ్నం
+    sign_id: goodafternoon
+    signed_effect: greeting
+    synonyms:
+      bn:
+      - শুভ অপরাহ্ন
+      en:
+      - good afternoon
+      hi:
+      - शुभ दोपहर
+      hinglish:
+      - shubh dopahar
+      ta:
+      - இனிய மதிய வணக்கம்
+      te:
+      - శుభ మధ్యాహ్నం
+  GOODEVENING:
+    category: social
+    label:
+      bn: শুভ সন্ধ্যা
+      en: good evening
+      hi: शुभ संध्या
+      ta: இனிய மாலை வணக்கம்
+      te: శుభ సాయంత్రం
+    sign_id: goodevening
+    signed_effect: greeting
+    synonyms:
+      bn:
+      - শুভ সন্ধ্যা
+      en:
+      - good evening
+      hi:
+      - शुभ संध्या
+      hinglish:
+      - shubh sandhya
+      ta:
+      - இனிய மாலை வணக்கம்
+      te:
+      - శుభ సాయంత్రం
+  GOODMORNING:
+    category: social
+    label:
+      bn: সুপ্রভাত
+      en: good morning
+      hi: सुप्रभात
+      ta: காலை வணக்கம்
+      te: శుభోదయం
+    sign_id: goodmorning
+    signed_effect: greeting
+    synonyms:
+      bn:
+      - সুপ্রভাত
+      en:
+      - good morning
+      hi:
+      - सुप्रभात
+      hinglish:
+      - suprabhat
+      ta:
+      - காலை வணக்கம்
+      te:
+      - శుభోదయం
+  GOODNIGHT:
+    category: social
+    label:
+      bn: শুভ রাত্রি
+      en: good night
+      hi: शुभ रात्रि
+      ta: இனிய இரவு
+      te: శుభ రాత్రి
+    sign_id: goodnight
+    signed_effect: greeting
+    synonyms:
+      bn:
+      - শুভ রাত্রি
+      en:
+      - good night
+      hi:
+      - शुभ रात्रि
+      hinglish:
+      - shubh ratri
+      ta:
+      - இனிய இரவு
+      te:
+      - శుభ రాత్రి
+  HAPPY:
+    category: descriptor
+    label:
+      bn: খুশি
+      en: happy
+      hi: खुश
+      ta: மகிழ்ச்சி
+      te: సంతోషం
+    sign_id: happy
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - খুশি
+      en:
+      - glad
+      - cheerful
+      hi:
+      - खुश
+      hinglish:
+      - khush
+      ta:
+      - மகிழ்ச்சி
+      te:
+      - సంతోషం
+  HARD:
+    category: attribute_state
+    label:
+      bn: শক্ত
+      en: hard
+      hi: कठोर
+      ta: கடினமான
+      te: కఠినమైన
+    sign_id: hard
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - শক্ত
+      en:
+      - firm
+      hi:
+      - कठोर
+      hinglish:
+      - kadak
+      - sakht
+      ta:
+      - கடினமான
+      te:
+      - కఠినమైన
+  HEALTHY:
+    category: descriptor
+    label:
+      bn: সুস্থ
+      en: healthy
+      hi: स्वस्थ
+      ta: ஆரோக்கியமான
+      te: ఆరోగ్యకరమైన
+    sign_id: healthy
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - সুস্থ
+      en: []
+      hi:
+      - स्वस्थ
+      hinglish:
+      - swasth
+      - tandurust
+      ta:
+      - ஆரோக்கியமான
+      te:
+      - ఆరోగ్యకరమైన
+  HEAVY:
+    category: attribute_state
+    label:
+      bn: ভারী
+      en: heavy
+      hi: भारी
+      ta: கனமான
+      te: బరువైన
+    sign_id: heavy
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - ভারী
+      en: []
+      hi:
+      - भारी
+      hinglish:
+      - bhaari
+      - bhari
+      ta:
+      - கனமான
+      te:
+      - బరువైన
+  HIGH:
+    category: attribute_size
+    label:
+      bn: উঁচু
+      en: high
+      hi: ऊँचा
+      ta: உயர்ந்த
+      te: ఎత్తైన
+    sign_id: high
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - উঁচু
+      en: []
+      hi:
+      - ऊँचा
+      hinglish:
+      - ooncha
+      - uncha
+      ta:
+      - உயர்ந்த
+      te:
+      - ఎత్తైన
+  HOUR:
+    category: time
+    label:
+      bn: ঘণ্টা
+      en: hour
+      hi: घंटा
+      ta: மணி நேரம்
+      te: గంట
+    sign_id: hour
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - ঘণ্টা
+      en:
+      - hours
+      hi:
+      - घंटा
+      hinglish:
+      - ghanta
+      - ghante
+      ta:
+      - மணி நேரம்
+      te:
+      - గంట
+  HOWAREYOU:
+    category: social
+    label:
+      bn: আপনি কেমন আছেন
+      en: how are you
+      hi: आप कैसे हैं
+      ta: நீங்கள் எப்படி இருக்கிறீர்கள்
+      te: మీరు ఎలా ఉన్నారు
+    sign_id: howareyou
+    signed_effect: greeting
+    synonyms:
+      bn:
+      - আপনি কেমন আছেন
+      en:
+      - how are you
+      - how do you do
+      hi:
+      - आप कैसे हैं
+      hinglish:
+      - aap kaise hain
+      - kaise ho
+      ta:
+      - நீங்கள் எப்படி இருக்கிறீர்கள்
+      te:
+      - మీరు ఎలా ఉన్నారు
+  LONG:
+    category: attribute_size
+    label:
+      bn: লম্বা
+      en: long
+      hi: लंबा
+      ta: நீளமான
+      te: పొడవైన
+    sign_id: long
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - লম্বা
+      en: []
+      hi:
+      - लंबा
+      hinglish:
+      - lamba
+      - lambi
+      ta:
+      - நீளமான
+      te:
+      - పొడవైన
+  LOOSE:
+    category: attribute_size
+    label:
+      bn: ঢিলা
+      en: loose
+      hi: ढीला
+      ta: தளர்வான
+      te: వదులు
+    sign_id: loose
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - ঢিলা
+      en: []
+      hi:
+      - ढीला
+      hinglish:
+      - dhila
+      - dheela
+      ta:
+      - தளர்வான
+      te:
+      - వదులు
+  LOUD:
+    category: attribute_state
+    label:
+      bn: জোরে
+      en: loud
+      hi: तेज़ आवाज़
+      ta: சத்தமான
+      te: పెద్ద శబ్దం
+    sign_id: loud
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - জোরে
+      en:
+      - noisy
+      hi:
+      - तेज़ आवाज़
+      hinglish:
+      - shor
+      - zor se
+      ta:
+      - சத்தமான
+      te:
+      - పెద్ద శబ్దం
+  LOW:
+    category: attribute_size
+    label:
+      bn: নিচু
+      en: low
+      hi: नीचा
+      ta: தாழ்வான
+      te: తక్కువ
+    sign_id: low
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - নিচু
+      en: []
+      hi:
+      - नीचा
+      hinglish:
+      - neecha
+      - nicha
+      ta:
+      - தாழ்வான
+      te:
+      - తక్కువ
+  MALE:
+    category: descriptor
+    label:
+      bn: পুরুষ
+      en: male
+      hi: पुरुष
+      ta: ஆண்
+      te: పురుషుడు
+    sign_id: male
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - পুরুষ
+      en:
+      - man
+      - men
+      - gents
+      hi:
+      - पुरुष
+      hinglish:
+      - purush
+      - aadmi
+      ta:
+      - ஆண்
+      te:
+      - పురుషుడు
+  MINUTE:
+    category: time
+    label:
+      bn: মিনিট
+      en: minute
+      hi: मिनट
+      ta: நிமிடம்
+      te: నిమిషం
+    sign_id: minute
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - মিনিট
+      en:
+      - minutes
+      hi:
+      - मिनट
+      hinglish: []
+      ta:
+      - நிமிடம்
+      te:
+      - నిమిషం
+  MONDAY:
+    category: time
+    label:
+      bn: সোমবার
+      en: monday
+      hi: सोमवार
+      ta: திங்கட்கிழமை
+      te: సోమవారం
+    sign_id: monday
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - সোমবার
+      en: []
+      hi:
+      - सोमवार
+      hinglish:
+      - somvar
+      ta:
+      - திங்கட்கிழமை
+      te:
+      - సోమవారం
+  MONTH:
+    category: time
+    label:
+      bn: মাস
+      en: month
+      hi: महीना
+      ta: மாதம்
+      te: నెల
+    sign_id: month
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - মাস
+      en:
+      - months
+      hi:
+      - महीना
+      hinglish:
+      - mahina
+      - mahine
+      ta:
+      - மாதம்
+      te:
+      - నెల
+  MORNING:
+    category: time
+    label:
+      bn: সকাল
+      en: morning
+      hi: सुबह
+      ta: காலை
+      te: ఉదయం
+    sign_id: morning
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - সকাল
+      en: []
+      hi:
+      - सुबह
+      hinglish:
+      - subah
+      ta:
+      - காலை
+      te:
+      - ఉదయం
+  NARROW:
+    category: attribute_size
+    label:
+      bn: সরু
+      en: narrow
+      hi: संकरा
+      ta: குறுகிய
+      te: ఇరుకైన
+    sign_id: narrow
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - সরু
+      en: []
+      hi:
+      - संकरा
+      hinglish:
+      - sankra
+      ta:
+      - குறுகிய
+      te:
+      - ఇరుకైన
+  NICE:
+    category: attribute_state
+    label:
+      bn: চমৎকার
+      en: nice
+      hi: बढ़िया
+      ta: அருமையான
+      te: చక్కని
+    sign_id: nice
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - চমৎকার
+      en:
+      - lovely
+      hi:
+      - बढ़िया
+      hinglish:
+      - badhiya
+      - mast
+      ta:
+      - அருமையான
+      te:
+      - చక్కని
+  NIGHT:
+    category: time
+    label:
+      bn: রাত
+      en: night
+      hi: रात
+      ta: இரவு
+      te: రాత్రి
+    sign_id: night
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - রাত
+      en: []
+      hi:
+      - रात
+      hinglish:
+      - raat
+      ta:
+      - இரவு
+      te:
+      - రాత్రి
+  OLD:
+    category: attribute_state
+    label:
+      bn: পুরানো
+      en: old
+      hi: पुराना
+      ta: பழைய
+      te: పాత
+    sign_id: old
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - পুরানো
+      en: []
+      hi:
+      - पुराना
+      hinglish:
+      - purana
+      - purani
+      ta:
+      - பழைய
+      te:
+      - పాత
+  PLEASED:
+    category: descriptor
+    label:
+      bn: সন্তুষ্ট
+      en: pleased
+      hi: प्रसन्न
+      ta: மகிழ்ச்சியடைந்த
+      te: సంతృప్తి
+    sign_id: pleased
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - সন্তুষ্ট
+      en:
+      - satisfied
+      hi:
+      - प्रसन्न
+      hinglish:
+      - prasann
+      - santusht
+      ta:
+      - மகிழ்ச்சியடைந்த
+      te:
+      - సంతృప్తి
+  POCKET:
+    category: product
+    label:
+      bn: পকেট
+      en: pocket
+      hi: जेब
+      ta: பாக்கெட்
+      te: జేబు
+    sign_id: pocket
+    signed_effect: product
+    synonyms:
+      bn:
+      - পকেট
+      en:
+      - pockets
+      hi:
+      - जेब
+      hinglish:
+      - jeb
+      ta: []
+      te:
+      - జేబు
+  POOR:
+    category: descriptor
+    label:
+      bn: গরিব
+      en: poor
+      hi: गरीब
+      ta: ஏழை
+      te: పేద
+    sign_id: poor
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - গরিব
+      en: []
+      hi:
+      - गरीब
+      hinglish:
+      - garib
+      - gareeb
+      ta:
+      - ஏழை
+      te:
+      - పేద
+  QUIET:
+    category: attribute_state
+    label:
+      bn: শান্ত
+      en: quiet
+      hi: शांत
+      ta: அமைதியான
+      te: నిశ్శబ్దం
+    sign_id: quiet
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - শান্ত
+      en:
+      - silent
+      hi:
+      - शांत
+      hinglish:
+      - shant
+      - chup
+      ta:
+      - அமைதியான
+      te:
+      - నిశ్శబ్దం
+  RICH:
+    category: descriptor
+    label:
+      bn: ধনী
+      en: rich
+      hi: अमीर
+      ta: பணக்கார
+      te: ధనవంతుడు
+    sign_id: rich
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - ধনী
+      en:
+      - wealthy
+      hi:
+      - अमीर
+      hinglish:
+      - amir
+      - ameer
+      ta:
+      - பணக்கார
+      te:
+      - ధనవంతుడు
+  SAD:
+    category: descriptor
+    label:
+      bn: দুঃখী
+      en: sad
+      hi: दुखी
+      ta: சோகமான
+      te: విచారం
+    sign_id: sad
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - দুঃখী
+      en:
+      - unhappy
+      hi:
+      - दुखी
+      hinglish:
+      - dukhi
+      - udaas
+      ta:
+      - சோகமான
+      te:
+      - విచారం
+  SATURDAY:
+    category: time
+    label:
+      bn: শনিবার
+      en: saturday
+      hi: शनिवार
+      ta: சனிக்கிழமை
+      te: శనివారం
+    sign_id: saturday
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - শনিবার
+      en: []
+      hi:
+      - शनिवार
+      hinglish:
+      - shanivar
+      ta:
+      - சனிக்கிழமை
+      te:
+      - శనివారం
+  SHALLOW:
+    category: attribute_size
+    label:
+      bn: অগভীর
+      en: shallow
+      hi: उथला
+      ta: ஆழமற்ற
+      te: లోతులేని
+    sign_id: shallow
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - অগভীর
+      en: []
+      hi:
+      - उथला
+      hinglish:
+      - uthla
+      ta:
+      - ஆழமற்ற
+      te:
+      - లోతులేని
+  SHORT:
+    category: attribute_size
+    label:
+      bn: খাটো
+      en: short
+      hi: कम लंबा
+      ta: குட்டையான
+      te: పొట్టి
+    sign_id: short
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - খাটো
+      en: []
+      hi:
+      - कम लंबा
+      hinglish:
+      - kam lamba
+      ta:
+      - குட்டையான
+      te:
+      - పొట్టి
+  SICK:
+    category: descriptor
+    label:
+      bn: অসুস্থ
+      en: sick
+      hi: बीमार
+      ta: நோயுற்ற
+      te: అనారోగ్యం
+    sign_id: sick
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - অসুস্থ
+      en:
+      - ill
+      - unwell
+      hi:
+      - बीमार
+      hinglish:
+      - bimar
+      - beemar
+      ta:
+      - நோயுற்ற
+      te:
+      - అనారోగ్యం
+  SLOW:
+    category: attribute_state
+    label:
+      bn: ধীর
+      en: slow
+      hi: धीमा
+      ta: மெதுவான
+      te: నెమ్మదిగా
+    sign_id: slow
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - ধীর
+      en:
+      - slowly
+      hi:
+      - धीमा
+      hinglish:
+      - dheere
+      - dheema
+      ta:
+      - மெதுவான
+      te:
+      - నెమ్మదిగా
+  SOFT:
+    category: attribute_state
+    label:
+      bn: নরম
+      en: soft
+      hi: मुलायम
+      ta: மென்மையான
+      te: మెత్తని
+    sign_id: soft
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - নরম
+      en: []
+      hi:
+      - मुलायम
+      hinglish:
+      - mulayam
+      - naram
+      ta:
+      - மென்மையான
+      te:
+      - మెత్తని
+  STRONG:
+    category: attribute_state
+    label:
+      bn: শক্তিশালী
+      en: strong
+      hi: मज़बूत
+      ta: வலுவான
+      te: బలమైన
+    sign_id: strong
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - শক্তিশালী
+      en: []
+      hi:
+      - मज़बूत
+      hinglish:
+      - mazboot
+      - majboot
+      ta:
+      - வலுவான
+      te:
+      - బలమైన
+  SUNDAY:
+    category: time
+    label:
+      bn: রবিবার
+      en: sunday
+      hi: रविवार
+      ta: ஞாயிற்றுக்கிழமை
+      te: ఆదివారం
+    sign_id: sunday
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - রবিবার
+      en: []
+      hi:
+      - रविवार
+      hinglish:
+      - ravivar
+      - itwaar
+      ta:
+      - ஞாயிற்றுக்கிழமை
+      te:
+      - ఆదివారం
+  TALL:
+    category: attribute_size
+    label:
+      bn: লম্বা
+      en: tall
+      hi: लंबा कद
+      ta: உயரமான
+      te: ఎత్తు
+    sign_id: tall
+    signed_effect: attribute
+    synonyms:
+      bn: []
+      en: []
+      hi:
+      - लंबा कद
+      hinglish:
+      - lamba kad
+      ta:
+      - உயரமான
+      te:
+      - ఎత్తు
+  THICK:
+    category: attribute_size
+    label:
+      bn: মোটা
+      en: thick
+      hi: मोटा
+      ta: தடிமனான
+      te: మందపాటి
+    sign_id: thick
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - মোটা
+      en: []
+      hi:
+      - मोटा
+      hinglish:
+      - mota
+      - moti
+      ta:
+      - தடிமனான
+      te:
+      - మందపాటి
+  THIN:
+    category: attribute_size
+    label:
+      bn: পাতলা
+      en: thin
+      hi: पतला
+      ta: மெல்லிய
+      te: సన్నని
+    sign_id: thin
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - পাতলা
+      en:
+      - slim
+      hi:
+      - पतला
+      hinglish:
+      - patla
+      - patli
+      ta:
+      - மெல்லிய
+      te:
+      - సన్నని
+  THURSDAY:
+    category: time
+    label:
+      bn: বৃহস্পতিবার
+      en: thursday
+      hi: गुरुवार
+      ta: வியாழக்கிழமை
+      te: గురువారం
+    sign_id: thursday
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - বৃহস্পতিবার
+      en: []
+      hi:
+      - गुरुवार
+      hinglish:
+      - guruvar
+      - brihaspativar
+      ta:
+      - வியாழக்கிழமை
+      te:
+      - గురువారం
+  TIGHT:
+    category: attribute_size
+    label:
+      bn: আঁটসাঁট
+      en: tight
+      hi: तंग
+      ta: இறுக்கமான
+      te: బిగుతైన
+    sign_id: tight
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - আঁটসাঁট
+      en: []
+      hi:
+      - तंग
+      hinglish:
+      - tang
+      - kasa hua
+      ta:
+      - இறுக்கமான
+      te:
+      - బిగుతైన
+  TODAY:
+    category: time
+    label:
+      bn: আজ
+      en: today
+      hi: आज
+      ta: இன்று
+      te: ఈరోజు
+    sign_id: today
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - আজ
+      en: []
+      hi:
+      - आज
+      hinglish:
+      - aaj
+      ta:
+      - இன்று
+      te:
+      - ఈరోజు
+  TOMORROW:
+    category: time
+    label:
+      bn: আগামীকাল
+      en: tomorrow
+      hi: आने वाला कल
+      ta: நாளை
+      te: రేపు
+    sign_id: tomorrow
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - আগামীকাল
+      en: []
+      hi:
+      - आने वाला कल
+      hinglish: []
+      ta:
+      - நாளை
+      te:
+      - రేపు
+  TUESDAY:
+    category: time
+    label:
+      bn: মঙ্গলবার
+      en: tuesday
+      hi: मंगलवार
+      ta: செவ்வாய்க்கிழமை
+      te: మంగళవారం
+    sign_id: tuesday
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - মঙ্গলবার
+      en: []
+      hi:
+      - मंगलवार
+      hinglish:
+      - mangalvar
+      ta:
+      - செவ்வாய்க்கிழமை
+      te:
+      - మంగళవారం
+  UGLY:
+    category: attribute_state
+    label:
+      bn: কুৎসিত
+      en: ugly
+      hi: बदसूरत
+      ta: அசிங்கமான
+      te: అసహ్యకరమైన
+    sign_id: ugly
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - কুৎসিত
+      en: []
+      hi:
+      - बदसूरत
+      hinglish:
+      - badsurat
+      ta:
+      - அசிங்கமான
+      te:
+      - అసహ్యకరమైన
+  WARM:
+    category: attribute_state
+    label:
+      bn: উষ্ণ
+      en: warm
+      hi: गुनगुना
+      ta: வெதுவெதுப்பான
+      te: గోరువెచ్చని
+    sign_id: warm
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - উষ্ণ
+      en: []
+      hi:
+      - गुनगुना
+      hinglish:
+      - gunguna
+      ta:
+      - வெதுவெதுப்பான
+      te:
+      - గోరువెచ్చని
+  WEAK:
+    category: attribute_state
+    label:
+      bn: দুর্বল
+      en: weak
+      hi: कमज़ोर
+      ta: பலவீனமான
+      te: బలహీనమైన
+    sign_id: weak
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - দুর্বল
+      en: []
+      hi:
+      - कमज़ोर
+      hinglish:
+      - kamzor
+      - kamjor
+      ta:
+      - பலவீனமான
+      te:
+      - బలహీనమైన
+  WEDNESDAY:
+    category: time
+    label:
+      bn: বুধবার
+      en: wednesday
+      hi: बुधवार
+      ta: புதன்கிழமை
+      te: బుధవారం
+    sign_id: wednesday
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - বুধবার
+      en: []
+      hi:
+      - बुधवार
+      hinglish:
+      - budhvar
+      ta:
+      - புதன்கிழமை
+      te:
+      - బుధవారం
+  WEEK:
+    category: time
+    label:
+      bn: সপ্তাহ
+      en: week
+      hi: सप्ताह
+      ta: வாரம்
+      te: వారం
+    sign_id: week
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - সপ্তাহ
+      en:
+      - weeks
+      hi:
+      - सप्ताह
+      hinglish:
+      - hafta
+      - saptah
+      - hafte
+      ta:
+      - வாரம்
+      te:
+      - వారం
+  WET:
+    category: attribute_state
+    label:
+      bn: ভেজা
+      en: wet
+      hi: गीला
+      ta: ஈரமான
+      te: తడి
+    sign_id: wet
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - ভেজা
+      en: []
+      hi:
+      - गीला
+      hinglish:
+      - geela
+      - gila
+      ta:
+      - ஈரமான
+      te:
+      - తడి
+  WIDE:
+    category: attribute_size
+    label:
+      bn: চওড়া
+      en: wide
+      hi: चौड़ा
+      ta: அகலமான
+      te: వెడల్పైన
+    sign_id: wide
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - চওড়া
+      en:
+      - broad
+      hi:
+      - चौड़ा
+      hinglish:
+      - chauda
+      ta:
+      - அகலமான
+      te:
+      - వెడల్పైన
+  YEAR:
+    category: time
+    label:
+      bn: বছর
+      en: year
+      hi: साल
+      ta: வருடம்
+      te: సంవత్సరం
+    sign_id: year
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - বছর
+      en:
+      - years
+      hi:
+      - साल
+      hinglish:
+      - saal
+      - varsh
+      ta:
+      - வருடம்
+      te:
+      - సంవత్సరం
+  YESTERDAY:
+    category: time
+    label:
+      bn: গতকাল
+      en: yesterday
+      hi: बीता हुआ कल
+      ta: நேற்று
+      te: నిన్న
+    sign_id: yesterday
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - গতকাল
+      en: []
+      hi:
+      - बीता हुआ कल
+      hinglish: []
+      ta:
+      - நேற்று
+      te:
+      - నిన్న
+  YOUNG:
+    category: descriptor
+    label:
+      bn: তরুণ
+      en: young
+      hi: जवान
+      ta: இளம்
+      te: యువ
+    sign_id: young
+    signed_effect: attribute
+    synonyms:
+      bn:
+      - তরুণ
+      en: []
+      hi:
+      - जवान
+      hinglish:
+      - jawan
+      - yuva
+      ta:
+      - இளம்
+      te:
+      - యువ

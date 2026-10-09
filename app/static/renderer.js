@@ -24,11 +24,11 @@
     [0, 1], [0, 5], [5, 9], [9, 13], [13, 17], [0, 17]
   ];
   const HAND_FINGERS = [
-    { name: "thumb",  color: "#e17055", segs: [[1, 2], [2, 3], [3, 4]] },
-    { name: "index",  color: "#0984e3", segs: [[5, 6], [6, 7], [7, 8]] },
+    { name: "thumb", color: "#e17055", segs: [[1, 2], [2, 3], [3, 4]] },
+    { name: "index", color: "#0984e3", segs: [[5, 6], [6, 7], [7, 8]] },
     { name: "middle", color: "#00b894", segs: [[9, 10], [10, 11], [11, 12]] },
-    { name: "ring",   color: "#6c5ce7", segs: [[13, 14], [14, 15], [15, 16]] },
-    { name: "pinky",  color: "#fd79a8", segs: [[17, 18], [18, 19], [19, 20]] }
+    { name: "ring", color: "#6c5ce7", segs: [[13, 14], [14, 15], [15, 16]] },
+    { name: "pinky", color: "#fd79a8", segs: [[17, 18], [18, 19], [19, 20]] }
   ];
 
   // Smoothstep ease-in-out
@@ -62,8 +62,8 @@
         // For hand blocks (0-125): skip if the block is all zeros in curr
         const isLH = d < 63;
         const isRH = d >= 63 && d < 126;
-        const lhZero = isLH  && !curr.slice(0, 63).some(v => v !== 0);
-        const rhZero = isRH  && !curr.slice(63, 126).some(v => v !== 0);
+        const lhZero = isLH && !curr.slice(0, 63).some(v => v !== 0);
+        const rhZero = isRH && !curr.slice(63, 126).some(v => v !== 0);
         if (lhZero || rhZero) {
           sm[d] = curr[d];
         } else {
@@ -85,19 +85,19 @@
       f[base] = x; f[base + 1] = y; f[base + 2] = z;
     };
     // y values here are in stretched space; renderFrame applies U before drawing
-    setPose(0,  0.0,  -1.0, -0.3);    // Nose
-    setPose(7,  0.35, -1.0,  0.0);    // Left ear
-    setPose(8, -0.35, -1.0,  0.0);    // Right ear
-    setPose(9,  0.12, -0.85, -0.2);   // Mouth left
-    setPose(10,-0.12, -0.85, -0.2);   // Mouth right
-    setPose(11, 0.5,   0.0,  0.0);    // Left shoulder
-    setPose(12,-0.5,   0.0,  0.0);    // Right shoulder
-    setPose(13, 0.58,  1.45, 0.15);   // Left elbow
-    setPose(14,-0.58,  1.45, 0.15);   // Right elbow
-    setPose(15, 0.48,  2.75, 0.0);    // Left wrist (relaxed low)
-    setPose(16,-0.48,  2.75, 0.0);    // Right wrist (relaxed low)
-    setPose(23, 0.28,  2.50, 0.0);    // Left hip
-    setPose(24,-0.28,  2.50, 0.0);    // Right hip
+    setPose(0, 0.0, -1.0, -0.3);    // Nose
+    setPose(7, 0.35, -1.0, 0.0);    // Left ear
+    setPose(8, -0.35, -1.0, 0.0);    // Right ear
+    setPose(9, 0.12, -0.85, -0.2);   // Mouth left
+    setPose(10, -0.12, -0.85, -0.2);   // Mouth right
+    setPose(11, 0.5, 0.0, 0.0);    // Left shoulder
+    setPose(12, -0.5, 0.0, 0.0);    // Right shoulder
+    setPose(13, 0.58, 1.45, 0.15);   // Left elbow
+    setPose(14, -0.58, 1.45, 0.15);   // Right elbow
+    setPose(15, 0.48, 2.75, 0.0);    // Left wrist (relaxed low)
+    setPose(16, -0.48, 2.75, 0.0);    // Right wrist (relaxed low)
+    setPose(23, 0.28, 2.50, 0.0);    // Left hip
+    setPose(24, -0.28, 2.50, 0.0);    // Right hip
 
     // Hands: relaxed curl
     const setHand = (isRight, idx, x, y, z) => {
@@ -106,10 +106,10 @@
     };
     [false, true].forEach(isRight => {
       const sign = isRight ? 1.0 : -1.0;
-      setHand(isRight,  0,  0,       0,    0);
-      setHand(isRight,  4,  sign * 0.35, 0.40, -0.15);
-      setHand(isRight,  8,  sign * 0.10, 0.85, -0.15);
-      setHand(isRight, 12,  0.0,         0.90, -0.15);
+      setHand(isRight, 0, 0, 0, 0);
+      setHand(isRight, 4, sign * 0.35, 0.40, -0.15);
+      setHand(isRight, 8, sign * 0.10, 0.85, -0.15);
+      setHand(isRight, 12, 0.0, 0.90, -0.15);
       setHand(isRight, 16, -sign * 0.10, 0.82, -0.15);
       setHand(isRight, 20, -sign * 0.20, 0.70, -0.15);
     });
@@ -135,7 +135,7 @@
     const uy = dy / d;
     const normSign = isLeft ? 1.0 : -1.0;
     let vx = -uy * normSign;
-    let vy =  ux * normSign;
+    let vy = ux * normSign;
 
     if (elbowHint) {
       const ehx = elbowHint[0] - shoulder[0];
@@ -173,7 +173,7 @@
         speed: 1.0,
         fps: 30,          // raised from 25 to 30
         useIK: true,
-        yUnstretch: 9/16, // compensates 16/9 training aspect; set to 1.0 to disable
+        yUnstretch: 9 / 16, // compensates 16/9 training aspect; set to 1.0 to disable
         glossStripEl: null,
         captionEl: null,
         statusEl: null,
@@ -197,20 +197,25 @@
       this.animTimer = null;
       this.activeSequence = [];
 
-      // Color scheme
+      // Color scheme — deep jewel tones instead of pastel
       this.colors = {
-        torso: "#198478",
-        torsoStroke: "#07554e",
-        spine: "#064c46",
+        torso: "#0f5c52",
+        torsoStroke: "#063f38",
+        spine: "#042e29",
         neck: "#d9a98e",
         head: "#f0c6aa",
         headStroke: "#b77f69",
-        eyes: "#173334",
-        armL: "#32a193",
-        armR: "#16776e",
-        joint: "#063f3c",
+        eyes: "#1a1a1a",
+        armL: "#237f74",
+        armR: "#0d5a51",
+        joint: "#042e29",
         palm: "#efc0a2",
-        palmStroke: "#b77f69"
+        palmStroke: "#b77f69",
+        collar: "#0e6b60",
+        placket: "#d4af37",
+        turban: "#7a1f3d",
+        turbanShade: "#5a1730",
+        turbanTrim: "#d4af37"
       };
 
       if (this.canvas) {
@@ -277,12 +282,16 @@
             nosignWords.push(conceptEnglish);
           }
           const holdCount = nosignHold;
-          glossItems.push({ id: rawId, label: gloss, index: seqIdx,
-            startFrame: frames.length, endFrame: frames.length + holdCount - 1, status });
+          glossItems.push({
+            id: rawId, label: gloss, index: seqIdx,
+            startFrame: frames.length, endFrame: frames.length + holdCount - 1, status
+          });
           for (let f = 0; f < holdCount; f++) {
             frames.push(REST_FRAME);
-            metadata.push({ signId: rawId, signIndex: seqIdx, isTrans: false,
-              progress: f / holdCount, gloss, status });
+            metadata.push({
+              signId: rawId, signIndex: seqIdx, isTrans: false,
+              progress: f / holdCount, gloss, status
+            });
           }
           prevLast = REST_FRAME;
           return;
@@ -293,8 +302,10 @@
         for (let t = 0; t < transFrames; t++) {
           const alpha = easeInOut(t / transFrames);
           frames.push(lerpFrame(prevLast, firstFrame, alpha));
-          metadata.push({ signId: rawId, signIndex: seqIdx, isTrans: true,
-            progress: 0, gloss: `-> ${gloss}`, status: "native" });
+          metadata.push({
+            signId: rawId, signIndex: seqIdx, isTrans: true,
+            progress: 0, gloss: `-> ${gloss}`, status: "native"
+          });
         }
 
         const startFrame = frames.length;
@@ -490,7 +501,7 @@
       if (hasPose) {
         const p11 = P(11), p12 = P(12);
         // Hips: apply U to default y values (2.5 * U)
-        const p23 = ok(23) ? P(23) : [0.28,  2.5 * U, 0];
+        const p23 = ok(23) ? P(23) : [0.28, 2.5 * U, 0];
         const p24 = ok(24) ? P(24) : [-0.28, 2.5 * U, 0];
 
         const x11 = X(p11), x12 = X(p12), x23 = X(p23), x24 = X(p24);
@@ -512,9 +523,54 @@
         seg(x24, x23, this.colors.torsoStroke, 6);
         seg(x23, x11, this.colors.torsoStroke, 6);
 
-        // Spine
+        // 1b. Kurta-style band collar — clean shape, subtle contrast, thin gold piping
+        const collarW = Math.hypot(x12[0] - x11[0], x12[1] - x11[1]) * 0.34;
+        const collarH = S * 0.075;
+        const collarFill = "#0e6b60"; // lighter than torso so it actually reads as a separate piece
+
+        g.fillStyle = collarFill;
+        g.beginPath();
+        g.moveTo(xNeck[0] - collarW, xNeck[1] + collarH * 0.1);
+        g.lineTo(xNeck[0] - collarW * 0.4, xNeck[1] - collarH);
+        g.lineTo(xNeck[0] + collarW * 0.4, xNeck[1] - collarH);
+        g.lineTo(xNeck[0] + collarW, xNeck[1] + collarH * 0.1);
+        g.lineTo(xNeck[0], xNeck[1] + collarH * 0.55);
+        g.closePath();
+        g.fill();
+
+        // Single thin gold piping line along the collar's outer edge
+        g.strokeStyle = this.colors.placket;
+        g.lineWidth = 1.5;
+        g.beginPath();
+        g.moveTo(xNeck[0] - collarW, xNeck[1] + collarH * 0.1);
+        g.lineTo(xNeck[0] - collarW * 0.4, xNeck[1] - collarH);
+        g.lineTo(xNeck[0] + collarW * 0.4, xNeck[1] - collarH);
+        g.lineTo(xNeck[0] + collarW, xNeck[1] + collarH * 0.1);
+        g.stroke();
+
+        // 1c. Short, straight placket with two small buttons — subtle, not a jagged line
+        const placketTopY = xNeck[1] + collarH * 0.65;
+        const placketLen = S * 0.13;
+        const placketX = xNeck[0] + S * 0.012;
+
+        g.strokeStyle = this.colors.placket;
+        g.lineWidth = 1.5;
+        g.beginPath();
+        g.moveTo(placketX, placketTopY);
+        g.lineTo(placketX, placketTopY + placketLen);
+        g.stroke();
+
+        g.fillStyle = this.colors.placket;
+        [0.35, 0.75].forEach(t => {
+          const by = placketTopY + placketLen * t;
+          g.beginPath();
+          g.arc(placketX, by, 1.8, 0, Math.PI * 2);
+          g.fill();
+        });
+
+        // Spine (thin, underneath placket visually)
         const hipMid = [(x23[0] + x24[0]) * 0.5, (x23[1] + x24[1]) * 0.5];
-        seg(xNeck, hipMid, this.colors.spine, 3);
+        seg(xNeck, hipMid, this.colors.spine, 2);
 
         // 2. Head & Neck
         // Apply U to default nose y (-1.0 * U)
@@ -535,25 +591,109 @@
         g.fill();
         g.stroke();
 
-        // Eyes
+        // Turban (pagri) — wraps the top of the head, stops above the eyebrow line
+        const turbanTopY = headCenter[1] - ry * 1.15;
+        const turbanBottomY = headCenter[1] - ry * 0.18;
+        const turbanW = rx * 1.3;
+
+        g.fillStyle = this.colors.turban;
+        g.beginPath();
+        g.moveTo(headCenter[0] - turbanW, turbanBottomY);
+        g.quadraticCurveTo(headCenter[0] - turbanW * 1.05, turbanTopY + (turbanBottomY - turbanTopY) * 0.35,
+          headCenter[0] - turbanW * 0.5, turbanTopY);
+        g.quadraticCurveTo(headCenter[0], turbanTopY - ry * 0.1, headCenter[0] + turbanW * 0.5, turbanTopY);
+        g.quadraticCurveTo(headCenter[0] + turbanW * 1.05, turbanTopY + (turbanBottomY - turbanTopY) * 0.35,
+          headCenter[0] + turbanW, turbanBottomY);
+        g.quadraticCurveTo(headCenter[0], turbanBottomY + ry * 0.2, headCenter[0] - turbanW, turbanBottomY);
+        g.closePath();
+        g.fill();
+        g.strokeStyle = this.colors.turbanShade;
+        g.lineWidth = 2;
+        g.stroke();
+
+        // Wrap-band texture, clipped to the turban silhouette so nothing escapes the shape.
+        // Concentric horizontal wraps read as genuinely wound cloth, not a decal.
+        g.save();
+        g.beginPath();
+        g.moveTo(headCenter[0] - turbanW, turbanBottomY);
+        g.quadraticCurveTo(headCenter[0] - turbanW * 1.05, turbanTopY + (turbanBottomY - turbanTopY) * 0.35,
+          headCenter[0] - turbanW * 0.5, turbanTopY);
+        g.quadraticCurveTo(headCenter[0], turbanTopY - ry * 0.1, headCenter[0] + turbanW * 0.5, turbanTopY);
+        g.quadraticCurveTo(headCenter[0] + turbanW * 1.05, turbanTopY + (turbanBottomY - turbanTopY) * 0.35,
+          headCenter[0] + turbanW, turbanBottomY);
+        g.quadraticCurveTo(headCenter[0], turbanBottomY + ry * 0.2, headCenter[0] - turbanW, turbanBottomY);
+        g.closePath();
+        g.clip();
+
+        const bandCount = 4;
+        for (let i = 1; i <= bandCount; i++) {
+          const bt = i / (bandCount + 1);
+          const by = turbanTopY + (turbanBottomY - turbanTopY) * bt;
+          // Alternate a soft highlight and a soft shadow band — gives the dome visible volume
+          g.strokeStyle = i % 2 === 0 ? "rgba(0,0,0,0.18)" : "rgba(255,255,255,0.10)";
+          g.lineWidth = 3;
+          g.beginPath();
+          g.moveTo(headCenter[0] - turbanW * 1.1, by + ry * 0.03);
+          g.quadraticCurveTo(headCenter[0], by - ry * 0.14, headCenter[0] + turbanW * 1.1, by + ry * 0.03);
+          g.stroke();
+        }
+        g.restore();
+
+        // Gold band along the turban's lower edge — the clean finishing trim
+        g.strokeStyle = this.colors.turbanTrim;
+        g.lineWidth = 2.5;
+        g.beginPath();
+        g.moveTo(headCenter[0] - turbanW, turbanBottomY);
+        g.quadraticCurveTo(headCenter[0], turbanBottomY + ry * 0.2, headCenter[0] + turbanW, turbanBottomY);
+        g.stroke();
+
+        // Single gold jewel at center front — understated, not costume-like
+        g.fillStyle = this.colors.turbanTrim;
+        g.beginPath();
+        g.arc(headCenter[0], turbanBottomY - ry * 0.02, 3, 0, Math.PI * 2);
+        g.fill();
+        g.strokeStyle = this.colors.turbanShade;
+        g.lineWidth = 0.75;
+        g.stroke();
+
+        // Eyes — natural size, calm expression, no oversized cartoon look
         const eyeOffset = rx * 0.38;
-        const eyeY = headCenter[1] - ry * 0.08;
-        const eyeR = Math.max(3, S * 0.035);
+        const eyeY = headCenter[1] - ry * 0.05;
+        const eyeR = Math.max(3, S * 0.032);
         g.fillStyle = this.colors.eyes;
         g.beginPath();
         g.arc(headCenter[0] - eyeOffset, eyeY, eyeR, 0, Math.PI * 2);
         g.arc(headCenter[0] + eyeOffset, eyeY, eyeR, 0, Math.PI * 2);
         g.fill();
 
-        // Eyebrows
-        seg([headCenter[0] - eyeOffset - eyeR * 1.5, eyeY - eyeR * 1.8],
-            [headCenter[0] - eyeOffset + eyeR * 1.5, eyeY - eyeR * 2.0], this.colors.eyes, 3);
-        seg([headCenter[0] + eyeOffset - eyeR * 1.5, eyeY - eyeR * 2.0],
-            [headCenter[0] + eyeOffset + eyeR * 1.5, eyeY - eyeR * 1.8], this.colors.eyes, 3);
+        // Subtle eye highlight (small, not cartoonish)
+        g.fillStyle = "rgba(255,255,255,0.7)";
+        g.beginPath();
+        g.arc(headCenter[0] - eyeOffset + eyeR * 0.3, eyeY - eyeR * 0.3, eyeR * 0.2, 0, Math.PI * 2);
+        g.arc(headCenter[0] + eyeOffset + eyeR * 0.3, eyeY - eyeR * 0.3, eyeR * 0.2, 0, Math.PI * 2);
+        g.fill();
 
-        // Smile
-        const mouthY = headCenter[1] + ry * 0.45;
-        seg([headCenter[0] - rx * 0.2, mouthY], [headCenter[0] + rx * 0.2, mouthY], this.colors.headStroke, 3);
+        // Eyebrows — straight, defined, neutral/mature
+        const browY = eyeY - eyeR * 2.3;
+        g.strokeStyle = this.colors.eyes;
+        g.lineWidth = 3;
+        g.beginPath();
+        g.moveTo(headCenter[0] - eyeOffset - eyeR * 1.5, browY + eyeR * 0.3);
+        g.lineTo(headCenter[0] - eyeOffset + eyeR * 1.3, browY - eyeR * 0.15);
+        g.stroke();
+        g.beginPath();
+        g.moveTo(headCenter[0] + eyeOffset - eyeR * 1.3, browY - eyeR * 0.15);
+        g.lineTo(headCenter[0] + eyeOffset + eyeR * 1.5, browY + eyeR * 0.3);
+        g.stroke();
+
+        // Mouth — calm, slight, closed — not a wide grin
+        const mouthY = headCenter[1] + ry * 0.48;
+        g.strokeStyle = this.colors.headStroke;
+        g.lineWidth = 2.5;
+        g.beginPath();
+        g.moveTo(headCenter[0] - rx * 0.16, mouthY);
+        g.quadraticCurveTo(headCenter[0], mouthY + ry * 0.06, headCenter[0] + rx * 0.16, mouthY);
+        g.stroke();
 
         // 3. Arms
         // Use recorded elbows (pose 13/14) when available.
@@ -561,7 +701,7 @@
 
         // Left Arm (pose 11 -> 13 -> 15)
         // Apply U to default wrist y (2.75 * U)
-        const p15 = ok(15) ? P(15) : [0.48,  2.75 * U, 0];
+        const p15 = ok(15) ? P(15) : [0.48, 2.75 * U, 0];
         let p13;
         if (ok(13)) {
           p13 = P(13);  // use recorded elbow
@@ -607,7 +747,7 @@
 
         const joints = [];
         for (let i = 0; i < 21; i++) {
-          const jx = ox + (wP[0] + blk[i * 3]     * hs) * S;
+          const jx = ox + (wP[0] + blk[i * 3] * hs) * S;
           const jy = oy + (wP[1] + blk[i * 3 + 1] * U * hs) * S;
           joints.push([jx, jy]);
         }
@@ -617,7 +757,7 @@
         g.beginPath();
         [0, 1, 5, 9, 13, 17].forEach((idx, k) => {
           if (k === 0) g.moveTo(joints[idx][0], joints[idx][1]);
-          else         g.lineTo(joints[idx][0], joints[idx][1]);
+          else g.lineTo(joints[idx][0], joints[idx][1]);
         });
         g.closePath();
         g.fill();

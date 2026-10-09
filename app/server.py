@@ -185,6 +185,10 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
     def index():
         return FileResponse(os.path.join(HERE, "static", "index.html"))
 
+    @app.get("/review")
+    def review():
+        return FileResponse(os.path.join(HERE, "static", "review.html"))
+
     @app.get("/api/config")
     def config():
         langs = [{"code": l["code"], "name": l["name"], "tag": l["speech_tag"]}
@@ -226,8 +230,17 @@ def create_app(recognizer=None, reason="", extractor_factory=None):
         cue_tokens = {token for cue in ont.intent_cues.values()
                       for field in ("tokens", "hi_tokens", "ta_tokens", "bn_tokens", "te_tokens")
                       for token in cue.get(field, [])}
-        unmapped_tokens = [token for token in tokens
-                           if ont.resolve_concept(token) is None and token not in cue_tokens]
+        _function_words = {"is", "the", "a", "an", "me", "are", "am", "to", "of", "on", "in",
+                           "at", "and", "for", "my", "your", "with", "can", "will"}
+        _covered = set()  # words inside a multi-word sign phrase ("how are you") count as mapped
+        for _n in (4, 3, 2):
+            for _i in range(len(tokens) - _n + 1):
+                if " ".join(tokens[_i:_i + _n]) in ont.synonym_index:
+                    _covered.update(range(_i, _i + _n))
+        unmapped_tokens = [token for _k, token in enumerate(tokens)
+                           if _k not in _covered
+                           and ont.resolve_concept(token) is None and token not in cue_tokens
+                           and token not in _function_words]
         unrecorded = [entry["gloss"] for entry in plan_dicts if entry["kind"] != "sign"]
         return {"heard": text, "sid": sid,
                 "state": {"intent": state.intent.value if state.intent else None,

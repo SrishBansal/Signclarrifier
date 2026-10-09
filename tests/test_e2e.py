@@ -91,10 +91,17 @@ def test_understand_response_shape():
 
 def test_understand_marks_unrepresented_sentence_content():
     client = TestClient(make_app())
-    j, _ = _understand(client, "hello how are you", "en")
+    j, _ = _understand(client, "hello xylophone", "en")
     assert j["plan"][0]["concept"] == "HELLO"
     assert not j["coverage"]["complete"]
-    assert "are" in j["coverage"]["unmapped_tokens"]
+    assert "xylophone" in j["coverage"]["unmapped_tokens"]
+
+
+def test_understand_phrase_sign_counts_as_covered():
+    client = TestClient(make_app())
+    j, _ = _understand(client, "hello how are you", "en")
+    assert [p["concept"] for p in j["plan"]] == ["HELLO", "HOWAREYOU"]
+    assert j["coverage"]["complete"]
 
 
 def test_understand_plan_has_kind():

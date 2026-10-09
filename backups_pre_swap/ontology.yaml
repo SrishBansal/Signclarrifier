@@ -1,0 +1,2335 @@
+version: 3.0.0
+description: 'ClarifySign Domain Ontology for Indian Retail & Shopkeeper Dialogue.
+  Translations are machine-authored drafts: have a native speaker review.'
+languages:
+- code: en
+  name: English
+  speech_tag: en-IN
+- code: hi
+  name: Hindi
+  speech_tag: hi-IN
+- code: ta
+  name: Tamil
+  speech_tag: ta-IN
+- code: bn
+  name: Bengali
+  speech_tag: bn-IN
+- code: te
+  name: Telugu
+  speech_tag: te-IN
+- code: hinglish
+  name: Hinglish
+  speech_tag: hi-IN
+  nlu_input_only: true
+intent_cues:
+  GREET:
+    tokens:
+    - hello
+    - hi
+    - hey
+    - namaste
+    - namaskar
+    - pranam
+    - vanakkam
+    phrases:
+    - good morning
+    - good afternoon
+    - good evening
+    - shubh prabhat
+    hi_tokens:
+    - नमस्ते
+    - नमस्कार
+    - प्रणाम
+    ta_tokens:
+    - வணக்கம்
+    bn_tokens: [নমস্কার, হ্যালো, প্রণাম]
+    te_tokens: [నమస్కారం, హలో, నమస్తే]
+  CONFIRM:
+    tokens:
+    - haan
+    - ha
+    - 'yes'
+    - theek
+    - sahi
+    - ok
+    - okay
+    - sure
+    - correct
+    - aam
+    - sari
+    - fine
+    hi_tokens:
+    - हाँ
+    - ठीक
+    - सही
+    ta_tokens:
+    - ஆம்
+    - சரி
+    bn_tokens: [হ্যাঁ, ঠিক, সঠিক]
+    te_tokens: [అవును, సరే, నిజం]
+    max_tokens: 3
+  REJECT:
+    tokens:
+    - nahi
+    - 'no'
+    - cancel
+    - never
+    - vendaam
+    - mat
+    - nahin
+    - na
+    hi_tokens:
+    - नहीं
+    - मत
+    - ना
+    ta_tokens:
+    - இல்லை
+    - வேண்டாம்
+    bn_tokens: [না, নয়, বাতিল]
+    te_tokens: [కాదు, వద్దు, రద్దు]
+    max_tokens: 3
+    requires_negation: true
+  PAYMENT:
+    tokens:
+    - upi
+    - qr
+    - scanner
+    - scan
+    - cash
+    - gpay
+    - phonepe
+    - paytm
+    - paise
+    - payment
+    - chhutte
+    - khulle
+    - change
+    - bill
+    - pay
+    phrases:
+    - செலுத்த
+    - பணம் செலுத்த
+    hi_tokens:
+    - पैसे
+    - भुगतान
+    ta_tokens:
+    - பணம்
+    bn_tokens: [টাকা, পেমেন্ট, বিল, নগদ]
+    te_tokens: [డబ్బు, చెల్లింపు, బిల్లు, నగదు]
+  QUESTION:
+    tokens:
+    - kitna
+    - kitne
+    - price
+    - cost
+    - daam
+    - kimat
+    - rate
+    phrases:
+    - how much
+    - evvalavu
+    hi_tokens:
+    - कितना
+    - कितने
+    - दाम
+    - कीमत
+    ta_tokens:
+    - விலை
+    - எவ்வளவு
+    bn_tokens: [দাম, কত, মূল্য]
+    te_tokens: [ధర, ఎంత, విలువ]
+    bigrams:
+    - - how
+      - much
+  AVAILABILITY:
+    tokens:
+    - milega
+    phrases:
+    - milega kya
+    - hai kya
+    - irukka
+    - ek bottle water milega
+    - paani milega
+    hi_tokens:
+    - उपलब्ध
+    ta_tokens:
+    - இருக்கிறதா
+    bn_tokens: [আছে, উপলব্ধ, পাবো]
+    te_tokens: [ఉందా, లభ్యం, దొరుకుతుందా]
+  DIRECTION:
+    tokens:
+    - kahan
+    - kidhar
+    - where
+    - rasta
+    - counter
+    - exit
+    - engu
+    - engae
+    hi_tokens:
+    - कहाँ
+    - किधर
+    ta_tokens:
+    - எங்கே
+    - எங்கு
+    bn_tokens: [কোথায়, রাস্তা, কাউন্টার]
+    te_tokens: [ఎక్కడ, దారి, కౌంటర్]
+  REQUEST:
+    phrases:
+    - chahiye
+    - dena
+    - dedo
+    - de do
+    - dijiye
+    - pack
+    - want
+    - give
+    - buy
+    - kodu
+    - thanga
+    - need
+    - please
+    - show
+    - dikhao
+    - dikha
+    hi_tokens:
+    - चाहिए
+    - दीजिए
+    - दो
+    ta_tokens:
+    - கொடுங்கள்
+    - கொடு
+    - வேண்டும்
+    bn_tokens: [চাই, দিন, দেখান, কিনতে]
+    te_tokens: [కావాలి, ఇవ్వండి, చూపించండి, కొనాలి]
+  QUESTION_WORDS:
+    tokens:
+    - kya
+    - what
+    - which
+    - kaunsa
+    - enna
+templates:
+  en:
+    GREET: Hello! How can I help you?
+    CONFIRM: Yes, certainly.
+    REJECT: No, not available.
+    PRICE_Q: How much is this {product}?
+    AVAIL_Q: Is {product} available?
+    REQUEST: Please give {quantity} {container} {product}.
+    PAYMENT: I want to pay using {method}.
+    DEFAULT: '{product}'
+  hi:
+    GREET: नमस्ते! मैं आपकी क्या मदद कर सकता हूँ?
+    CONFIRM: हाँ, बिल्कुल।
+    REJECT: नहीं, उपलब्ध नहीं है।
+    PRICE_Q: इस {product} का दाम कितना है?
+    AVAIL_Q: क्या {product} मिलेगा?
+    REQUEST: कृपया {quantity} {container} {product} दीजिए।
+    PAYMENT: '{method} से भुगतान करना है।'
+    DEFAULT: '{product}'
+  ta:
+    GREET: வணக்கம்! உங்களுக்கு என்ன வேண்டும்?
+    CONFIRM: ஆம், நிச்சயமாக.
+    REJECT: இல்லை, கிடைக்காது.
+    PRICE_Q: இந்த {product} விலை என்ன?
+    AVAIL_Q: '{product} இருக்கிறதா?'
+    REQUEST: தயவுசெய்து {quantity} {container} {product} கொடுங்கள்.
+    PAYMENT: '{method} மூலம் பணம் செலுத்த வேண்டும்.'
+    DEFAULT: '{product}'
+  bn:
+    GREET: নমস্কার! আমি কীভাবে সাহায্য করতে পারি?
+    CONFIRM: হ্যাঁ, অবশ্যই।
+    REJECT: না, পাওয়া যাচ্ছে না।
+    PRICE_Q: এই {product} কত দাম?
+    AVAIL_Q: '{product} কি পাওয়া যাবে?'
+    REQUEST: অনুগ্রহ করে {quantity} {container} {product} দিন।
+    PAYMENT: '{method} দিয়ে পেমেন্ট করতে চাই।'
+    DEFAULT: '{product}'
+  te:
+    GREET: నమస్కారం! నేను ఎలా సహాయం చేయగలను?
+    CONFIRM: అవును, తప్పకుండా.
+    REJECT: లేదు, అందుబాటులో లేదు.
+    PRICE_Q: ఈ {product} ధర ఎంత?
+    AVAIL_Q: '{product} అందుబాటులో ఉందా?'
+    REQUEST: దయచేసి {quantity} {container} {product} ఇవ్వండి.
+    PAYMENT: '{method} ద్వారా చెల్లించాలనుకుంటున్నాను.'
+    DEFAULT: '{product}'
+customer_templates:
+  en:
+    GREET: Hello.
+    CONFIRM: Yes.
+    REJECT: No.
+    PRICE_Q: How much is this {product}?
+    AVAIL_Q: Do you have {product}?
+    REQUEST: I want {quantity} {container} {product}.
+    PAYMENT: I want to pay by {method}.
+    DEFAULT: '{product}'
+  hi:
+    GREET: नमस्ते।
+    CONFIRM: हाँ।
+    REJECT: नहीं।
+    PRICE_Q: इस {product} का दाम क्या है?
+    AVAIL_Q: क्या आपके पास {product} है?
+    REQUEST: मुझे {quantity} {container} {product} चाहिए।
+    PAYMENT: मैं {method} से भुगतान करना चाहता हूँ।
+    DEFAULT: '{product}'
+  ta:
+    GREET: வணக்கம்.
+    CONFIRM: ஆம்.
+    REJECT: இல்லை.
+    PRICE_Q: இந்த {product} விலை என்ன?
+    AVAIL_Q: உங்களிடம் {product} இருக்கிறதா?
+    REQUEST: எனக்கு {quantity} {container} {product} வேண்டும்.
+    PAYMENT: '{method} மூலம் பணம் செலுத்த விரும்புகிறேன்.'
+    DEFAULT: '{product}'
+  bn:
+    GREET: নমস্কার।
+    CONFIRM: হ্যাঁ।
+    REJECT: না।
+    PRICE_Q: এই {product} কত দাম?
+    AVAIL_Q: আপনার কাছে {product} আছে?
+    REQUEST: আমি {quantity} {container} {product} চাই।
+    PAYMENT: আমি {method} দিয়ে পেমেন্ট করতে চাই।
+    DEFAULT: '{product}'
+  te:
+    GREET: నమస్కారం.
+    CONFIRM: అవును.
+    REJECT: కాదు.
+    PRICE_Q: ఈ {product} ధర ఎంత?
+    AVAIL_Q: మీ దగ్గర {product} ఉందా?
+    REQUEST: నాకు {quantity} {container} {product} కావాలి.
+    PAYMENT: నేను {method} ద్వారా చెల్లించాలనుకుంటున్నాను.
+    DEFAULT: '{product}'
+concepts:
+ WATER:
+    category: product
+    sign_id: null
+    signed_effect: product
+    label:
+      en: water
+      hi: पानी
+      ta: தண்ணீர்
+      bn: জল
+      te: నీరు
+    synonyms:
+      en:
+      - water
+      - drinking water
+      hi:
+      - पानी
+      - जल
+      - नीर
+      hinglish:
+      - paani
+      - pani
+      - water
+      ta:
+      - தண்ணீர்
+      - தண்ணி
+ BOTTLE:
+    category: container
+    sign_id: null
+    signed_effect: product
+    label:
+      en: bottle
+      hi: बोतल
+      ta: பாட்டில்
+      bn: বোতল
+      te: సీసా
+    synonyms:
+      en:
+      - bottle
+      - flask
+      hi:
+      - बोतल
+      - बॉटल
+      hinglish:
+      - bottle
+      - botal
+      ta:
+      - பாட்டில்
+      - குடுவை
+ SHIRT:
+    category: product
+    sign_id: shirt
+    signed_effect: product
+    label:
+      en: shirt
+      hi: शर्ट
+      ta: சட்டை
+      bn: শার্ট
+      te: చొక్కా
+    synonyms:
+      en:
+      - shirt
+      - kurta
+      hi:
+      - कमीज
+      - शर्ट
+      - कुर्ता
+      hinglish:
+      - shirt
+      - kurta
+      ta:
+      - சட்டை
+      - உடை
+ TSHIRT:
+    category: product
+    sign_id: tshirt
+    signed_effect: product
+    label:
+      en: T-shirt
+      hi: टी-शर्ट
+      ta: டி-ஷர்ட்
+      bn: টি-শার্ট
+      te: టీ-షర్ట్
+    synonyms:
+      en:
+      - t-shirt
+      - tshirt
+      - tee
+      - top
+      hi:
+      - टी-शर्ट
+      hinglish:
+      - tshirt
+      - t-shirt
+      - t shirt
+      ta:
+      - டிசர்ட்
+ PEN:
+    category: product
+    sign_id: pen
+    signed_effect: product
+    label:
+      en: pen
+      hi: पेन
+      ta: பேனா
+      bn: কলম
+      te: పెన్ను
+    synonyms:
+      en:
+      - pen
+      - ballpen
+      - ball point pen
+      hi:
+      - कलम
+      - पेन
+      hinglish:
+      - pen
+      - kalam
+      ta:
+      - பேனா
+      - எழுதுகோல்
+ PENCIL:
+    category: product
+    sign_id: pencil
+    signed_effect: product
+    label:
+      en: pencil
+      hi: पेंसिल
+      ta: பென்சில்
+      bn: পেন্সিল
+      te: పెన్సిల్
+    synonyms:
+      en:
+      - pencil
+      hi:
+      - पेंसिल
+      hinglish:
+      - pencil
+      ta:
+      - பென்சில்
+ SHOES:
+    category: product
+    sign_id: shoes
+    signed_effect: product
+    label:
+      en: shoes
+      hi: जूते
+      ta: காலணி
+      bn: জুতো
+      te: చెప్పులు
+    synonyms:
+      en:
+      - shoes
+      - shoe
+      - footwear
+      - sneakers
+      hi:
+      - जूते
+      - जूता
+      - चप्पल
+      hinglish:
+      - shoes
+      - joota
+      - joote
+      - chappal
+      ta:
+      - காலணி
+      - ஷூ
+      - செருப்பு
+ PHONE:
+    category: product
+    sign_id: cellphone
+    signed_effect: product
+    label:
+      en: phone
+      hi: फोन
+      ta: போன்
+      bn: ফোন
+      te: ఫోన్
+    synonyms:
+      en:
+      - phone
+      - mobile
+      - cellphone
+      - mobile phone
+      hi:
+      - फोन
+      - मोबाइल
+      hinglish:
+      - phone
+      - mobile
+      - cellphone
+      - fon
+      ta:
+      - தொலைபேசி
+      - மொபைல்
+      - போன்
+ TELEPHONE:
+    category: product
+    sign_id: telephone
+    signed_effect: product
+    label:
+      en: telephone
+      hi: टेलीफोन
+      ta: தொலைபேசி
+      bn: টেলিফোন
+      te: టెలిఫోన్
+    synonyms:
+      en:
+      - telephone
+      - landline
+      hi:
+      - टेलीफोन
+      hinglish:
+      - telephone
+      - landline
+      ta:
+      - தொலைபேசி
+ MILK:
+    category: product
+    sign_id: null
+    signed_effect: product
+    label:
+      en: milk
+      hi: दूध
+      ta: பால்
+      bn: দুধ
+      te: పాలు
+    synonyms:
+      en:
+      - milk
+      - dairy milk
+      hi:
+      - दूध
+      - दुग्ध
+      hinglish:
+      - doodh
+      - dudh
+      - milk
+      ta:
+      - பால்
+ BREAD:
+    category: product
+    sign_id: null
+    signed_effect: product
+    label:
+      en: bread
+      hi: ब्रेड
+      ta: ரொட்டி
+      bn: পাউরুটি
+      te: బ్రెడ్
+    synonyms:
+      en:
+      - bread
+      - loaf
+      hi:
+      - ब्रेड
+      - पावरोटी
+      hinglish:
+      - bread
+      - pav
+      - paav
+      ta:
+      - ரொட்டி
+      - பிரெட்
+ SOAP:
+    category: product
+    sign_id: soap
+    signed_effect: product
+    label:
+      en: soap
+      hi: साबुन
+      ta: சோப்
+      bn: সাবান
+      te: సబ్బు
+    synonyms:
+      en:
+      - soap
+      - bath soap
+      - detergent
+      hi:
+      - साबुन
+      hinglish:
+      - sabun
+      - soap
+      ta:
+      - சோப்
+      - சவர்க்காரம்
+ BAG:
+    category: container
+    sign_id: bag
+    signed_effect: product
+    label:
+      en: bag
+      hi: थैला
+      ta: பை
+      bn: ব্যাগ
+      te: సంచి
+    synonyms:
+      en:
+      - bag
+      - carry bag
+      - polythene
+      - paper bag
+      hi:
+      - थैला
+      - बैग
+      - पॉलीथीन
+      hinglish:
+      - thaila
+      - bag
+      - thela
+      ta:
+      - பை
+      - பரிவு
+ PACKET:
+    category: container
+    sign_id: null
+    signed_effect: product
+    label:
+      en: packet
+      hi: पैकेट
+      ta: பாக்கெட்
+      bn: প্যাকেট
+      te: ప్యాకెట్
+    synonyms:
+      en:
+      - packet
+      - pack
+      - pouch
+      - sachet
+      hi:
+      - पैकेट
+      - पैक
+      hinglish:
+      - packet
+      - pack
+      - pouch
+      ta:
+      - பாக்கெட்
+ TEA:
+    category: product
+    sign_id: null
+    signed_effect: product
+    label:
+      en: tea
+      hi: चाय
+      ta: தேநீர்
+      bn: চা
+      te: టీ
+    synonyms:
+      en:
+      - tea
+      - chai
+      - tea leaves
+      hi:
+      - चाय
+      - चायपत्ती
+      hinglish:
+      - chai
+      - chay
+      - tea
+      ta:
+      - தேநீர்
+      - டீ
+ COFFEE:
+    category: product
+    sign_id: null
+    signed_effect: product
+    label:
+      en: coffee
+      hi: कॉफी
+      ta: காபி
+      bn: কফি
+      te: కాఫీ
+    synonyms:
+      en:
+      - coffee
+      - kaapi
+      hi:
+      - कॉफी
+      hinglish:
+      - coffee
+      - koffee
+      ta:
+      - காபி
+ RICE:
+    category: product
+    sign_id: null
+    signed_effect: product
+    label:
+      en: rice
+      hi: चावल
+      ta: அரிசி
+      bn: চাল
+      te: బియ్యం
+    synonyms:
+      en:
+      - rice
+      - grain
+      hi:
+      - चावल
+      - भात
+      hinglish:
+      - chawal
+      - rice
+      - bhaat
+      ta:
+      - அரிசி
+      - சாதம்
+ SUGAR:
+    category: product
+    sign_id: null
+    signed_effect: product
+    label:
+      en: sugar
+      hi: चीनी
+      ta: சர்க்கரை
+      bn: চিনি
+      te: చక్కెర
+    synonyms:
+      en:
+      - sugar
+      hi:
+      - चीनी
+      - शक्कर
+      hinglish:
+      - cheeni
+      - shakkar
+      - sugar
+      ta:
+      - சர்க்கரை
+ EGG:
+    category: product
+    sign_id: null
+    signed_effect: product
+    label:
+      en: egg
+      hi: अंडा
+      ta: முட்டை
+      bn: ডিম
+      te: గుడ్డు
+    synonyms:
+      en:
+      - egg
+      - eggs
+      hi:
+      - अंडा
+      - अंडे
+      hinglish:
+      - anda
+      - ande
+      - egg
+      ta:
+      - முட்டை
+ BISCUIT:
+    category: product
+    sign_id: null
+    signed_effect: product
+    label:
+      en: biscuit
+      hi: बिस्कुट
+      ta: பிஸ்கட்
+      bn: বিস্কুট
+      te: బిస్కెట్
+    synonyms:
+      en:
+      - biscuit
+      - cookie
+      - cookies
+      hi:
+      - बिस्कुट
+      - बिस्किट
+      hinglish:
+      - biscuit
+      - biskut
+      ta:
+      - பிஸ்கட்
+ BOOK:
+    category: product
+    sign_id: book
+    signed_effect: product
+    label:
+      en: book
+      hi: किताब
+      ta: புத்தகம்
+      bn: বই
+      te: పుస్తకం
+    synonyms:
+      en:
+      - book
+      - notebook
+      - copy
+      hi:
+      - किताब
+      - पुस्तक
+      - कॉपी
+      hinglish:
+      - kitab
+      - book
+      - copy
+      ta:
+      - புத்தகம்
+      - நோட்டு
+ NEWSPAPER:
+    category: product
+    sign_id: newspaper
+    signed_effect: product
+    label:
+      en: newspaper
+      hi: अखबार
+      ta: செய்தித்தாள்
+      bn: সংবাদপত্র
+      te: వార్తాపత్రిక
+    synonyms:
+      en:
+      - newspaper
+      - paper
+      - daily
+      hi:
+      - अखबार
+      - समाचार पत्र
+      hinglish:
+      - akhbar
+      - newspaper
+      ta:
+      - செய்தித்தாள்
+ MEDICINE:
+    category: product
+    sign_id: medicine
+    signed_effect: product
+    label:
+      en: medicine
+      hi: दवाई
+      ta: மருந்து
+      bn: ওষুধ
+      te: మందু
+    synonyms:
+      en:
+      - medicine
+      - tablet
+      - pills
+      - syrup
+      hi:
+      - दवा
+      - दवाई
+      - औषधि
+      hinglish:
+      - dawa
+      - dawai
+      - tablet
+      ta:
+      - மருந்து
+      - மாத்திரை
+ DRESS:
+    category: product
+    sign_id: dress
+    signed_effect: product
+    label:
+      en: dress
+      hi: पोशाक
+      ta: ஆடை
+      bn: পোশাক
+      te: దుస్తులు
+    synonyms:
+      en:
+      - dress
+      - frock
+      - gown
+      hi:
+      - पोशाक
+      - कपड़ा
+      hinglish:
+      - dress
+      - kapda
+      ta:
+      - ஆடை
+      - சட்டை
+ SKIRT:
+    category: product
+    sign_id: skirt
+    signed_effect: product
+    label:
+      en: skirt
+      hi: स्कर्ट
+      ta: பாவாடை
+      bn: স্কার্ট
+      te: స్కర్ట్
+    synonyms:
+      en:
+      - skirt
+      hi:
+      - स्कर्ट
+      hinglish:
+      - skirt
+      ta:
+      - பாவாடை
+ PANT:
+    category: product
+    sign_id: pant
+    signed_effect: product
+    label:
+      en: trousers
+      hi: पैंट
+      ta: பேன்ட்
+      bn: প্যান্ট
+      te: ప్యాంటు
+    synonyms:
+      en:
+      - trousers
+      - pants
+      - pant
+      - jeans
+      hi:
+      - पैंट
+      - ट्राउजर
+      hinglish:
+      - pant
+      - pants
+      - jeans
+      ta:
+      - பேன்ட்
+ SUIT:
+    category: product
+    sign_id: suit
+    signed_effect: product
+    label:
+      en: suit
+      hi: सूट
+      ta: சூட்
+      bn: স্যুট
+      te: సూట్
+    synonyms:
+      en:
+      - suit
+      - formal wear
+      hi:
+      - सूट
+      hinglish:
+      - suit
+      ta:
+      - சூட்
+ TELEVISION:
+    category: product
+    sign_id: television
+    signed_effect: product
+    label:
+      en: television
+      hi: टेलीविजन
+      ta: தொலைக்காட்சி
+      bn: টেলিভিশন
+      te: టెలివిజన్
+    synonyms:
+      en:
+      - television
+      - tv
+      - telly
+      hi:
+      - टेलीविजन
+      - टीवी
+      hinglish:
+      - tv
+      - television
+      ta:
+      - தொலைக்காட்சி
+      - டிவி
+ LAPTOP:
+    category: product
+    sign_id: laptop
+    signed_effect: product
+    label:
+      en: laptop
+      hi: लैपटॉप
+      ta: மடிக்கணினி
+      bn: ল্যাপটপ
+      te: ల్యాప్‌టాప్
+    synonyms:
+      en:
+      - laptop
+      - notebook computer
+      hi:
+      - लैपटॉप
+      hinglish:
+      - laptop
+      ta:
+      - மடிக்கணினி
+      - லாப்டாப்
+ HAT:
+    category: product
+    sign_id: hat
+    signed_effect: product
+    label:
+      en: hat
+      hi: टोपी
+      ta: தொப்பி
+      bn: টুপি
+      te: టోపీ
+    synonyms:
+      en:
+      - hat
+      - cap
+      hi:
+      - टोपी
+      - हैट
+      hinglish:
+      - topi
+      - hat
+      - cap
+      ta:
+      - தொப்பி
+ RING:
+    category: product
+    sign_id: ring
+    signed_effect: product
+    label:
+      en: ring
+      hi: अंगूठी
+      ta: மோதிரம்
+      bn: আংটি
+      te: ఉంగరం
+    synonyms:
+      en:
+      - ring
+      - finger ring
+      hi:
+      - अंगूठी
+      hinglish:
+      - anguthi
+      - ring
+      ta:
+      - மோதிரம்
+ ONE:
+    category: quantity
+    sign_id: null
+    signed_effect: quantity
+    label:
+      en: one
+      hi: एक
+      ta: ஒன்று
+      bn: এক
+      te: ఒకటి
+    synonyms:
+      en:
+      - '1'
+      - one
+      - single
+      hi:
+      - एक
+      - १
+      hinglish:
+      - ek
+      - one
+      ta:
+      - ஒன்று
+      - ஒரு
+ TWO:
+    category: quantity
+    sign_id: null
+    signed_effect: quantity
+    label:
+      en: two
+      hi: दो
+      ta: இரண்டு
+      bn: দুই
+      te: రెండు
+    synonyms:
+      en:
+      - '2'
+      - two
+      - pair
+      - double
+      hi:
+      - दो
+      - २
+      hinglish:
+      - do
+      - two
+      ta:
+      - இரண்டு
+      - ரெண்டு
+ THREE:
+    category: quantity
+    sign_id: null
+    signed_effect: quantity
+    label:
+      en: three
+      hi: तीन
+      ta: மூன்று
+      bn: তিন
+      te: మూడు
+    synonyms:
+      en:
+      - '3'
+      - three
+      hi:
+      - तीन
+      - ३
+      hinglish:
+      - teen
+      - three
+      ta:
+      - மூன்று
+      - மூணு
+ FOUR:
+    category: quantity
+    sign_id: null
+    signed_effect: quantity
+    label:
+      en: four
+      hi: चार
+      ta: நான்கு
+      bn: চার
+      te: నాలుగు
+    synonyms:
+      en:
+      - '4'
+      - four
+      hi:
+      - चार
+      - ४
+      hinglish:
+      - chaar
+      - char
+      - four
+      ta:
+      - நான்கு
+      - நாலு
+ FIVE:
+    category: quantity
+    sign_id: null
+    signed_effect: quantity
+    label:
+      en: five
+      hi: पांच
+      ta: ஐந்து
+      bn: পাঁচ
+      te: ఐదు
+    synonyms:
+      en:
+      - '5'
+      - five
+      hi:
+      - पांच
+      - ५
+      hinglish:
+      - paanch
+      - panch
+      - five
+      ta:
+      - ஐந்து
+      - அஞ்சு
+ HALF:
+    category: quantity
+    sign_id: null
+    signed_effect: quantity
+    label:
+      en: half
+      hi: आधा
+      ta: அரை
+      bn: অর্ধেক
+      te: సగం
+    synonyms:
+      en:
+      - half
+      - '0.5'
+      hi:
+      - आधा
+      hinglish:
+      - aadha
+      - adha
+      - half
+      ta:
+      - அரை
+ KILO:
+    category: unit
+    sign_id: null
+    signed_effect: unit
+    label:
+      en: kilo
+      hi: किलो
+      ta: கிலோ
+      bn: কিলো
+      te: కిలో
+    synonyms:
+      en:
+      - kilo
+      - kg
+      - kilogram
+      hi:
+      - किलो
+      - किलोग्राम
+      hinglish:
+      - kilo
+      - kg
+      ta:
+      - கிலோ
+ LITRE:
+    category: unit
+    sign_id: null
+    signed_effect: unit
+    label:
+      en: litre
+      hi: लीटर
+      ta: லிட்டர்
+      bn: লিটার
+      te: లీటరు
+    synonyms:
+      en:
+      - litre
+      - liter
+      - l
+      hi:
+      - लीटर
+      hinglish:
+      - litre
+      - liter
+      ta:
+      - லிட்டர்
+ BLUE:
+    category: attribute_colour
+    sign_id: blue
+    signed_effect: attribute
+    label:
+      en: blue
+      hi: नीला
+      ta: நீலம்
+      bn: নীল
+      te: నీలం
+    synonyms:
+      en:
+      - blue
+      - navy blue
+      - cyan
+      hi:
+      - नीला
+      - नीले
+      - नीली
+      hinglish:
+      - neela
+      - nila
+      - blue
+      - neeli
+      ta:
+      - நீலம்
+ RED:
+    category: attribute_colour
+    sign_id: red
+    signed_effect: attribute
+    label:
+      en: red
+      hi: लाल
+      ta: சிவப்பு
+      bn: লাল
+      te: ఎరుపు
+    synonyms:
+      en:
+      - red
+      - crimson
+      hi:
+      - लाल
+      hinglish:
+      - laal
+      - lal
+      - red
+      ta:
+      - சிவப்பு
+ BLACK:
+    category: attribute_colour
+    sign_id: black
+    signed_effect: attribute
+    label:
+      en: black
+      hi: काला
+      ta: கருப்பு
+      bn: কালো
+      te: నలుపు
+    synonyms:
+      en:
+      - black
+      - dark
+      hi:
+      - काला
+      - काले
+      - काली
+      hinglish:
+      - kaala
+      - kala
+      - black
+      ta:
+      - கருப்பு
+ WHITE:
+    category: attribute_colour
+    sign_id: white
+    signed_effect: attribute
+    label:
+      en: white
+      hi: सफेद
+      ta: வெள்ளை
+      bn: সাদা
+      te: తెలుపు
+    synonyms:
+      en:
+      - white
+      hi:
+      - सफेद
+      - श्वेत
+      hinglish:
+      - safed
+      - white
+      ta:
+      - வெள்ளை
+ GREEN:
+    category: attribute_colour
+    sign_id: green
+    signed_effect: attribute
+    label:
+      en: green
+      hi: हरा
+      ta: பச்சை
+      bn: সবুজ
+      te: ఆకుపచ్చ
+    synonyms:
+      en:
+      - green
+      hi:
+      - हरा
+      - हरे
+      - हरी
+      hinglish:
+      - hara
+      - hare
+      - green
+      ta:
+      - பச்சை
+ YELLOW:
+    category: attribute_colour
+    sign_id: yellow
+    signed_effect: attribute
+    label:
+      en: yellow
+      hi: पीला
+      ta: மஞ்சள்
+      bn: হলুদ
+      te: పసుపు
+    synonyms:
+      en:
+      - yellow
+      hi:
+      - पीला
+      - पीले
+      - पीली
+      hinglish:
+      - peela
+      - pila
+      - yellow
+      ta:
+      - மஞ்சள்
+ ORANGE:
+    category: attribute_colour
+    sign_id: orange
+    signed_effect: attribute
+    label:
+      en: orange
+      hi: नारंगी
+      ta: ஆரஞ்சு
+      bn: কমলা
+      te: నారింజ
+    synonyms:
+      en:
+      - orange
+      hi:
+      - नारंगी
+      - केसरिया
+      hinglish:
+      - narangi
+      - orange
+      ta:
+      - ஆரஞ்சு
+ BROWN:
+    category: attribute_colour
+    sign_id: brown
+    signed_effect: attribute
+    label:
+      en: brown
+      hi: भूरा
+      ta: பழுப்பு
+      bn: বাদামি
+      te: గోధుమ
+    synonyms:
+      en:
+      - brown
+      hi:
+      - भूरा
+      - भूरे
+      hinglish:
+      - bhura
+      - brown
+      ta:
+      - பழுப்பு
+ PINK:
+    category: attribute_colour
+    sign_id: pink
+    signed_effect: attribute
+    label:
+      en: pink
+      hi: गुलाबी
+      ta: இளஞ்சிவப்பு
+      bn: গোলাপি
+      te: గులాబీ
+    synonyms:
+      en:
+      - pink
+      hi:
+      - गुलाबी
+      hinglish:
+      - gulabi
+      - pink
+      ta:
+      - இளஞ்சிவப்பு
+ GREY:
+    category: attribute_colour
+    sign_id: grey
+    signed_effect: attribute
+    label:
+      en: grey
+      hi: धूसर
+      ta: சாம்பல்
+      bn: ধূসর
+      te: బూడిద
+    synonyms:
+      en:
+      - grey
+      - gray
+      hi:
+      - धूसर
+      - ग्रे
+      hinglish:
+      - grey
+      - gray
+      ta:
+      - சாம்பல்
+ LARGE:
+    category: attribute_size
+    sign_id: biglarge
+    signed_effect: attribute
+    label:
+      en: large
+      hi: बड़ा
+      ta: பெரிய
+      bn: বড়
+      te: పెద్ద
+    synonyms:
+      en:
+      - large
+      - big
+      - xl
+      - xxl
+      hi:
+      - बड़ा
+      - बड़े
+      - बड़ी
+      hinglish:
+      - bada
+      - badaa
+      - large
+      - big
+      ta:
+      - பெரிய
+      - பெரிசு
+ SMALL:
+    category: attribute_size
+    sign_id: smalllittle
+    signed_effect: attribute
+    label:
+      en: small
+      hi: छोटा
+      ta: சிறிய
+      bn: ছোট
+      te: చిన్న
+    synonyms:
+      en:
+      - small
+      - little
+      - tiny
+      hi:
+      - छोटा
+      - छोटे
+      - छोटी
+      hinglish:
+      - chhota
+      - chota
+      - small
+      ta:
+      - சிறிய
+      - சின்ன
+ MEDIUM:
+    category: attribute_size
+    sign_id: null
+    signed_effect: attribute
+    label:
+      en: medium
+      hi: मध्यम
+      ta: நடுத்தர
+      bn: মাঝারি
+      te: మధ్యస్థ
+    synonyms:
+      en:
+      - medium
+      - regular
+      - normal
+      hi:
+      - मध्यम
+      - मीडियम
+      hinglish:
+      - medium
+      - darmiyana
+      ta:
+      - நடுத்தர
+ HOT:
+    category: attribute_state
+    sign_id: hot
+    signed_effect: attribute
+    label:
+      en: hot
+      hi: गर्म
+      ta: சூடான
+      bn: গরম
+      te: వేడి
+    synonyms:
+      en:
+      - hot
+      - warm
+      hi:
+      - गर्म
+      - गरम
+      hinglish:
+      - garam
+      - hot
+      ta:
+      - சூடான
+      - சூடு
+ COLD:
+    category: attribute_state
+    sign_id: cold
+    signed_effect: attribute
+    label:
+      en: cold
+      hi: ठंडा
+      ta: குளிர்ந்த
+      bn: ঠান্ডা
+      te: చల్లని
+    synonyms:
+      en:
+      - cold
+      - chilled
+      hi:
+      - ठंडा
+      - शीतल
+      hinglish:
+      - thanda
+      - chilled
+      - cold
+      ta:
+      - குளிர்ந்த
+      - ஜில்
+ NEW:
+    category: attribute_state
+    sign_id: new
+    signed_effect: attribute
+    label:
+      en: new
+      hi: नया
+      ta: புதிய
+      bn: নতুন
+      te: కొత్త
+    synonyms:
+      en:
+      - new
+      - latest
+      hi:
+      - नया
+      - नए
+      - नई
+      hinglish:
+      - naya
+      - naye
+      - new
+      ta:
+      - புதிய
+      - புது
+ GOOD:
+    category: attribute_state
+    sign_id: good
+    signed_effect: attribute
+    label:
+      en: good
+      hi: अच्छा
+      ta: நல்ல
+      bn: ভালো
+      te: మంచి
+    synonyms:
+      en:
+      - good
+      - fine
+      - nice
+      hi:
+      - अच्छा
+      - अच्छे
+      hinglish:
+      - accha
+      - good
+      ta:
+      - நல்ல
+ EXPENSIVE:
+    category: attribute_state
+    sign_id: expensive
+    signed_effect: attribute
+    label:
+      en: expensive
+      hi: महंगा
+      ta: விலை உயர்ந்த
+      bn: দামি
+      te: ఖరీదైన
+    synonyms:
+      en:
+      - expensive
+      - costly
+      hi:
+      - महंगा
+      - महंगे
+      hinglish:
+      - mahanga
+      - costly
+      - expensive
+      ta:
+      - விலை உயர்ந்த
+ CHEAP:
+    category: attribute_state
+    sign_id: cheap
+    signed_effect: attribute
+    label:
+      en: cheap
+      hi: सस्ता
+      ta: மலிவான
+      bn: সস্তা
+      te: చవకైన
+    synonyms:
+      en:
+      - cheap
+      - affordable
+      - inexpensive
+      hi:
+      - सस्ता
+      - सस्ते
+      hinglish:
+      - sasta
+      - cheap
+      ta:
+      - மலிவான
+ PRICE:
+    category: commercial
+    sign_id: price
+    signed_effect: price_query
+    label:
+      en: price
+      hi: कीमत
+      ta: விலை
+      bn: দাম
+      te: ధర
+    synonyms:
+      en:
+      - price
+      - cost
+      - rate
+      - how much
+      - amount
+      hi:
+      - कीमत
+      - दाम
+      - मूल्य
+      - भाव
+      - कितने
+      hinglish:
+      - price
+      - cost
+      - daam
+      - kimat
+      - kitna
+      - kitne
+      ta:
+      - விலை
+      - எவ்வளவு
+      - மதிப்பு
+ PAYMENT:
+    category: commercial
+    sign_id: null
+    signed_effect: payment
+    label:
+      en: payment
+      hi: भुगतान
+      ta: பணம்
+      bn: পেমেন্ট
+      te: చెల్లింపు
+    synonyms:
+      en:
+      - payment
+      - pay
+      - money
+      hi:
+      - भुगतान
+      - पैसे
+      hinglish:
+      - payment
+      - pay
+      - paise
+      ta:
+      - பணம்
+      - செலுத்துதல்
+ CASH:
+    category: commercial
+    sign_id: null
+    signed_effect: payment
+    label:
+      en: cash
+      hi: नकद
+      ta: ரொக்கம்
+      bn: নগদ
+      te: నగదు
+    synonyms:
+      en:
+      - cash
+      - notes
+      - coins
+      hi:
+      - नकद
+      - रोकड़
+      hinglish:
+      - cash
+      - nakad
+      ta:
+      - ரொக்கம்
+      - கேஷ்
+ UPI:
+    category: commercial
+    sign_id: null
+    signed_effect: payment
+    label:
+      en: UPI
+      hi: यूपीआई
+      ta: யுபிஐ
+      bn: ইউপিআই
+      te: యూపీఐ
+    synonyms:
+      en:
+      - upi
+      - gpay
+      - phonepe
+      - paytm
+      - qr code
+      - scanner
+      - scan
+      hi:
+      - यूपीआई
+      - क्यूआर कोड
+      - ऑनलाइन
+      hinglish:
+      - upi
+      - qr
+      - scanner
+      - scan
+      - gpay
+      - online
+      ta:
+      - யுபிஐ
+      - ஸ்கேன்
+ CARD:
+    category: commercial
+    sign_id: card
+    signed_effect: payment
+    label:
+      en: card
+      hi: कार्ड
+      ta: கார்டு
+      bn: কার্ড
+      te: కార్డు
+    synonyms:
+      en:
+      - card
+      - debit card
+      - credit card
+      hi:
+      - कार्ड
+      hinglish:
+      - card
+      - debit card
+      - credit card
+      ta:
+      - கார்டு
+ CHANGE:
+    category: commercial
+    sign_id: null
+    signed_effect: payment
+    label:
+      en: change
+      hi: खुल्ले
+      ta: சில்லறை
+      bn: খুচরা
+      te: చిల్లర
+    synonyms:
+      en:
+      - change
+      - loose money
+      - coins
+      hi:
+      - खुल्ले
+      - छुट्टे
+      hinglish:
+      - khulle
+      - chhutte
+      - change
+      ta:
+      - சில்லறை
+ BILL:
+    category: commercial
+    sign_id: bill
+    signed_effect: price_query
+    label:
+      en: bill
+      hi: बिल
+      ta: பில்
+      bn: বিল
+      te: బిల్లు
+    synonyms:
+      en:
+      - bill
+      - receipt
+      - invoice
+      hi:
+      - बिल
+      - रसीद
+      hinglish:
+      - bill
+      - raseed
+      ta:
+      - பில்
+      - ரசீது
+ DISCOUNT:
+    category: commercial
+    sign_id: null
+    signed_effect: price_query
+    label:
+      en: discount
+      hi: छूट
+      ta: தள்ளுபடி
+      bn: ছাড়
+      te: తగ్గింపు
+    synonyms:
+      en:
+      - discount
+      - offer
+      - concession
+      - less
+      hi:
+      - छूट
+      - डिस्काउंट
+      hinglish:
+      - discount
+      - chhoot
+      - kam
+      ta:
+      - தள்ளுபடி
+ MONEY:
+    category: commercial
+    sign_id: money
+    signed_effect: payment
+    label:
+      en: money
+      hi: पैसे
+      ta: பணம்
+      bn: টাকা
+      te: డబ్బు
+    synonyms:
+      en:
+      - money
+      - funds
+      hi:
+      - पैसे
+      - धन
+      hinglish:
+      - paisa
+      - paise
+      - money
+      ta:
+      - பணம்
+ HELLO:
+    category: social
+    sign_id: hello
+    signed_effect: greeting
+    label:
+      en: hello
+      hi: नमस्ते
+      ta: வணக்கம்
+      bn: নমস্কার
+      te: నమస్కారం
+    synonyms:
+      en:
+      - hello
+      - hi
+      - hey
+      - good morning
+      - good evening
+      - good afternoon
+      hi:
+      - नमस्ते
+      - नमस्कार
+      - प्रणाम
+      hinglish:
+      - namaste
+      - namaskar
+      - hello
+      - hi
+      ta:
+      - வணக்கம்
+      - ஹலோ
+ THANKYOU:
+    category: social
+    sign_id: thankyou
+    signed_effect: greeting
+    label:
+      en: thank you
+      hi: धन्यवाद
+      ta: நன்றி
+      bn: ধন্যবাদ
+      te: ధన్యవాదాలు
+    synonyms:
+      en:
+      - thank you
+      - thanks
+      - thankyou
+      - many thanks
+      hi:
+      - धन्यवाद
+      - शुक्रिया
+      hinglish:
+      - dhanyawad
+      - shukriya
+      - thanks
+      - thank you
+      ta:
+      - நன்றி
+      - ரொம்ப நன்றி
+ PLEASE:
+    category: social
+    sign_id: null
+    signed_effect: greeting
+    label:
+      en: please
+      hi: कृपया
+      ta: தயவுசெய்து
+      bn: অনুগ্রহ করে
+      te: దయచేసి
+    synonyms:
+      en:
+      - please
+      - kindly
+      hi:
+      - कृपया
+      - जरा
+      hinglish:
+      - please
+      - kripya
+      - zara
+      ta:
+      - தயவுசெய்து
+ 'YES':
+    category: social
+    sign_id: null
+    signed_effect: confirm
+    label:
+      en: 'yes'
+      hi: हाँ
+      ta: ஆம்
+      bn: হ্যাঁ
+      te: అవును
+    synonyms:
+      en:
+      - 'yes'
+      - yeah
+      - yep
+      - sure
+      - ok
+      - okay
+      - fine
+      - correct
+      hi:
+      - हाँ
+      - जी हाँ
+      - ठीक है
+      - सही
+      hinglish:
+      - haan
+      - ha
+      - theek hai
+      - sahi
+      - ok
+      - okay
+      ta:
+      - ஆம்
+      - சரி
+      - ஆமாம்
+ 'NO':
+    category: social
+    sign_id: null
+    signed_effect: reject
+    label:
+      en: 'no'
+      hi: नहीं
+      ta: இல்லை
+      bn: না
+      te: కాదు
+    synonyms:
+      en:
+      - 'no'
+      - nope
+      - not
+      - cancel
+      - never
+      hi:
+      - नहीं
+      - मत
+      - ना
+      hinglish:
+      - nahi
+      - nahin
+      - na
+      - mat
+      - 'no'
+      ta:
+      - இல்லை
+      - வேண்டாம்
+ BUY:
+    category: action
+    sign_id: null
+    signed_effect: product
+    label:
+      en: buy
+      hi: खरीदना
+      ta: வாங்குதல்
+      bn: কিনুন
+      te: కొనండి
+    synonyms:
+      en:
+      - buy
+      - purchase
+      - take
+      hi:
+      - खरीदना
+      - लेना
+      hinglish:
+      - kharidna
+      - lena
+      - buy
+      ta:
+      - வாங்குதல்
+      - வாங்க
+ GIVE:
+    category: action
+    sign_id: null
+    signed_effect: product
+    label:
+      en: give
+      hi: देना
+      ta: கொடு
+      bn: দিন
+      te: ఇవ్వండి
+    synonyms:
+      en:
+      - give
+      - hand over
+      - pass
+      hi:
+      - देना
+      - दीजिए
+      - दो
+      hinglish:
+      - dena
+      - dedo
+      - de do
+      - dijiye
+      - give
+      ta:
+      - கொடு
+      - தாருங்கள்
+ SHOW:
+    category: action
+    sign_id: null
+    signed_effect: product
+    label:
+      en: show
+      hi: दिखाना
+      ta: காட்டு
+      bn: দেখান
+      te: చూపించండి
+    synonyms:
+      en:
+      - show
+      - display
+      hi:
+      - दिखाना
+      - दिखाइए
+      - दिखाओ
+      hinglish:
+      - dikhana
+      - dikhao
+      - dikhaiye
+      - show
+      ta:
+      - காட்டு
+      - காட்டுங்கள்
+ HAVE:
+    category: action
+    sign_id: null
+    signed_effect: product
+    label:
+      en: have
+      hi: उपलब्ध
+      ta: உள்ளது
+      bn: আছে
+      te: ఉంది
+    synonyms:
+      en:
+      - have
+      - available
+      - stock
+      - is there
+      - do you have
+      hi:
+      - है
+      - उपलब्ध
+      - मिलना
+      hinglish:
+      - hai
+      - milega
+      - available
+      - hai kya
+      ta:
+      - உள்ளது
+      - இருக்கிறதா
+ PACK:
+    category: action
+    sign_id: null
+    signed_effect: product
+    label:
+      en: pack
+      hi: पैक
+      ta: பேக்
+      bn: প্যাক করুন
+      te: ప్యాక్ చేయండి
+    synonyms:
+      en:
+      - pack
+      - wrap
+      - put in bag
+      hi:
+      - पैक
+      - बांधना
+      hinglish:
+      - pack
+      - pack kar do
+      ta:
+      - பேக்
+ QUESTION:
+    category: grammar
+    sign_id: null
+    signed_effect: marker
+    label:
+      en: '?'
+      hi: '?'
+      ta: '?'
+      bn: প্রশ্ন
+      te: ప్రశ్న
+    synonyms:
+      en:
+      - '?'
+      - query
+      hi:
+      - '?'
+      hinglish:
+      - '?'
+      ta:
+      - '?'
+ WHERE:
+    category: spatial
+    sign_id: null
+    signed_effect: product
+    label:
+      en: where
+      hi: कहाँ
+      ta: எங்கே
+      bn: কোথায়
+      te: ఎక్కడ
+    synonyms:
+      en:
+      - where
+      - which place
+      hi:
+      - कहाँ
+      - किधर
+      hinglish:
+      - kahan
+      - kidhar
+      - where
+      ta:
+      - எங்கே
+      - எங்கு
+ STORE:
+    category: spatial
+    sign_id: storeorshop
+    signed_effect: product
+    label:
+      en: store
+      hi: दुकान
+      ta: கடை
+      bn: দোকান
+      te: దుకాణం
+    synonyms:
+      en:
+      - store
+      - shop
+      - market
+      hi:
+      - दुकान
+      - स्टोर
+      hinglish:
+      - dukaan
+      - shop
+      - store
+      ta:
+      - கடை
+ COUNTER:
+    category: spatial
+    sign_id: null
+    signed_effect: product
+    label:
+      en: counter
+      hi: काउंटर
+      ta: கவுண்ட்டர்
+      bn: কাউন্টার
+      te: కౌంటర్
+    synonyms:
+      en:
+      - counter
+      - billing counter
+      - cash counter
+      hi:
+      - काउंटर
+      - गल्ला
+      hinglish:
+      - counter
+      - billing counter
+      ta:
+      - கவுண்ட்டர்
+ EXIT:
+    category: spatial
+    sign_id: null
+    signed_effect: product
+    label:
+      en: exit
+      hi: निकास
+      ta: வெளியேறும் வழி
+      bn: বেরোনোর পথ
+      te: నిష్క్రమణ
+    synonyms:
+      en:
+      - exit
+      - way out
+      - door
+      hi:
+      - निकास
+      - बाहर
+      hinglish:
+      - exit
+      - bahar
+      ta:
+      - வெளியேறும் வழி
+ BANK:
+    category: spatial
+    sign_id: bank
+    signed_effect: product
+    label:
+      en: bank
+      hi: बैंक
+      ta: வங்கி
+      bn: ব্যাংক
+      te: బ్యాంకు
+    synonyms:
+      en:
+      - bank
+      - atm
+      hi:
+      - बैंक
+      - एटीएम
+      hinglish:
+      - bank
+      - atm
+      ta:
+      - வங்கி
+      - ஏடிஐம்
+ MARKET:
+    category: spatial
+    sign_id: market
+    signed_effect: product
+    label:
+      en: market
+      hi: बाजार
+      ta: சந்தை
+      bn: বাজার
+      te: మార్కెట్
+    synonyms:
+      en:
+      - market
+      - bazaar
+      - mall
+      hi:
+      - बाजार
+      - मार्केट
+      hinglish:
+      - bazaar
+      - market
+      ta:
+      - சந்தை
+      - மார்க்கெட்

@@ -523,11 +523,40 @@ def test_step2_acceptance():
           f"plan={price_plan}")
 
 
+def test_action_concept_not_stray():
+    ont = get_ontology()
+    parser = NLUParser(ont)
+    planner = ISLPlanner(ontology=ont)
+
+    # Greeting + item should NOT produce GIVE
+    s1 = parser.parse("good morning shirt", "English")
+    p1 = planner.plan(s1)
+    check("no_give_in_greet_item", "GIVE" not in p1, f"plan={p1}")
+    check("goodmorning_planned", "GOODMORNING" in p1 and "SHIRT" in p1, f"plan={p1}")
+
+    # "show me" should NOT produce GIVE
+    s2 = parser.parse("please show me a red shirt", "English")
+    p2 = planner.plan(s2)
+    check("no_give_in_show_request", "GIVE" not in p2, f"plan={p2}")
+    check("shirt_red_planned", "SHIRT" in p2 and "RED" in p2, f"plan={p2}")
+
+    # Genuine give request SHOULD produce GIVE
+    s3 = parser.parse("give me a red shirt", "English")
+    p3 = planner.plan(s3)
+    check("give_in_give_request", "GIVE" in p3, f"plan={p3}")
+
+    # Genuine buy request SHOULD produce BUY
+    s4 = parser.parse("buy a shirt", "English")
+    p4 = planner.plan(s4)
+    check("buy_in_buy_request", "BUY" in p4, f"plan={p4}")
+
+
 # ── Run all ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     test_ontology()
     test_nlu()
     test_planner()
+    test_action_concept_not_stray()
     test_dialogue_multiturn()
     test_realizer()
     test_eval()

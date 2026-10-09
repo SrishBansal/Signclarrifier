@@ -37,6 +37,16 @@ class ISLPlanner:
         with open(self.rules_path, "r", encoding="utf-8") as f:
             self.rules = yaml.safe_load(f) or {}
 
+    def _says(self, cid: str, text: str) -> bool:
+        """True if any synonym of concept cid appears in text as whole words."""
+        norm = " " + self.ontology.normalize_text(text or "") + " "
+        for lst in (self.ontology.concepts.get(cid, {}).get("synonyms") or {}).values():
+            for s in (lst or []):
+                sn = self.ontology.normalize_text(str(s))
+                if sn and f" {sn} " in norm:
+                    return True
+        return False
+
     def _qty_concept(self, q: int) -> Optional[str]:
         """Map integer quantity to a quantity CONCEPT ID via grammar_rules.yaml."""
         qty_word = self.rules.get("quantity_words", {}).get(q)
@@ -44,11 +54,17 @@ class ISLPlanner:
             return str(qty_word).upper()
         return None
 
-    def _action_concept(self, raw_text: str) -> str:
+    def _action_concept(self, raw_text: str) -> Optional[str]:
         """Return the action CONCEPT ID for REQUEST intents."""
-        if "buy" in (raw_text or "").lower():
+        if not raw_text:
+            return "GIVE"
+        if self._says("BUY", raw_text):
             return "BUY"
-        return "GIVE"
+        if self._says("SHOW", raw_text):
+            return None
+        if self._says("GIVE", raw_text):
+            return "GIVE"
+        return None
 
     def plan(self, state: SemanticState) -> List[str]:
         """Translate a SemanticState into an ordered list of CONCEPT IDs.
@@ -86,8 +102,12 @@ class ISLPlanner:
                 content_items.append(it)
 
         greeting_prefix: List[str] = []
-        if has_greeting_intent or "HELLO" in social_items:
+        if "HELLO" in social_items or (has_greeting_intent and not social_items):
             greeting_prefix = ["HELLO"]
+        if content_items:  # without content they are planned as topics already
+            greeting_prefix += [s for s in social_items
+                                if s not in ("HELLO", "THANKYOU", "PLEASE", "YES", "NO")
+                                and self.ontology.get_sign_id(s)]
 
         # Pure THANKYOU (no other content)
         if "THANKYOU" in social_items and not content_items:
@@ -113,7 +133,10 @@ class ISLPlanner:
         if items_to_plan:
             for item in items_to_plan:
                 cid = item.concept.upper()
-                if cid.startswith("OOV_") or cid.startswith("FS_"):
+                if cid in ("OOV_ITEM", "OOV_THIS"):
+                    if state.current_focus_referent and not state.current_focus_referent.upper().startswith("OOV_"):
+                        topic_concepts.append(state.current_focus_referent.upper())
+                elif cid.startswith("OOV_") or cid.startswith("FS_"):
                     topic_concepts.append(cid)
                 elif cid not in ("THIS", "ITEM"):
                     topic_concepts.append(cid)
@@ -143,7 +166,7 @@ class ISLPlanner:
         # Intent-driven Actions & Predicates
         if intent == Intent.QUESTION:
             if any(it.concept in ("PRICE", "COST") for it in (items_to_plan or [])) or \
-               "price" in (state.active_attributes or {}):
+               "price" in (state.active_attributes or {}) or self._says("PRICE", state.raw_text):
                 action_concepts.append("PRICE")
             question_concepts.append("QUESTION")
 
@@ -166,8 +189,10 @@ class ISLPlanner:
             action_concepts.append("WHERE")
             question_concepts.append("QUESTION")
 
-        elif intent in (Intent.REQUEST, Intent.GREET) and content_items:
-            action_concepts.append(self._action_concept(state.raw_text))
+        elif intent == Intent.REQUEST and content_items:
+            action = self._action_concept(state.raw_text)
+            if action:
+                action_concepts.append(action)
 
         # Negation handling
         if state.negation:
@@ -193,7 +218,7 @@ class ISLPlanner:
             if not deduped or deduped[-1] != s:
                 deduped.append(s)
 
-        return deduped if deduped else ["HELLO"]
+        return deduped
 
 
 # Global singleton instance

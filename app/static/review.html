@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ClarifySign — Sign Review Tool</title>
+<style>
+:root{
+  --canvas:#f4f1ea;--surface:#fffdf8;--surface-raised:#fff;--ink:#172527;--muted:#697779;--line:#d9dfd6;
+  --brand:#006b62;--brand-deep:#004c46;--accent:#d87932;--accent-soft:#fff0e3;
+  --ok:#168260;--ok-soft:#e5f5ed;--warn:#a85b12;--warn-soft:#fff3df;--err:#b94342;--err-soft:#fceaea;
+  --shadow:0 12px 32px rgba(25,45,43,.08);--radius:16px;--font:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --canvas:#101b1c;--surface:#152526;--surface-raised:#1b2e2f;--ink:#edf5ef;--muted:#aabbb5;--line:#2b4140;
+    --brand:#4ec9b4;--brand-deep:#80e0cb;--accent:#ffaf69;--accent-soft:#3b2b1d;
+    --ok:#58d2a2;--ok-soft:#173c32;--warn:#ffc267;--warn-soft:#3c2d18;--err:#ff918d;--err-soft:#402425;
+    --shadow:none;
+  }
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;background:radial-gradient(circle at 4% -10%,#d9efe7 0,transparent 34rem),var(--canvas);
+  color:var(--ink);font:15px/1.5 var(--font);display:flex;flex-direction:column;
+}
+header{
+  display:flex;gap:16px;align-items:center;justify-content:space-between;padding:14px clamp(16px,3vw,36px);
+  background:color-mix(in srgb,var(--surface) 92%,transparent);border-bottom:1px solid var(--line);
+  backdrop-filter:blur(14px);position:sticky;top:0;z-index:10;
+}
+h1{display:flex;align-items:center;gap:10px;font-size:19px;margin:0;letter-spacing:-.03em}
+h1:before{content:"";width:24px;height:24px;border-radius:8px;background:conic-gradient(from 135deg,var(--accent) 0 25%,var(--brand) 0 65%,#97d8c9 0)}
+h1 span{color:var(--brand)}
+.hdr-tools{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+
+button,select,input,textarea{
+  font:inherit;color:var(--ink);background:var(--surface-raised);border:1px solid var(--line);
+  border-radius:9px;padding:8px 12px;transition:all .15s ease;
+}
+button{cursor:pointer;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+button:hover:not(:disabled){border-color:var(--brand);transform:translateY(-1px)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+button.primary:hover:not(:disabled){background:var(--brand-deep)}
+button.btn-ok{background:var(--ok-soft);color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,var(--line))}
+button.btn-ok.active,button.btn-ok:hover{background:var(--ok);color:#fff}
+button.btn-bad{background:var(--err-soft);color:var(--err);border-color:color-mix(in srgb,var(--err) 40%,var(--line))}
+button.btn-bad.active,button.btn-bad:hover{background:var(--err);color:#fff}
+button.btn-unsure{background:var(--warn-soft);color:var(--warn);border-color:color-mix(in srgb,var(--warn) 40%,var(--line))}
+button.btn-unsure.active,button.btn-unsure:hover{background:var(--warn);color:#fff}
+
+.layout{
+  display:grid;grid-template-columns:320px 1fr;gap:20px;padding:20px clamp(16px,3vw,36px);
+  max-width:1440px;margin:0 auto;width:100%;flex:1;
+}
+@media (max-width:960px){
+  .layout{grid-template-columns:1fr}
+}
+.sidebar{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px;
+  max-height:calc(100vh - 110px);position:sticky;top:80px;
+}
+.search-bar{display:flex;flex-direction:column;gap:8px}
+.sign-list{
+  overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:4px;padding-right:4px;
+}
+.sign-item{
+  display:flex;align-items:center;justify-content:space-between;padding:8px 12px;
+  border-radius:8px;border:1px solid transparent;background:transparent;text-align:left;
+  font-weight:600;font-size:14px;cursor:pointer;width:100%;
+}
+.sign-item:hover{background:var(--canvas);border-color:var(--line)}
+.sign-item.active{background:color-mix(in srgb,var(--brand) 12%,var(--surface));color:var(--brand);border-color:var(--brand)}
+.badge{
+  font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;text-transform:uppercase;
+}
+.badge.ok{background:var(--ok-soft);color:var(--ok)}
+.badge.bad{background:var(--err-soft);color:var(--err)}
+.badge.unsure{background:var(--warn-soft);color:var(--warn)}
+.badge.none{background:var(--canvas);color:var(--muted)}
+
+.main-view{
+  display:flex;flex-direction:column;gap:16px;
+}
+.stage-card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;position:relative;
+}
+.stage{
+  background:linear-gradient(155deg,#152a29,#0e1b1b);position:relative;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;min-height:540px;
+  width:100%;max-width:540px;border-radius:12px;overflow:hidden;
+}
+.stage:before{
+  content:"";position:absolute;width:640px;height:640px;border-radius:50%;
+  background:radial-gradient(circle,rgba(118,220,195,.15),transparent 65%);top:-170px;right:-220px;
+}
+.stage canvas{position:relative;border:0;background:transparent;width:100%;max-width:520px;height:auto}
+.caption{
+  position:absolute;left:20px;right:20px;bottom:90px;text-align:center;
+  color:#fff;font-size:24px;font-weight:750;text-shadow:0 2px 10px #000;pointer-events:none;
+}
+.gloss-strip{
+  position:absolute;left:14px;right:14px;bottom:50px;display:flex;gap:6px;
+  justify-content:center;flex-wrap:wrap;z-index:2;
+}
+.gloss-pill{
+  background:rgba(8,24,23,.84);color:#c7d8d3;border:1px solid rgba(199,216,211,.25);
+  border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;
+}
+.gloss-pill.active{
+  background:var(--accent);color:#1f2422;border-color:#ffd3b2;
+}
+
+.controls{
+  display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;width:100%;margin-top:14px;
+}
+.review-panel{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px;
+}
+.verdict-row{
+  display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+}
+.shortcuts-hint{
+  font-size:12px;color:var(--muted);
+}
+.kbd{
+  display:inline-block;padding:2px 6px;border:1px solid var(--line);border-radius:4px;
+  background:var(--canvas);font-family:monospace;font-size:11px;
+}
+.progress-bar{
+  width:100%;height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:6px;
+}
+.progress-fill{
+  height:100%;background:var(--brand);width:0%;transition:width .2s ease;
+}
+.stats-text{
+  font-size:13px;color:var(--muted);display:flex;justify-content:space-between;margin-top:4px;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Clarify<span>Sign</span> — Sign Review</h1>
+  <div class="hdr-tools">
+    <button id="btn-export" title="Export review results to JSON">⬇ Export JSON</button>
+    <a href="/" style="font-size:13px;color:var(--brand);font-weight:600;text-decoration:none">Back to App →</a>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="Filter signs…">
+      <label style="font-size:13px;display:flex;align-items:center;gap:6px;cursor:pointer">
+        <input type="checkbox" id="chk-all-signs"> Show all signs (including original 47)
+      </label>
+    </div>
+    <div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="stats-text" id="stats-text">Loading signs…</div>
+    </div>
+    <div class="sign-list" id="sign-list"></div>
+  </aside>
+
+  <main class="main-view">
+    <div class="stage-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:10px">
+        <div>
+          <strong id="current-title" style="font-size:20px;letter-spacing:-.02em">–</strong>
+          <span id="current-index" style="color:var(--muted);font-size:13px;margin-left:8px"></span>
+        </div>
+        <div id="current-badge" class="badge none">Unreviewed</div>
+      </div>
+
+      <div class="stage">
+        <canvas id="cv" width="520" height="620"></canvas>
+        <div class="caption" id="caption"></div>
+        <div class="gloss-strip" id="gloss-strip"></div>
+      </div>
+
+      <div class="controls">
+        <button id="btn-prev" title="Previous sign (Left Arrow)">◀ Prev</button>
+        <button id="btn-replay" class="primary" title="Replay sign (Space)">↻ Replay</button>
+        <button id="btn-next" title="Next sign (Right Arrow)">Next ▶</button>
+        <select id="spd" title="Playback speed">
+          <option value="0.5">0.5×</option>
+          <option value="0.75">0.75×</option>
+          <option value="1.0" selected>1.0×</option>
+          <option value="1.25">1.25×</option>
+          <option value="1.5">1.5×</option>
+          <option value="2.0">2.0×</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="review-panel">
+      <div class="verdict-row">
+        <span style="font-weight:700;font-size:14px">Verdict:</span>
+        <button id="btn-ok" class="btn-ok" title="Mark OK (Key O)">✓ OK</button>
+        <button id="btn-bad" class="btn-bad" title="Mark Bad (Key B)">✗ Bad</button>
+        <button id="btn-unsure" class="btn-unsure" title="Mark Unsure (Key U)">? Unsure</button>
+        <button id="btn-clear" style="font-size:13px" title="Clear verdict">Clear</button>
+        <span class="shortcuts-hint" style="margin-left:auto">
+          Shortcuts: <span class="kbd">←</span> <span class="kbd">→</span> Nav | <span class="kbd">Space</span> Replay | <span class="kbd">O</span>/<span class="kbd">B</span>/<span class="kbd">U</span> Verdict
+        </span>
+      </div>
+      <div>
+        <label for="note-input" style="font-size:13px;font-weight:700;display:block;margin-bottom:4px">Notes for this sign:</label>
+        <textarea id="note-input" rows="2" style="width:100%;resize:vertical" placeholder="Add observation, hand shape issues, missing movement, etc."></textarea>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/static/renderer.js"></script>
+<script>
+const NEW_78_SIGNS = [
+  "afternoon", "alive", "alright", "bad", "beautiful", "blind", "clean", "clothing",
+  "colour", "cool", "curved", "dead", "deaf", "deep", "dirty", "dry",
+  "evening", "famous", "fast", "female", "flat", "friday", "goodafternoon", "goodevening",
+  "goodmorning", "goodnight", "happy", "hard", "healthy", "heavy", "high", "hour",
+  "howareyou", "long", "loose", "loud", "low", "male", "minute", "monday",
+  "month", "morning", "narrow", "nice", "night", "old", "pleased", "pocket",
+  "poor", "quiet", "rich", "sad", "saturday", "shallow", "short", "sick",
+  "slow", "soft", "strong", "sunday", "tall", "thick", "thin", "thursday",
+  "tight", "today", "tomorrow", "tuesday", "ugly", "warm", "weak", "wednesday",
+  "week", "wet", "wide", "year", "yesterday", "young"
+];
+
+const STORAGE_KEY = "clarifysign_review_data";
+
+let SIGNS = {};
+let avatarRenderer = null;
+let currentList = [...NEW_78_SIGNS];
+let currentIndex = 0;
+let reviewData = {}; // sign -> { verdict: "ok"|"bad"|"unsure", note: "" }
+
+function loadStoredData(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) reviewData = JSON.parse(raw);
+  } catch(e) {
+    console.warn("Failed to load review data from localStorage:", e);
+  }
+}
+
+function saveStoredData(){
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(reviewData));
+  } catch(e) {
+    console.warn("Failed to save review data to localStorage:", e);
+  }
+}
+
+function initRenderer(){
+  if(!avatarRenderer && window.AvatarRenderer){
+    avatarRenderer = new window.AvatarRenderer(document.getElementById("cv"), {
+      signs: SIGNS,
+      glossStripEl: document.getElementById("gloss-strip"),
+      captionEl: document.getElementById("caption"),
+      speed: parseFloat(document.getElementById("spd").value || 1.0),
+      onComplete: () => {}
+    });
+  } else if(avatarRenderer && SIGNS){
+    avatarRenderer.setSigns(SIGNS);
+  }
+}
+
+function playSign(signId){
+  initRenderer();
+  if(!avatarRenderer) return;
+  const speed = parseFloat(document.getElementById("spd").value || 1.0);
+  avatarRenderer.play([signId], { speed });
+}
+
+function updateStats(){
+  const total = currentList.length;
+  let okCount = 0, badCount = 0, unsureCount = 0;
+  currentList.forEach(s => {
+    const v = reviewData[s]?.verdict;
+    if(v === "ok") okCount++;
+    else if(v === "bad") badCount++;
+    else if(v === "unsure") unsureCount++;
+  });
+  const reviewed = okCount + badCount + unsureCount;
+  const pct = total ? Math.round((reviewed / total) * 100) : 0;
+
+  document.getElementById("progress-fill").style.width = pct + "%";
+  document.getElementById("stats-text").innerHTML =
+    `<span>Reviewed: ${reviewed}/${total} (${pct}%)</span><span>OK: ${okCount} · Bad: ${badCount} · Unsure: ${unsureCount}</span>`;
+}
+
+function renderSignList(){
+  const query = document.getElementById("search-input").value.trim().toLowerCase();
+  const listEl = document.getElementById("sign-list");
+  listEl.innerHTML = "";
+
+  currentList.forEach((signId, idx) => {
+    if(query && !signId.toLowerCase().includes(query)) return;
+    const btn = document.createElement("button");
+    btn.className = "sign-item" + (idx === currentIndex ? " active" : "");
+    btn.dataset.index = idx;
+
+    const label = document.createElement("span");
+    label.textContent = signId;
+    btn.appendChild(label);
+
+    const verdict = reviewData[signId]?.verdict || "none";
+    const badge = document.createElement("span");
+    badge.className = "badge " + verdict;
+    badge.textContent = verdict === "none" ? "–" : verdict;
+    btn.appendChild(badge);
+
+    btn.onclick = () => selectSign(idx);
+    listEl.appendChild(btn);
+  });
+  updateStats();
+}
+
+function selectSign(index){
+  if(index < 0 || index >= currentList.length) return;
+  currentIndex = index;
+  const signId = currentList[currentIndex];
+
+  document.getElementById("current-title").textContent = signId;
+  document.getElementById("current-index").textContent = `(${currentIndex + 1} of ${currentList.length})`;
+
+  const item = reviewData[signId] || {};
+  const verdict = item.verdict || "none";
+  const badge = document.getElementById("current-badge");
+  badge.className = "badge " + verdict;
+  badge.textContent = verdict === "none" ? "Unreviewed" : verdict;
+
+  document.getElementById("btn-ok").classList.toggle("active", verdict === "ok");
+  document.getElementById("btn-bad").classList.toggle("active", verdict === "bad");
+  document.getElementById("btn-unsure").classList.toggle("active", verdict === "unsure");
+
+  document.getElementById("note-input").value = item.note || "";
+
+  renderSignList();
+
+  const activeBtn = document.querySelector(`.sign-item[data-index="${currentIndex}"]`);
+  if(activeBtn) activeBtn.scrollIntoView({ block: "nearest", behavior: "smooth" });
+
+  playSign(signId);
+}
+
+function setVerdict(v){
+  const signId = currentList[currentIndex];
+  if(!reviewData[signId]) reviewData[signId] = {};
+  reviewData[signId].verdict = v;
+  saveStoredData();
+  selectSign(currentIndex);
+}
+
+function setNote(noteText){
+  const signId = currentList[currentIndex];
+  if(!reviewData[signId]) reviewData[signId] = {};
+  reviewData[signId].note = noteText;
+  saveStoredData();
+}
+
+function exportJSON(){
+  const out = currentList.map(sign => ({
+    sign,
+    verdict: reviewData[sign]?.verdict || "unreviewed",
+    note: reviewData[sign]?.note || ""
+  }));
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "sign_review_verdicts.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Event bindings
+document.getElementById("btn-prev").onclick = () => {
+  if(currentIndex > 0) selectSign(currentIndex - 1);
+};
+document.getElementById("btn-next").onclick = () => {
+  if(currentIndex < currentList.length - 1) selectSign(currentIndex + 1);
+};
+document.getElementById("btn-replay").onclick = () => {
+  playSign(currentList[currentIndex]);
+};
+document.getElementById("spd").onchange = (e) => {
+  if(avatarRenderer) avatarRenderer.setSpeed(parseFloat(e.target.value));
+};
+document.getElementById("btn-ok").onclick = () => setVerdict("ok");
+document.getElementById("btn-bad").onclick = () => setVerdict("bad");
+document.getElementById("btn-unsure").onclick = () => setVerdict("unsure");
+document.getElementById("btn-clear").onclick = () => setVerdict("none");
+
+document.getElementById("note-input").oninput = (e) => {
+  setNote(e.target.value);
+};
+document.getElementById("search-input").oninput = () => {
+  renderSignList();
+};
+
+document.getElementById("chk-all-signs").onchange = (e) => {
+  if(e.target.checked && SIGNS) {
+    currentList = Object.keys(SIGNS).sort();
+  } else {
+    currentList = [...NEW_78_SIGNS];
+  }
+  currentIndex = 0;
+  selectSign(0);
+};
+
+document.getElementById("btn-export").onclick = exportJSON;
+
+// Keyboard navigation
+window.addEventListener("keydown", (e) => {
+  // If user is typing in a textarea or input, do not trigger single-key review shortcuts
+  const tag = e.target.tagName.toLowerCase();
+  if(tag === "input" || tag === "textarea") return;
+
+  if(e.key === "ArrowLeft") {
+    e.preventDefault();
+    if(currentIndex > 0) selectSign(currentIndex - 1);
+  } else if(e.key === "ArrowRight") {
+    e.preventDefault();
+    if(currentIndex < currentList.length - 1) selectSign(currentIndex + 1);
+  } else if(e.key === " " || e.code === "Space") {
+    e.preventDefault();
+    playSign(currentList[currentIndex]);
+  } else if(e.key === "o" || e.key === "O") {
+    e.preventDefault();
+    setVerdict("ok");
+  } else if(e.key === "b" || e.key === "B") {
+    e.preventDefault();
+    setVerdict("bad");
+  } else if(e.key === "u" || e.key === "U") {
+    e.preventDefault();
+    setVerdict("unsure");
+  }
+});
+
+// Boot
+loadStoredData();
+fetch("/api/signs")
+  .then(r => r.json())
+  .then(signs => {
+    SIGNS = signs;
+    initRenderer();
+    selectSign(0);
+  })
+  .catch(err => {
+    console.error("Failed to load /api/signs:", err);
+    document.getElementById("stats-text").textContent = "Error loading signs from server.";
+  });
+</script>
+</body>
+</html>

@@ -102,7 +102,10 @@ class NLUParser:
                     w = str(s).lower().strip()
                     if w and " " not in w:
                         qty_map[w] = q_val
-        for t in tokens:
+        not_a_number = {"you", "i", "we", "they", "he", "she", "not", "have", "the", "this", "that", "it"}
+        for i, t in enumerate(tokens):
+            if t == "do" and i + 1 < len(tokens) and tokens[i + 1] in not_a_number:
+                continue
             if t in qty_map:
                 return qty_map[t]
         return None
@@ -114,9 +117,24 @@ class NLUParser:
                 return cid
         return None
 
+    def _social_covered(self, tokens: List[str]) -> set:
+        """Token indices inside a social phrase ("good morning"), so their words are not also read as attributes/products."""
+        covered: set = set()
+        for n in range(min(4, len(tokens)), 0, -1):
+            for i in range(len(tokens) - n + 1):
+                if any(k in covered for k in range(i, i + n)):
+                    continue
+                cid = self.ontology.synonym_index.get(" ".join(tokens[i:i + n]))
+                if cid and cid not in ("YES", "NO") and self.ontology.get_category(cid) == "social":
+                    covered.update(range(i, i + n))
+        return covered
+
     def _extract_attributes(self, norm: str, tokens: List[str]) -> Dict[str, Any]:
         attrs: Dict[str, Any] = {}
-        for t in tokens:
+        covered = self._social_covered(tokens)
+        for idx, t in enumerate(tokens):
+            if idx in covered:
+                continue
             cid = self.ontology.resolve_concept(t)
             if cid:
                 cat = self.ontology.get_category(cid)
@@ -127,11 +145,14 @@ class NLUParser:
 
     def _extract_products(self, tokens: List[str]) -> List[str]:
         products = []
+        covered = self._social_covered(tokens)
         for i in range(len(tokens)):
             for j in range(len(tokens), i, -1):
+                if any(k in covered for k in range(i, j)):
+                    continue
                 phrase = " ".join(tokens[i:j])
                 cid = self.ontology.resolve_concept(phrase)
-                if cid and self.ontology.get_category(cid) == "product" and cid not in products:
+                if cid and self.ontology.get_category(cid) in ("product", "time", "descriptor") and cid not in products:
                     products.append(cid)
         return products
 
