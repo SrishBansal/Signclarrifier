@@ -94,10 +94,20 @@ def landmarks_to_features(left_hand, right_hand, pose):
 
 
 def frame_activity(feat, act_y=ACT_Y):
+    """Return True only when BOTH a wrist is raised AND at least one hand is detected.
+
+    Requiring hand presence prevents "sign_start" from firing on raised-arm poses
+    (e.g. resting elbows on a desk) when MediaPipe has not found any hand landmarks.
+    """
     p = feat[POSE].reshape(33, 3)
     if not p.any():
         return False
-    return bool(min(p[15, 1], p[16, 1]) < act_y)
+    wrist_high = bool(min(p[15, 1], p[16, 1]) < act_y)
+    if not wrist_high:
+        return False
+    # Require at least one hand to be present (non-zero feature block).
+    hand_present = bool(feat[LH].any() or feat[RH].any())
+    return hand_present
 
 
 def trim_active(seq, act_y=ACT_Y, pad=4, min_active=8):
@@ -121,6 +131,31 @@ def to_fixed(seq, n=SEQ_LEN):
 def prepare_sequence(seq, act_y=ACT_Y):
     """The ONE preprocessing used for training and serving: trim idle, resample to 48."""
     return to_fixed(trim_active(np.asarray(seq, np.float32), act_y))
+
+
+def is_sign_candidate(seq, min_hand_frames=4, min_motion=0.005):
+    """Determine whether a sequence contains legitimate hand presence and movement.
+
+    Returns (bool, str reason)
+    """
+    seq = np.asarray(seq, dtype=np.float32)
+    if len(seq) == 0:
+        return False, "empty sequence"
+
+    lh_present = np.any(seq[:, LH] != 0, axis=1)
+    rh_present = np.any(seq[:, RH] != 0, axis=1)
+    any_hand = lh_present | rh_present
+    hand_count = int(np.sum(any_hand))
+    if hand_count < min_hand_frames:
+        return False, f"insufficient hand presence: {hand_count}/{len(seq)} frames"
+
+    hand_feats = seq[:, :126]
+    diff = np.diff(hand_feats, axis=0)
+    motion = float(np.mean(np.abs(diff))) if len(diff) > 0 else 0.0
+    if motion < min_motion:
+        return False, f"static posture (motion={motion:.5f} < {min_motion})"
+
+    return True, "ok"
 
 
 class LandmarkExtractor:

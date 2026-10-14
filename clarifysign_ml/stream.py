@@ -24,7 +24,8 @@ class StreamingSession:
         self.max_n = max(10, int(self.max_s * fps))
 
     def reset(self):
-        self.state, self.buf, self.act_run, self.idle_run, self.need_rest = "idle", deque(maxlen=SEQ_LEN), 0, 0, False
+        max_buf = getattr(self, "max_n", SEQ_LEN)
+        self.state, self.buf, self.act_run, self.idle_run, self.need_rest = "idle", deque(maxlen=max_buf), 0, 0, False
         self.pre = deque(maxlen=64)
 
     def push(self, feat):
@@ -40,11 +41,11 @@ class StreamingSession:
             self.act_run = self.act_run + 1 if a else 0
             if self.act_run >= self.start_n:
                 self.state, self.act_run, self.idle_run = "signing", 0, 0
-                self.buf = deque(self.pre, maxlen=SEQ_LEN)
+                self.buf = deque(self.pre, maxlen=self.max_n)
                 self.pre.clear()
                 ev.append({"type": "sign_start"})
             return ev
-        self.buf.append(feat)  # deque will drop oldest when exceeding SEQ_LEN
+        self.buf.append(feat)  # stores entire active sign up to max_n frames
         self.idle_run = 0 if a else self.idle_run + 1
         # Only emit provisional predictions when we have a full sequence of SEQ_LEN frames.
         if self.every and len(self.buf) % self.every == 0 and len(self.buf) >= SEQ_LEN:

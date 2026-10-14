@@ -1,7 +1,7 @@
-commit_p: 0.85
-commit_margin: 0.40
-resign_p: 0.15
-resolve_p: 0.80
+commit_p: 0.70
+commit_margin: 0.20
+resign_p: 0.25
+resolve_p: 0.75
 reliability: 0.95
 alpha: 0.0
 beta: 0.2
@@ -9,4 +9,5 @@ lam: 0.1
 min_gain: 0.05
 max_turns: 2
 top_k: 6
-best_guess_p: 0.40
+best_guess_p: 0.65
+min_candidate_p: 0.15

@@ -17,6 +17,7 @@ log.setLevel(logging.INFO)
 _ACT_Y = float(os.environ.get("ACT_Y", str(_DEFAULT_ACT_Y)))
 
 
+
 class SignSession:
     def __init__(self, recognizer, extractor, dm: DialogueManager = None, lang="en",
                  decode=None, clarify_timeout=15.0):
@@ -33,6 +34,7 @@ class SignSession:
         self._t = None
         self._fps = 10.0
         self._n = 0
+        self._sign_hand_frames = 0
         self.dialogue_start_time = None
         self.clarify_timeout = clarify_timeout
         # Per-second server log stats
@@ -208,12 +210,22 @@ class SignSession:
         if not feat.any():
             return out
 
+        if self.stream.state == "signing":
+            if lh_det or rh_det:
+                self._sign_hand_frames += 1
+
         for e in self.stream.push(feat):
             if e["type"] == "sign_start":
+                self._sign_hand_frames = int(lh_det or rh_det)
                 out.append({"type": "state", "state": "signing"})
             elif e["type"] == "provisional":
                 out.append({"type": "provisional", "top": self._top(e["probs"])})
             elif e["type"] == "sign_end":
+                # Idle rejection: if hands were barely detected during the sign window, it is not a sign
+                if len(self.rec.classes) > 30 and self._sign_hand_frames < 4:
+                    log.info("Discarded idle/non-sign segment: %d hand frames in segment", self._sign_hand_frames)
+                    out.append({"type": "state", "state": "listening"})
+                    continue
                 probs = e["probs"]
                 diag = {**uncertainty(list(map(float, probs))), "frames": int(e["n_frames"]),
                         "top": self._top(probs, 5), "fps": round(self._fps, 1)}
@@ -224,6 +236,10 @@ class SignSession:
                     self.dialogue_start_time = now
                 else:
                     self.dialogue_start_time = None
+                    if act_res["action"] == "resign":
+                        # Force a rest period so the same raised-arm pose doesn't immediately
+                        # retrigger another signing window and loop "I couldn't tell".
+                        self.stream.need_rest = True
                 out += self._events_from_action(act_res, probs, diag)
         return out
 

@@ -15,32 +15,35 @@ def _likelihood(options: List[str], truth_option: str, reliability: float) -> Di
     return {a: (reliability if a == truth_option else (1 - reliability) / max(m - 1, 1)) for a in options}
 
 
-def _question_models(cand: Dict[str, float], asked: List[str], ontology=None) -> Dict[str, Tuple]:
+def _question_models(cand: Dict[str, float], asked: List[str], ontology=None, cfg: Dict[str, Any] = None) -> Dict[str, Tuple]:
     if ontology is None:
         from ..ontology import get_ontology
         ontology = get_ontology()
 
     qs: Dict[str, Tuple] = {}
 
-    # Kind question: group candidates by their kind
-    kinds = sorted({ontology.kind(c) for c in cand})
-    if "kind" not in asked and len(kinds) > 1:
-        kind_labels = {k: k.replace("nosign", "other").replace("marker", "grammar marker") for k in kinds}
-        qs["kind"] = ("What kind of word was it?", kinds, lambda c: ontology.kind(c), kind_labels)
+    # Kind question: group candidates by their kind (disabled by default in live signing)
+    if cfg and cfg.get("allow_kind_question", False):
+        kinds = sorted({ontology.kind(c) for c in cand})
+        if "kind" not in asked and len(kinds) > 1:
+            kind_labels = {k: k.replace("nosign", "other").replace("marker", "grammar marker") for k in kinds}
+            qs["kind"] = ("What kind of word was it?", kinds, lambda c: ontology.kind(c), kind_labels)
 
-    # Pair question: top-2 direct comparison
+    # Pair question: top-2 direct comparison between credible alternatives
     top = sorted(cand, key=lambda c: -cand[c])
+    min_p = float(getattr(cfg, "get", lambda k, d: CFG.get(k, d))("min_candidate_p", 0.15) if cfg else CFG.get("min_candidate_p", 0.15))
     if len(top) >= 2 and "pair" not in asked:
         a, b = top[0], top[1]
-        opts = [a, b, "neither"]
-        try: la = ontology.label(a, "en")
-        except KeyError: la = a
-        try: lb = ontology.label(b, "en")
-        except KeyError: lb = b
-        qs["pair"] = (
-            f"Did you mean '{la}' or '{lb}'?", opts,
-            lambda c, a=a, b=b: c if c in (a, b) else "neither",
-            {a: la, b: lb, "neither": "Neither"})
+        if cand[a] >= min_p and cand[b] >= min_p:
+            opts = [a, b, "neither"]
+            try: la = ontology.label(a, "en")
+            except KeyError: la = a
+            try: lb = ontology.label(b, "en")
+            except KeyError: lb = b
+            qs["pair"] = (
+                f"Did you mean '{la}' or '{lb}'?", opts,
+                lambda c, a=a, b=b: c if c in (a, b) else "neither",
+                {a: la, b: lb, "neither": "Neither"})
     return qs
 
 
@@ -67,7 +70,7 @@ def info_gain(cand: Dict[str, float], options: List[str], truth_fn: Any, reliabi
 def plan(cand: Dict[str, float], asked: List[str], cfg: Dict[str, Any] = None, ontology=None) -> Dict[str, Any]:
     cfg = cfg or CFG
     best: Dict[str, Any] = None
-    for qid, (text, opts, truth, labels) in _question_models(cand, asked, ontology).items():
+    for qid, (text, opts, truth, labels) in _question_models(cand, asked, ontology, cfg).items():
         ig = info_gain(cand, opts, truth, cfg.get("reliability", 0.95))
         answerability = 1.0 if len(opts) <= 3 else 0.7
         utility = (ig + cfg.get("alpha", 0.0) * context(qid, None)

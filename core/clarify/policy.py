@@ -32,9 +32,9 @@ class Dialogue:
     def start(self) -> Dict[str, Any]:
         u, p1 = self.unc, self.unc["top1"]
         best = max(self.cand, key=self.cand.get)
-        if p1 >= self.cfg.get("commit_p", 0.85) and u["margin"] >= self.cfg.get("commit_margin", 0.4):
+        if p1 >= self.cfg.get("commit_p", 0.70) and u["margin"] >= self.cfg.get("commit_margin", 0.20):
             return {"action": "resolved", "concept": best, "how": "confident"}
-        if p1 < self.cfg.get("resign_p", 0.15):
+        if p1 < self.cfg.get("resign_p", 0.25):
             return {"action": "resign"}
         return self._ask()
 
@@ -42,8 +42,8 @@ class Dialogue:
         q = plan(self.cand, self.asked, self.cfg)
         if q is None or q["ig"] < self.cfg.get("min_gain", 0.05) or self.turn >= self.cfg.get("max_turns", 2):
             best = max(self.cand, key=self.cand.get)
-            # Resolve as best_guess when top1 is decent; resign only when truly uncertain
-            if self.unc["top1"] >= self.cfg.get("best_guess_p", 0.40):
+            # Resolve as best_guess only when top1 is genuinely strong; resign when evidence is inadequate
+            if self.unc["top1"] >= self.cfg.get("best_guess_p", 0.65):
                 return {"action": "resolved", "concept": best, "how": "best_guess"}
             return {"action": "resign"}
         self.q = q
