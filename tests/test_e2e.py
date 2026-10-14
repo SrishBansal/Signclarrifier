@@ -164,7 +164,9 @@ def test_clarify_then_answer_resolves():
     classes = [d["sign_id"] for d in ont.concepts.values() if d.get("sign_id")][:4]
     if len(classes) < 2:
         pytest.skip("Need >=2 sign classes")
-    probs = [0.40, 0.35, 0.15, 0.10][:len(classes)]
+    # top1=0.55 > resign_p=0.45 (so it doesn't resign immediately), but < commit_p=0.80
+    # After top-k renormalisation both top candidates exceed min_candidate_p=0.30 → pair ask
+    probs = [0.55, 0.35, 0.07, 0.03][:len(classes)]
     d = Dialogue(probs, classes)
     r1 = d.start()
     assert r1["action"] == "ask", f"Expected ask, got {r1['action']}"

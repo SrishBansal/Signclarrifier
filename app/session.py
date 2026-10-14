@@ -4,7 +4,7 @@ import time
 import logging
 import numpy as np
 from clarifysign_ml.stream import StreamingSession
-from clarifysign_ml.features import POSE, LH, RH, frame_activity, ACT_Y as _DEFAULT_ACT_Y
+from clarifysign_ml.features import POSE, LH, RH, frame_activity, ACT_Y as _DEFAULT_ACT_Y, is_sign_candidate
 from core.clarify import Dialogue, uncertainty
 from core.ontology import get_ontology
 from core.dialogue import DialogueManager
@@ -226,6 +226,17 @@ class SignSession:
                     log.info("Discarded idle/non-sign segment: %d hand frames in segment", self._sign_hand_frames)
                     out.append({"type": "state", "state": "listening"})
                     continue
+                # Quality gate: run is_sign_candidate on the raw buffer before inference.
+                # Requires both sufficient hand presence AND motion — catches static postures,
+                # one-hand-barely-detected segments, and resting-arm triggers.
+                raw_buf = np.stack(list(self.stream.buf)) if hasattr(self.stream, "buf") and len(self.stream.buf) > 0 else None
+                if raw_buf is not None:
+                    ok, reason = is_sign_candidate(raw_buf, min_hand_frames=8, min_motion=0.02)
+                    if not ok:
+                        log.info("Discarded non-sign segment (is_sign_candidate): %s", reason)
+                        out.append({"type": "state", "state": "listening"})
+                        self.stream.need_rest = True
+                        continue
                 probs = e["probs"]
                 diag = {**uncertainty(list(map(float, probs))), "frames": int(e["n_frames"]),
                         "top": self._top(probs, 5), "fps": round(self._fps, 1)}
