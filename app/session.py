@@ -35,6 +35,7 @@ class SignSession:
         self._fps = 10.0
         self._n = 0
         self._sign_hand_frames = 0
+        self._cooldown_until = 0.0
         self.dialogue_start_time = None
         self.clarify_timeout = clarify_timeout
         # Per-second server log stats
@@ -205,6 +206,10 @@ class SignSession:
                       "y_scale": float(y_scale) if y_scale is not None else None}
         out = [{"type": "diag", "research": diag_frame}]
 
+        # Cooldown guard: prevent immediate retrigger while lowering arms
+        if now < self._cooldown_until:
+            return out
+
         # A missing landmark frame is not a recognizer input, but it is still a
         # valid camera frame (and has already updated the diagnostics above).
         if not feat.any():
@@ -221,22 +226,23 @@ class SignSession:
             elif e["type"] == "provisional":
                 out.append({"type": "provisional", "top": self._top(e["probs"])})
             elif e["type"] == "sign_end":
-                # Idle rejection: if hands were barely detected during the sign window, it is not a sign
-                if len(self.rec.classes) > 30 and self._sign_hand_frames < 4:
-                    log.info("Discarded idle/non-sign segment: %d hand frames in segment", self._sign_hand_frames)
-                    out.append({"type": "state", "state": "listening"})
-                    continue
-                # Quality gate: run is_sign_candidate on the raw buffer before inference.
-                # Requires both sufficient hand presence AND motion — catches static postures,
-                # one-hand-barely-detected segments, and resting-arm triggers.
-                raw_buf = np.stack(list(self.stream.buf)) if hasattr(self.stream, "buf") and len(self.stream.buf) > 0 else None
-                if raw_buf is not None:
-                    ok, reason = is_sign_candidate(raw_buf, min_hand_frames=8, min_motion=0.02)
+                seq = e.get("seq")
+                # Quality gate: evaluate the entire captured sequence before running inference
+                if seq is not None:
+                    ok, reason = is_sign_candidate(seq, min_hand_frames=4, min_motion=0.005)
                     if not ok:
                         log.info("Discarded non-sign segment (is_sign_candidate): %s", reason)
                         out.append({"type": "state", "state": "listening"})
                         self.stream.need_rest = True
+                        self._cooldown_until = now + 1.2
                         continue
+                elif len(self.rec.classes) > 30 and self._sign_hand_frames < 4:
+                    log.info("Discarded idle/non-sign segment: %d hand frames in segment", self._sign_hand_frames)
+                    out.append({"type": "state", "state": "listening"})
+                    self._cooldown_until = now + 1.2
+                    continue
+
+                self._cooldown_until = now + 1.2
                 probs = e["probs"]
                 diag = {**uncertainty(list(map(float, probs))), "frames": int(e["n_frames"]),
                         "top": self._top(probs, 5), "fps": round(self._fps, 1)}
@@ -248,8 +254,6 @@ class SignSession:
                 else:
                     self.dialogue_start_time = None
                     if act_res["action"] == "resign":
-                        # Force a rest period so the same raised-arm pose doesn't immediately
-                        # retrigger another signing window and loop "I couldn't tell".
                         self.stream.need_rest = True
                 out += self._events_from_action(act_res, probs, diag)
         return out

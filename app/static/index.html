@@ -270,7 +270,15 @@ async function onEvent(e){
   if(e.research||e.top){$("rsout").textContent=JSON.stringify(e.research||{top:e.top},null,2)}
   if(e.type==="ack"){inflight=false;if(watchdogTimer){clearTimeout(watchdogTimer);watchdogTimer=null}return}
   if(e.type==="diag"){if(e.research)updateHud(e.research);return}
-  else if(e.type==="state"){setStatus(e.state);if(e.state==="signing")setLiveInference("Sign detected. Reading the movement…");else if(e.state==="interpreting")setLiveInference("Interpreting the completed sign…");else if(e.state==="listening")setLiveInference("Waiting for a complete sign…")}
+  else if(e.type==="state"){
+    setStatus(e.state);
+    if(e.state==="signing")setLiveInference("Sign detected. Reading the movement…");
+    else if(e.state==="interpreting")setLiveInference("Interpreting the completed sign…");
+    else if(e.state==="listening"){
+      setLiveInference("Waiting for a complete sign…");
+      const prov=$("hud-prov");if(prov)prov.style.display='none';
+    }
+  }
   else if(e.type==="provisional"){
     if(e.top&&e.top.length>0){
       const top1=e.top[0];
@@ -281,7 +289,12 @@ async function onEvent(e){
       if(prov){prov.style.display='';prov.textContent=e.top.slice(0,3).map(t=>t.label+' '+Math.round(t.p*100)+'%').join(' | ');}
     }
   }
-  else if(e.type==="clarify"){clearLiveInference();addMsg(`<div class="sub">I need a quick clarification</div><div class="big">${esc(e.question.text)}</div>`);ask(e.question)}
+  else if(e.type==="clarify"){
+    clearLiveInference();
+    const prov=$("hud-prov");if(prov)prov.style.display='none';
+    addMsg(`<div class="sub">I need a quick clarification</div><div class="big">${esc(e.question.text)}</div>`);
+    ask(e.question);
+  }
   else if(e.type==="resolved"){$("askbox").innerHTML="";setStatus("resolved","live");
     clearLiveInference();
     addMsg(`<div class="sub">You signed</div><div class="big">${esc(e.text)}</div><div class="sub">${esc(e.english)}${e.how==="best_guess"?" · best guess":""}</div>`);
@@ -289,6 +302,7 @@ async function onEvent(e){
     if($("auto").checked)await speak(e.text,e.tag);setStatus("listening")}
   else if(e.type==="resign"){$("askbox").innerHTML="";
     clearLiveInference();
+    const prov=$("hud-prov");if(prov)prov.style.display='none';
     addMsg(`<div class="sub">${esc(e.message||"Sign not recognised. Please try again.")}</div>`);
     setStatus("listening")}
   else if(e.type==="warn"){if(!_warnShown){_warnShown=true;say($("banner"),e.message,"note");setTimeout(()=>{_warnShown=false;say($("banner"),"","note")},5000);}return}

@@ -149,11 +149,26 @@ def is_sign_candidate(seq, min_hand_frames=4, min_motion=0.005):
     if hand_count < min_hand_frames:
         return False, f"insufficient hand presence: {hand_count}/{len(seq)} frames"
 
-    hand_feats = seq[:, :126]
-    diff = np.diff(hand_feats, axis=0)
-    motion = float(np.mean(np.abs(diff))) if len(diff) > 0 else 0.0
-    if motion < min_motion:
-        return False, f"static posture (motion={motion:.5f} < {min_motion})"
+    # Compute motion on active hand frames only
+    lh = seq[:, LH]
+    rh = seq[:, RH]
+    lh_diffs = [np.mean(np.abs(lh[i + 1] - lh[i])) for i in range(len(seq) - 1) if lh_present[i] and lh_present[i + 1]]
+    rh_diffs = [np.mean(np.abs(rh[i + 1] - rh[i])) for i in range(len(seq) - 1) if rh_present[i] and rh_present[i + 1]]
+    m_lh = float(np.mean(lh_diffs)) if lh_diffs else 0.0
+    m_rh = float(np.mean(rh_diffs)) if rh_diffs else 0.0
+    motion = max(m_lh, m_rh)
+
+    # Check wrist motion from pose if pose is present (left wrist 171:173, right wrist 174:176)
+    pose_wrist_motion = 0.0
+    if seq.shape[1] >= 176:
+        lw = seq[:, 171:173]
+        rw = seq[:, 174:176]
+        m_lw = float(np.mean(np.linalg.norm(np.diff(lw, axis=0), axis=1))) if len(lw) > 1 else 0.0
+        m_rw = float(np.mean(np.linalg.norm(np.diff(rw, axis=0), axis=1))) if len(rw) > 1 else 0.0
+        pose_wrist_motion = max(m_lw, m_rw)
+
+    if motion < min_motion and pose_wrist_motion < 0.02:
+        return False, f"static posture (motion={motion:.5f}, wrist_motion={pose_wrist_motion:.5f} < {min_motion})"
 
     return True, "ok"
 

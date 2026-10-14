@@ -844,7 +844,18 @@
       g.lineJoin = "round";
 
       // P(i) applies y-unstretch to pose landmarks
-      const P = i => [f[126 + i * 3], f[126 + i * 3 + 1] * U, f[126 + i * 3 + 2]];
+      // Normalise pose scale: force shoulder half-width to the rest value (0.5)
+      let k = 1, mx = 0, my = 0;
+      {
+        const ax = f[126 + 11 * 3], ay = f[126 + 11 * 3 + 1] * U;
+        const bx = f[126 + 12 * 3], by = f[126 + 12 * 3 + 1] * U;
+        const half = Math.hypot(ax - bx, ay - by) / 2;
+        if (half > 1e-4) { k = clamp(0.5 / half, 0.5, 2.0); mx = (ax + bx) / 2; my = (ay + by) / 2; }
+      }
+      const P = i => {
+        const x = f[126 + i * 3], y = f[126 + i * 3 + 1] * U, z = f[126 + i * 3 + 2];
+        return [mx + (x - mx) * k, my + (y - my) * k, z];
+      };
       const ok = i => f[126 + i * 3] !== 0 || f[126 + i * 3 + 1] !== 0;
       const X = p => [ox + p[0] * S, oy + p[1] * S];
 
@@ -902,8 +913,7 @@
 
         const wP = P(wristPoseIdx);  // already unscaled by P()
         // wrist-to-middle-fingertip distance in hand-block space, with U applied to y
-        const dd = Math.hypot(src[offset + 36], src[offset + 37] * U) || 1;
-        const hs = clamp(0.5 / dd, 0.25, 1.2);  // hand scale
+        const hs = 0.96;
 
         const joints = [];
         for (let i = 0; i < 21; i++) {

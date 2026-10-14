@@ -53,8 +53,8 @@ class StreamingSession:
         # Only emit sign_end (final prediction) when we have enough frames for a real sequence.
         if (self.idle_run >= self.end_n or len(self.buf) >= self.max_n) and len(self.buf) > 0:
             seq = np.stack(self.buf)
-            ev.append({"type": "sign_end", "n_frames": len(seq),
-                       "probs": self.predict_fn(prepare_sequence(seq, self.act_y))})
             forced = self.idle_run < self.end_n
             self.reset(); self.need_rest = forced and a
+            ev.append({"type": "sign_end", "n_frames": len(seq), "seq": seq,
+                       "probs": self.predict_fn(prepare_sequence(seq, self.act_y))})
         return ev
