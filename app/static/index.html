@@ -1,501 +1,1901 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ClarifySign</title>
-<style>
-:root{--canvas:#f4f1ea;--surface:#fffdf8;--surface-raised:#fff;--ink:#172527;--muted:#697779;--line:#d9dfd6;--brand:#006b62;--brand-deep:#004c46;--accent:#d87932;--accent-soft:#fff0e3;--ok:#168260;--ok-soft:#e5f5ed;--warn:#a85b12;--warn-soft:#fff3df;--err:#b94342;--err-soft:#fceaea;--shadow:0 12px 32px rgba(25,45,43,.08);--radius:18px;--font:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-@media (prefers-color-scheme:dark){:root{--canvas:#101b1c;--surface:#152526;--surface-raised:#1b2e2f;--ink:#edf5ef;--muted:#aabbb5;--line:#2b4140;--brand:#4ec9b4;--brand-deep:#80e0cb;--accent:#ffaf69;--accent-soft:#3b2b1d;--ok:#58d2a2;--ok-soft:#173c32;--warn:#ffc267;--warn-soft:#3c2d18;--err:#ff918d;--err-soft:#402425;--shadow:none}}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 4% -10%,#d9efe7 0,transparent 34rem),var(--canvas);color:var(--ink);font:16px/1.5 var(--font)}
-header{display:flex;gap:20px;align-items:center;justify-content:space-between;padding:16px clamp(20px,4vw,56px);background:color-mix(in srgb,var(--surface) 92%,transparent);border-bottom:1px solid var(--line);backdrop-filter:blur(14px);position:sticky;top:0;z-index:5}h1{display:flex;align-items:center;gap:10px;font-size:20px;margin:0;letter-spacing:-.04em}h1:before{content:"";width:27px;height:27px;border-radius:9px;background:conic-gradient(from 135deg,var(--accent) 0 25%,var(--brand) 0 65%,#97d8c9 0);box-shadow:inset 0 0 0 4px color-mix(in srgb,#fff 60%,transparent)}h1 span{color:var(--brand)}
-.hdr{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.hdr label{display:flex;gap:7px;align-items:center;white-space:nowrap}
-select,button,input{font:inherit;color:var(--ink);background:var(--surface-raised);border:1px solid var(--line);border-radius:10px;padding:9px 12px}select:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid color-mix(in srgb,var(--brand) 25%,transparent);outline-offset:2px}button{cursor:pointer;min-height:40px;transition:transform .16s ease,background .16s ease,border-color .16s ease,box-shadow .16s ease}button:hover:not(:disabled){transform:translateY(-1px);border-color:var(--brand);box-shadow:0 5px 14px rgba(0,80,70,.12)}button.primary{background:var(--brand);color:#fff;border-color:var(--brand);font-weight:750;box-shadow:0 7px 14px rgba(0,107,98,.2)}button.primary:hover:not(:disabled){background:var(--brand-deep)}button:disabled{opacity:.44;cursor:not-allowed;box-shadow:none}
-.tabs{display:flex;gap:4px;max-width:1240px;margin:0 auto;padding:22px clamp(20px,4vw,56px) 0}.tab{border:0;border-radius:11px;padding:10px 16px;color:var(--muted);background:transparent;font-weight:700}.tab.on{background:var(--surface-raised);color:var(--brand);box-shadow:0 0 0 1px var(--line),var(--shadow)}
-main{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(360px,.94fr);gap:20px;padding:20px clamp(20px,4vw,56px) 36px;max-width:1240px;margin:0 auto}@media(max-width:860px){main{grid-template-columns:1fr}.vs{grid-template-columns:1fr!important}.stage{min-height:560px!important}}@media(max-width:560px){header{align-items:flex-start;flex-direction:column;padding:14px 18px}.hdr{width:100%}.hdr select{flex:1}.tabs{padding:14px 18px 0}main{padding:14px 18px 28px}.pane{min-height:390px!important}.stage{min-height:500px!important}.fab{left:14px;right:auto!important}.caption{bottom:100px!important;font-size:19px!important}}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}.video{position:relative;background:linear-gradient(145deg,#213235,#0c1516);border-radius:13px;overflow:hidden;aspect-ratio:4/3;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}.video:after{content:"Camera preview";position:absolute;left:12px;top:10px;padding:4px 8px;border-radius:999px;background:rgba(0,0,0,.45);color:#fff;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
-.pill{display:inline-flex;gap:8px;align-items:center;padding:7px 11px;border-radius:99px;background:var(--surface-raised);border:1px solid var(--line);font-size:13px;font-weight:750;margin-top:14px}.beta{background:var(--warn-soft);color:var(--warn);border-color:color-mix(in srgb,var(--warn) 35%,var(--line))}.dot{width:9px;height:9px;border-radius:50%;background:var(--muted)}.dot.live{background:var(--ok);animation:p 1.2s infinite}.dot.warn{background:var(--warn)}.dot.err{background:var(--err)}@keyframes p{50%{opacity:.3;transform:scale(.74)}}
-.log{display:flex;flex-direction:column;gap:10px;min-height:170px;max-height:340px;overflow:auto;margin-top:12px}.msg{border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:12px;padding:13px 14px;background:var(--surface-raised)}.msg .big{font-size:25px;font-weight:760;line-height:1.2;letter-spacing:-.03em;margin:3px 0}.msg .sub{color:var(--muted);font-size:13px}.ask{border:1px solid color-mix(in srgb,var(--accent) 60%,var(--line));border-radius:14px;padding:15px;margin-top:14px;background:var(--accent-soft);box-shadow:0 8px 22px rgba(195,102,35,.08)}.ask strong{display:block;font-size:16px}.opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.opts button{background:var(--surface-raised);font-weight:700;cursor:pointer;padding:8px 16px;border-radius:8px;border:1px solid var(--line);color:var(--ink);font-size:14px;transition:background .15s,border-color .15s,transform .1s}.opts button:hover{background:color-mix(in srgb,var(--brand) 12%,var(--surface-raised));border-color:var(--brand);color:var(--brand)}.opts button:active{transform:scale(.97)}.note{color:var(--muted);font-size:13px;margin-top:9px}.err{color:var(--err)}
-canvas{width:100%;max-width:420px;background:var(--canvas);border-radius:12px;border:1px solid var(--line)}details{margin:0 clamp(20px,4vw,56px) 24px;max-width:1240px;margin-inline:auto}details pre{white-space:pre-wrap;font-size:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ClarifySign</title>
+  <meta name="theme-color" content="#1d5c63">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <script>try { var t = localStorage.getItem('cs-theme'); if (t) document.documentElement.dataset.theme = t } catch (e) { }</script>
+  <style>
+    :root {
+      --canvas: #f6f7f8;
+      --surface: #fff;
+      --panel: #fff;
+      --sunken: #f0f2f3;
+      --ink: #111a1c;
+      --muted: #5f6c70;
+      --line: #e3e7e9;
+      --line2: #cfd6d9;
+      --brand: #14545b;
+      --brand-deep: #0e3f45;
+      --brand-soft: #e6f0f0;
+      --saf: #d9962f;
+      --saf-ink: #6a4210;
+      --saf-soft: #fbf6ec;
+      --saf-line: #eadbbd;
+      --ok: #17825c;
+      --ok-soft: #e3f4ec;
+      --err: #b83d3a;
+      --err-soft: #fbe8e7;
+      --stg: #e7eeef;
+      --stg-ink: #14282b;
+      --stg-glass: rgba(17, 26, 28, .06);
+      --stg-line: rgba(17, 26, 28, .16);
+      --serif: Newsreader, Georgia, "Times New Roman", serif;
+      --sans: Inter, "Noto Sans", "Noto Sans Devanagari", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --r: 14px;
+      color-scheme: light
+    }
 
-.vs{display:grid;grid-template-columns:minmax(0,.92fr) minmax(420px,1.08fr);gap:0;padding:0;overflow:hidden}.langtabs{display:flex;gap:4px;border-bottom:1px solid var(--line);padding:10px 14px;overflow:auto}.langtabs button{min-height:35px;border:0;border-radius:8px;background:transparent;padding:7px 11px;color:var(--muted);font-size:13px;font-weight:700}.langtabs button.on{color:var(--brand);background:color-mix(in srgb,var(--brand) 10%,transparent)}.pane{position:relative;padding:24px;display:flex;flex-direction:column;min-height:530px}.pane textarea{flex:1;width:100%;border:0;border-radius:0;background:transparent;font-size:clamp(22px,2.4vw,30px);line-height:1.25;resize:none;outline:none;color:var(--ink);padding:0;min-height:265px}.pane textarea::placeholder{color:color-mix(in srgb,var(--muted) 65%,transparent)}.tools{display:flex;gap:9px;align-items:center;padding-top:14px;border-top:1px solid var(--line)}.tools .sp{flex:1}.ic{width:42px;height:42px;border-radius:50%;padding:0;font-size:17px;display:grid;place-items:center}.stage{background:linear-gradient(155deg,#152a29,#0e1b1b);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:530px;overflow:hidden}.stage:before{content:"";position:absolute;width:640px;height:640px;border-radius:50%;background:radial-gradient(circle,rgba(118,220,195,.15),transparent 65%);top:-170px;right:-220px}.stage canvas{position:relative;border:0;background:transparent;width:100%;max-width:520px;height:auto}.caption{position:absolute;left:20px;right:20px;bottom:96px;text-align:center;color:#fff;font-size:23px;font-weight:750;text-shadow:0 2px 10px #000;pointer-events:none}.gloss-strip{position:absolute;left:14px;right:14px;bottom:56px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;z-index:2}.gloss-pill{background:rgba(8,24,23,.84);color:#c7d8d3;border:1px solid rgba(199,216,211,.25);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s}.gloss-pill.active{background:var(--accent);color:#1f2422;border-color:#ffd3b2;box-shadow:0 0 0 3px rgba(216,121,50,.2);transform:scale(1.04)}.gloss-pill.passed{opacity:.52}.gloss-pill.nosign{border-color:#ffb36f;color:#ffcb9c}.gloss-pill.nosign.active{background:#f09b4b;color:#1f2422;border-color:#ffd6ad}.fab{position:absolute;right:14px;bottom:11px;display:flex;gap:8px;align-items:center;z-index:3}.fab button{width:40px;height:40px;border-radius:50%;background:var(--surface-raised);border:0;color:var(--ink);font-size:18px;padding:0}.spd-sel{background:rgba(8,24,23,.78);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:8px;padding:7px;font-size:12px;cursor:pointer}.asr-badge{background:var(--ok-soft);border:1px solid color-mix(in srgb,var(--ok) 35%,var(--line));border-radius:10px;padding:10px 12px;font-size:13px;color:var(--ink);margin-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.asr-badge .conf{background:var(--ok);color:#fff;border-radius:999px;padding:3px 7px;font-weight:800;font-size:11px}.asr-badge .hint{color:var(--muted);font-size:12px}.stage .pill{position:absolute;left:14px;top:8px;z-index:3;background:rgba(8,24,23,.7);color:#e8f4ef;border-color:rgba(255,255,255,.17)}.nosign-note{position:absolute;bottom:33px;font-size:12px;color:#ffce9d;padding:4px 14px;text-align:center;z-index:3}.hud{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:13px 0 0;margin-top:12px;border-top:1px solid var(--line)}.hud-chip{font-size:12px;font-weight:750;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:var(--canvas)}.hud-chip.ok{background:var(--ok-soft);color:var(--ok);border-color:color-mix(in srgb,var(--ok) 35%,var(--line))}.hud-chip.no{background:var(--err-soft);color:var(--err);border-color:color-mix(in srgb,var(--err) 35%,var(--line))}.hud-chip.live{background:color-mix(in srgb,var(--brand) 12%,var(--surface));color:var(--brand);border-color:color-mix(in srgb,var(--brand) 35%,var(--line))}.hud-chip.prov{background:var(--ok-soft);color:var(--ok);border-radius:8px;font-size:11px}.pose-hint{font-size:13px;color:var(--warn);margin-top:9px;display:none}.hide{display:none}
-.hide{display:none}
-</style>
+    .t-sun {
+      display: none
+    }
+
+    @media(prefers-color-scheme:dark) {
+      :root:not([data-theme=light]) {
+        --canvas: #090e10;
+        --surface: #0f1517;
+        --panel: #131b1e;
+        --sunken: #0b1113;
+        --ink: #e8eef0;
+        --muted: #8e9ea3;
+        --line: #1d282c;
+        --line2: #2a383d;
+        --brand: #6cc6c2;
+        --brand-deep: #93d9d5;
+        --brand-soft: #14292b;
+        --saf: #e5a850;
+        --saf-ink: #efc88d;
+        --saf-soft: #1e1a12;
+        --saf-line: #3d3220;
+        --ok: #58d2a2;
+        --ok-soft: #133127;
+        --err: #ff918d;
+        --err-soft: #3a2021;
+        --stg: #0a1c1f;
+        --stg-ink: #e8f4f2;
+        --stg-glass: rgba(255, 255, 255, .08);
+        --stg-line: rgba(255, 255, 255, .18);
+        color-scheme: dark
+      }
+
+      :root:not([data-theme=light]) :is(.x) {}
+
+      html:not([data-theme=light]) .logo {
+        color: #071214 !important
+      }
+
+      html:not([data-theme=light]) :is(#go, button.primary, .tab.on, .tab.on:hover) {
+        color: #071214 !important
+      }
+
+      html:not([data-theme=light]) :is(#go, button.primary):hover:not(:disabled) {
+        color: #071214 !important
+      }
+
+      html:not([data-theme=light]) :is(.card, .tabs) {
+        box-shadow: none
+      }
+
+      html:not([data-theme=light]) .t-moon {
+        display: none
+      }
+
+      html:not([data-theme=light]) .t-sun {
+        display: block
+      }
+    }
+
+    :root[data-theme=dark] {
+      --canvas: #090e10;
+      --surface: #0f1517;
+      --panel: #131b1e;
+      --sunken: #0b1113;
+      --ink: #e8eef0;
+      --muted: #8e9ea3;
+      --line: #1d282c;
+      --line2: #2a383d;
+      --brand: #6cc6c2;
+      --brand-deep: #93d9d5;
+      --brand-soft: #14292b;
+      --saf: #e5a850;
+      --saf-ink: #efc88d;
+      --saf-soft: #1e1a12;
+      --saf-line: #3d3220;
+      --ok: #58d2a2;
+      --ok-soft: #133127;
+      --err: #ff918d;
+      --err-soft: #3a2021;
+      --stg: #0a1c1f;
+      --stg-ink: #e8f4f2;
+      --stg-glass: rgba(255, 255, 255, .08);
+      --stg-line: rgba(255, 255, 255, .18);
+      color-scheme: dark
+    }
+
+    html[data-theme=dark] .logo {
+      color: #071214 !important
+    }
+
+    html[data-theme=dark] :is(#go, button.primary, .tab.on, .tab.on:hover),
+    html[data-theme=dark] :is(#go, button.primary):hover:not(:disabled) {
+      color: #071214 !important
+    }
+
+    html[data-theme=dark] :is(.card, .tabs) {
+      box-shadow: none
+    }
+
+    html[data-theme=dark] .t-moon {
+      display: none
+    }
+
+    html[data-theme=dark] .t-sun {
+      display: block
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--canvas);
+      color: var(--ink);
+      font: 15px/1.55 var(--sans);
+      -webkit-font-smoothing: antialiased
+    }
+
+    .ic-svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex: none
+    }
+
+    .wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 clamp(20px, 3.6vw, 52px)
+    }
+
+    /* header */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 20
+    }
+
+    header .wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding-top: 12px;
+      padding-bottom: 12px
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0
+    }
+
+    .logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      background: var(--brand);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      flex: none
+    }
+
+    .logo .ic-svg {
+      width: 22px;
+      height: 22px
+    }
+
+    h1 {
+      margin: 0;
+      font: 500 24px/1.05 var(--serif);
+      letter-spacing: -.01em
+    }
+
+    .tagline {
+      display: block;
+      margin-top: 4px;
+      font-size: 10.5px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 500
+    }
+
+    .hdr {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap
+    }
+
+    .hdr .sep {
+      width: 1px;
+      height: 24px;
+      background: var(--line);
+      margin: 0 12px
+    }
+
+    #theme {
+      width: 38px;
+      height: 38px;
+      min-height: 0;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      margin-left: 10px;
+      color: var(--muted)
+    }
+
+    .langbox {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted)
+    }
+
+    select,
+    button,
+    input,
+    textarea {
+      font: inherit;
+      color: var(--ink)
+    }
+
+    select {
+      min-width: 150px;
+      appearance: none;
+      -webkit-appearance: none;
+      background: var(--panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%235b6f73' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m2 4 4 4 4-4'/%3E%3C/svg%3E") right 12px center no-repeat;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 9px 34px 9px 14px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 14.5px
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 500;
+      font-size: 14.5px;
+      white-space: nowrap
+    }
+
+    .toggle .ic-svg {
+      color: var(--muted)
+    }
+
+    .toggle input {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 46px;
+      height: 26px;
+      border-radius: 99px;
+      background: var(--line2);
+      position: relative;
+      cursor: pointer;
+      margin: 0 0 0 4px;
+      border: 0;
+      padding: 0;
+      transition: background .2s;
+      flex: none
+    }
+
+    .toggle input:after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+      transition: transform .2s
+    }
+
+    .toggle input:checked {
+      background: var(--brand)
+    }
+
+    .toggle input:checked:after {
+      transform: translateX(20px)
+    }
+
+    select:focus-visible,
+    button:focus-visible,
+    textarea:focus-visible,
+    .toggle input:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--brand) 35%, transparent);
+      outline-offset: 2px
+    }
+
+    /* hero */
+    .hero {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 32px;
+      flex-wrap: wrap;
+      padding-top: 56px;
+      padding-bottom: 40px;
+      background: linear-gradient(var(--line), var(--line)) center bottom/calc(100% - 2*clamp(20px, 3.6vw, 52px)) 1px no-repeat
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--brand)
+    }
+
+    .eyebrow:before {
+      content: "";
+      width: 22px;
+      height: 1px;
+      background: var(--brand)
+    }
+
+    .hero h2 {
+      margin: 18px 0 0;
+      font: 400 clamp(36px, 4.6vw, 58px)/1.06 var(--serif);
+      letter-spacing: -.02em
+    }
+
+    .hero p {
+      margin: 18px 0 0;
+      max-width: 560px;
+      font-size: 17px;
+      line-height: 1.6;
+      color: var(--muted)
+    }
+
+    .tabs {
+      display: inline-flex;
+      gap: 4px;
+      padding: 4px;
+      background: var(--sunken);
+      border: 1px solid var(--line);
+      border-radius: 12px
+    }
+
+    .tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      border: 0;
+      border-radius: 9px;
+      padding: 10px 18px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 14.5px;
+      cursor: pointer;
+      transition: background .15s
+    }
+
+    .tab:hover:not(.on) {
+      color: var(--ink)
+    }
+
+    .tab.on,
+    .tab.on:hover {
+      background: var(--brand);
+      color: #fff !important;
+      font-weight: 600
+    }
+
+    .tab .ic-svg {
+      width: 17px;
+      height: 17px
+    }
+
+    /* panels */
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px clamp(20px, 3.6vw, 52px) 56px;
+      align-items: stretch
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(17, 26, 28, .04), 0 12px 32px -18px rgba(17, 26, 28, .14)
+    }
+
+    .card {
+      display: flex;
+      flex-direction: column
+    }
+
+    .card-body {
+      flex: 1
+    }
+
+    .conv .card-body {
+      display: flex;
+      flex-direction: column;
+      min-height: 0
+    }
+
+    .conv .log {
+      flex: 1;
+      max-height: 680px;
+      min-height: 360px
+    }
+
+    .vs {
+      flex: 1
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .tile {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--brand-soft);
+      border: 1px solid var(--line);
+      color: var(--brand);
+      display: grid;
+      place-items: center;
+      flex: none
+    }
+
+    .tile.warm {
+      background: var(--saf-soft);
+      color: var(--saf-ink)
+    }
+
+    .card-head h3 {
+      margin: 0;
+      font: 500 22px/1.15 var(--serif)
+    }
+
+    .card-head small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 13.5px
+    }
+
+    .card-head .grow {
+      flex: 1;
+      min-width: 0
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 99px;
+      background: var(--saf-soft);
+      border: 1px solid var(--saf-line);
+      color: var(--saf-ink);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase
+    }
+
+    .card-body {
+      padding: 24px
+    }
+
+    /* camera */
+    .video {
+      position: relative;
+      aspect-ratio: 4/3;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(var(--line) 1px, transparent 1px) 0 0/32px 32px, linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0/32px 32px, var(--sunken)
+    }
+
+    .cam-empty {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      gap: 6px
+    }
+
+    .cam-empty .circ {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+      color: var(--brand);
+      margin-bottom: 10px
+    }
+
+    .cam-empty .circ .ic-svg {
+      width: 30px;
+      height: 30px
+    }
+
+    .cam-empty b {
+      font: 500 26px/1.1 var(--serif)
+    }
+
+    .cam-empty span {
+      color: var(--muted);
+      font-size: 15px
+    }
+
+    video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+      display: block;
+      z-index: 1
+    }
+
+    .video:before,
+    .video:after {
+      content: "";
+      position: absolute;
+      width: 34px;
+      height: 34px;
+      z-index: 2;
+      pointer-events: none;
+      border: 0 solid var(--ink)
+    }
+
+    .video:before {
+      top: 20px;
+      left: 20px;
+      border-top-width: 1.5px;
+      border-left-width: 1.5px
+    }
+
+    .video:after {
+      bottom: 20px;
+      right: 20px;
+      border-bottom-width: 1.5px;
+      border-right-width: 1.5px
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 14px;
+      border-radius: 99px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      font-size: 13.5px;
+      font-weight: 500
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--saf);
+      flex: none
+    }
+
+    .dot.live {
+      background: var(--ok);
+      animation: p 1.6s infinite
+    }
+
+    .dot.warn {
+      background: var(--saf)
+    }
+
+    .dot.err {
+      background: var(--err)
+    }
+
+    @keyframes p {
+      0% {
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 45%, transparent)
+      }
+
+      70%,
+      100% {
+        box-shadow: 0 0 0 7px transparent
+      }
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 20px
+    }
+
+    button {
+      cursor: pointer;
+      min-height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--line2);
+      background: var(--panel);
+      padding: 8px 18px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: background .15s, border-color .15s, transform .1s
+    }
+
+    button:hover:not(:disabled) {
+      border-color: var(--brand);
+      color: var(--brand-deep)
+    }
+
+    button:active:not(:disabled) {
+      transform: scale(.98)
+    }
+
+    button:disabled {
+      opacity: .45;
+      cursor: not-allowed
+    }
+
+    #go,
+    button.primary {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #fff
+    }
+
+    #go:hover:not(:disabled),
+    button.primary:hover:not(:disabled) {
+      background: var(--brand-deep);
+      border-color: var(--brand-deep);
+      color: #fff
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 13.5px;
+      margin-top: 10px
+    }
+
+    .note:empty {
+      display: none
+    }
+
+    .err {
+      color: var(--err)
+    }
+
+    .hud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 18px
+    }
+
+    .hud-chip {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 11px;
+      border-radius: 7px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-variant-numeric: tabular-nums
+    }
+
+    .hud-chip.ok {
+      background: var(--ok-soft);
+      color: var(--ok);
+      border-color: transparent
+    }
+
+    .hud-chip.no {
+      background: var(--err-soft);
+      color: var(--err);
+      border-color: transparent
+    }
+
+    .hud-chip.live {
+      background: var(--brand-soft);
+      color: var(--brand);
+      border-color: transparent
+    }
+
+    .hud-chip.prov {
+      background: var(--ok-soft);
+      color: var(--ok)
+    }
+
+    .pose-hint {
+      font-size: 14.5px;
+      color: var(--saf-ink);
+      margin-top: 12px;
+      display: none
+    }
+
+    .card-foot {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 24px;
+      border-top: 1px solid var(--line);
+      background: var(--sunken);
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    /* conversation */
+    .log {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-height: 360px;
+      max-height: 520px;
+      overflow: auto;
+      padding: 4px 2px 4px 0
+    }
+
+    .log>.note {
+      margin: auto;
+      text-align: center;
+      max-width: 320px;
+      font-size: 15px;
+      padding: 30px 0;
+      display: block
+    }
+
+    .log>.note:before {
+      content: "";
+      display: block;
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 18px;
+      border-radius: 50%;
+      background: var(--brand-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d5c63' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-6-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15'/%3E%3C/svg%3E") center/30px no-repeat
+    }
+
+    .msg {
+      position: relative;
+      margin-left: 52px;
+      max-width: 80%;
+      padding: 14px 18px;
+      background: var(--sunken);
+      border: 1px solid var(--line);
+      border-radius: 4px 14px 14px 14px;
+      animation: in .25s ease
+    }
+
+    .msg:before {
+      content: "";
+      position: absolute;
+      left: -52px;
+      bottom: 2px;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--brand-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d5c63' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-6-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15'/%3E%3C/svg%3E") center/19px no-repeat;
+      border: 1px solid var(--line2)
+    }
+
+    @keyframes in {
+      from {
+        opacity: 0;
+        transform: translateY(6px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    .msg .sub {
+      color: var(--muted);
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: .02em
+    }
+
+    .msg .big {
+      font: 500 25px/1.3 var(--sans);
+      letter-spacing: -.01em;
+      margin: 6px 0 8px
+    }
+
+    .msg .big+.sub {
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+      font-weight: 400;
+      font-size: 14.5px
+    }
+
+    .ask {
+      margin-top: 20px;
+      padding: 18px 20px;
+      border-radius: 12px;
+      background: var(--saf-soft);
+      border: 1px solid var(--saf-line)
+    }
+
+    .ask strong {
+      display: block;
+      font: 500 23px/1.25 var(--serif)
+    }
+
+    .opts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px
+    }
+
+    .opts button {
+      background: var(--panel);
+      border: 1px solid var(--line2);
+      border-radius: 9px;
+      font-size: 15px;
+      padding: 9px 18px
+    }
+
+    .opts button:hover {
+      background: var(--brand-soft);
+      border-color: var(--brand)
+    }
+
+    #voicenote {
+      margin-top: 16px
+    }
+
+    canvas {
+      max-width: 100%
+    }
+
+    #scope.scope-init {
+      display: none
+    }
+
+    .hide {
+      display: none !important
+    }
+
+    /* voice -> sign */
+    .vs {
+      display: grid;
+      grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr)
+    }
+
+    .vs>div:first-child {
+      border-right: 1px solid var(--line)
+    }
+
+    .langtabs {
+      display: flex;
+      gap: 6px;
+      padding: 14px 20px;
+      overflow: auto;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .langtabs button {
+      min-height: 38px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+      padding: 7px 14px;
+      font-size: 15px;
+      white-space: nowrap
+    }
+
+    .langtabs button:hover:not(:disabled) {
+      background: var(--sunken);
+      color: var(--ink)
+    }
+
+    .langtabs button.on {
+      background: var(--brand-soft);
+      color: var(--brand)
+    }
+
+    .pane {
+      display: flex;
+      flex-direction: column;
+      min-height: 520px;
+      padding: 26px
+    }
+
+    .pane textarea {
+      flex: 1;
+      width: 100%;
+      min-height: 240px;
+      border: 0;
+      outline: 0;
+      resize: none;
+      background: transparent;
+      padding: 0;
+      font: 400 clamp(24px, 2.3vw, 32px)/1.3 var(--serif)
+    }
+
+    .pane textarea::placeholder {
+      color: var(--line2)
+    }
+
+    .tools {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      margin-top: 12px
+    }
+
+    .tools .sp {
+      flex: 1
+    }
+
+    .ic {
+      width: 46px;
+      height: 46px;
+      padding: 0;
+      border-radius: 50%;
+      font-size: 18px;
+      display: grid;
+      place-items: center
+    }
+
+    .ic[aria-pressed="true"] {
+      background: var(--err);
+      border-color: var(--err);
+      color: #fff
+    }
+
+    .asr-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+      padding: 11px 14px;
+      font-size: 14px;
+      background: var(--ok-soft);
+      border-radius: 12px
+    }
+
+    .asr-badge .conf {
+      background: var(--ok);
+      color: #fff;
+      border-radius: 99px;
+      padding: 2px 9px;
+      font-weight: 700;
+      font-size: 12px
+    }
+
+    .asr-badge .hint {
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .stage {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 520px;
+      overflow: hidden;
+      background: var(--stg)
+    }
+
+    .stage canvas {
+      position: relative;
+      width: 100%;
+      max-width: 520px;
+      height: auto;
+      border: 0;
+      background: transparent
+    }
+
+    .stage .pill {
+      position: absolute;
+      left: 18px;
+      top: 18px;
+      z-index: 3;
+      background: var(--stg-glass);
+      border-color: var(--stg-line);
+      color: var(--stg-ink)
+    }
+
+    .caption {
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      bottom: 104px;
+      text-align: center;
+      color: var(--stg-ink);
+      font: 400 24px/1.2 var(--serif);
+      text-shadow: 0 1px 12px var(--stg);
+      pointer-events: none
+    }
+
+    .gloss-strip {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 60px;
+      z-index: 2;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center
+    }
+
+    .gloss-pill {
+      padding: 5px 12px;
+      border-radius: 99px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      background: var(--stg-glass);
+      color: var(--stg-ink);
+      border: 1px solid var(--stg-line)
+    }
+
+    .gloss-pill:hover {
+      border-color: var(--stg-ink)
+    }
+
+    .gloss-pill.active {
+      color: #2a1a05;
+      border-color: transparent;
+      background: linear-gradient(90deg, var(--saf) var(--progress, 100%), #f4e6d1 var(--progress, 100%))
+    }
+
+    .gloss-pill.passed {
+      opacity: .5
+    }
+
+    .gloss-pill.nosign {
+      border-color: var(--saf);
+      color: var(--saf-ink)
+    }
+
+    .gloss-pill.nosign.active {
+      background: var(--saf);
+      color: #2a1a05
+    }
+
+    .nosign-note {
+      position: absolute;
+      bottom: 34px;
+      z-index: 3;
+      padding: 4px 14px;
+      font-size: 12px;
+      text-align: center;
+      color: var(--saf-ink)
+    }
+
+    .fab {
+      position: absolute;
+      right: 16px;
+      bottom: 12px;
+      z-index: 3;
+      display: flex;
+      gap: 8px;
+      align-items: center
+    }
+
+    .fab button {
+      width: 40px;
+      height: 40px;
+      min-height: 0;
+      padding: 0;
+      border: 1px solid var(--stg-line);
+      border-radius: 50%;
+      background: var(--stg-glass);
+      color: var(--stg-ink);
+      font-size: 16px
+    }
+
+    .fab button:hover:not(:disabled) {
+      background: var(--stg-ink);
+      color: var(--stg)
+    }
+
+    .spd-sel {
+      background-color: var(--stg-glass);
+      color: var(--stg-ink);
+      border: 1px solid var(--stg-line);
+      border-radius: 99px;
+      padding: 9px 30px 9px 14px;
+      font-size: 13px;
+      background-image: none
+    }
+
+    .spd-sel option {
+      color: #14282b
+    }
+
+    details {
+      max-width: 1400px;
+      margin: 0 auto 40px;
+      padding: 0 clamp(20px, 3.6vw, 52px)
+    }
+
+    details summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--muted);
+      font-size: 14px
+    }
+
+    details pre {
+      white-space: pre-wrap;
+      font-size: 12px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px
+    }
+
+    @media(max-width:1000px) {
+      main {
+        grid-template-columns: 1fr
+      }
+
+      .vs {
+        grid-template-columns: 1fr
+      }
+
+      .vs>div:first-child {
+        border-right: 0;
+        border-bottom: 1px solid var(--line)
+      }
+
+      .stage {
+        min-height: 560px
+      }
+    }
+
+    @media(max-width:720px) {
+      header .wrap {
+        flex-direction: column;
+        align-items: flex-start
+      }
+
+      .hdr .sep {
+        display: none
+      }
+
+      .hdr {
+        gap: 14px
+      }
+
+      .tagline {
+        font-size: 11px
+      }
+
+      .hero p {
+        font-size: 17px
+      }
+
+      .tab {
+        padding: 11px 16px;
+        font-size: 16px
+      }
+
+      .card-head {
+        flex-wrap: wrap
+      }
+
+      .msg {
+        max-width: 90%
+      }
+
+      .msg .big {
+        font-size: 25px
+      }
+
+      .caption {
+        font-size: 21px
+      }
+    }
+
+    @media(prefers-reduced-motion:reduce) {
+      * {
+        animation: none !important;
+        transition: none !important
+      }
+    }
+  </style>
 </head>
+
 <body>
-<header>
-  <h1>Clarify<span>Sign</span></h1>
-  <div class="hdr">
-    <select id="lang" aria-label="Language"></select>
-    <label class="note" style="margin:0"><input type="checkbox" id="auto" checked> Speak aloud</label>
-    <label class="note" style="margin:0"><input type="checkbox" id="rs"> Research</label>
-  </div>
-</header>
-<div class="tabs"><button class="tab on" id="t1">Sign → Voice</button><button class="tab" id="t2">Voice → Sign</button></div>
-
-<main id="m1">
-  <section class="card">
-    <div class="video"><video id="cam" autoplay playsinline muted></video></div>
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <span class="pill"><span class="dot" id="dot"></span><span id="status">Ready</span></span>
-      <button id="go" style="margin-top:12px">Try experimental camera</button>
-      <span class="pill beta">Experimental recognition</span>
-      <button id="reset" style="margin-top:12px" disabled>Reset</button>
-    </div>
-    <div class="note" id="banner" role="status" aria-live="polite"></div>
-    <!-- Always-visible HUD driven by diag events -->
-    <div class="hud" id="hud">
-      <span class="hud-chip" id="hud-pose">Pose –</span>
-      <span class="hud-chip" id="hud-lh">LH –</span>
-      <span class="hud-chip" id="hud-rh">RH –</span>
-      <span class="hud-chip live" id="hud-state">watching</span>
-      <span class="hud-chip" id="hud-fps">– fps</span>
-      <span class="hud-chip" id="hud-wrist">wrist –</span>
-      <span class="hud-chip" id="hud-prov" style="display:none"></span>
-    </div>
-    <div class="pose-hint" id="pose-hint">Sit back so your head, shoulders and both hands are in view, with good light.</div>
-  </section>
-  <section class="card">
-    <strong>Conversation</strong>
-    <div class="log" id="log" aria-live="polite"><div class="note">Sign in front of the camera. Raise your hands, sign, then lower them.</div></div>
-    <div id="askbox" aria-live="assertive"></div>
-    <div class="note" id="voicenote"></div>
-  </section>
-</main>
-
-<main id="m2" class="hide" style="grid-template-columns:1fr">
-  <section class="card vs">
-    <div>
-      <div class="langtabs" id="ltabs"></div>
-      <div class="pane">
-        <textarea id="txt" maxlength="200" placeholder="Type or speak a phrase"></textarea>
-        <div class="note" id="matched"></div>
-        <div class="tools">
-          <button class="ic" id="mic" title="Speak" aria-label="Speak" aria-pressed="false">🎤</button>
-          <button class="ic" id="say" title="Hear it in the selected language">🔊</button>
-          <span class="sp"></span><span class="note" id="cnt">0 / 200</span>
-          <button class="primary" id="send">Show sign</button>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-hand" viewBox="0 0 24 24">
+        <path
+          d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-6-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
+      </symbol>
+      <symbol id="i-cam" viewBox="0 0 24 24">
+        <circle cx="12" cy="10" r="8" />
+        <circle cx="12" cy="10" r="3" />
+        <path d="M7 22h10M12 22v-4" />
+      </symbol>
+      <symbol id="i-lang" viewBox="0 0 24 24">
+        <path d="m5 8 6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6" />
+      </symbol>
+      <symbol id="i-vol" viewBox="0 0 24 24">
+        <path d="M11 5 6 9H2v6h4l5 4V5zM15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14" />
+      </symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24">
+        <path
+          d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+      </symbol>
+      <symbol id="i-swap" viewBox="0 0 24 24">
+        <path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4" />
+      </symbol>
+      <symbol id="i-spark" viewBox="0 0 24 24">
+        <path d="M12 3l1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2z" />
+      </symbol>
+      <symbol id="i-help" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01" />
+      </symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24">
+        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z" />
+      </symbol>
+      <symbol id="i-sun" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+      </symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24">
+        <path d="M5 12h14M12 5l7 7-7 7" />
+      </symbol>
+    </defs>
+  </svg>
+  <header>
+    <div class="wrap">
+      <div class="brand">
+        <div class="logo"><svg class="ic-svg" aria-hidden="true">
+            <use href="#i-hand" />
+          </svg></div>
+        <div>
+          <h1>ClarifySign</h1><span class="tagline">Conversation, made clear</span>
         </div>
-        <div class="asr-badge" id="asr-badge" style="display:none"></div>
-        <div class="note" id="scope"></div>
+      </div>
+      <div class="hdr">
+        <div class="langbox"><svg class="ic-svg" aria-hidden="true">
+            <use href="#i-lang" />
+          </svg><select id="lang" aria-label="Language"></select></div>
+        <span class="sep"></span>
+        <label class="toggle"><svg class="ic-svg" aria-hidden="true">
+            <use href="#i-vol" />
+          </svg> Speak aloud <input type="checkbox" id="auto" checked></label>
+        <span class="sep"></span>
+        <span hidden><input type="checkbox" id="rs"></span>
+        <button id="theme" aria-label="Toggle light or dark theme" title="Light / dark"><svg class="ic-svg t-moon"
+            aria-hidden="true">
+            <use href="#i-moon" />
+          </svg><svg class="ic-svg t-sun" aria-hidden="true">
+            <use href="#i-sun" />
+          </svg></button>
       </div>
     </div>
-    <div class="stage">
-      <span class="pill"><span class="dot" id="dot2"></span><span id="status2">Ready</span></span>
-      <canvas id="cv" width="520" height="620"></canvas>
-      <div class="caption" id="caption"></div>
-      <div class="gloss-strip" id="gloss-strip"></div>
-      <div class="nosign-note" id="nosign-note" style="display:none"></div>
-      <div class="fab">
-        <select class="spd-sel" id="spd" title="Animation speed">
-          <option value="0.5">0.5×</option>
-          <option value="0.75">0.75×</option>
-          <option value="1.0" selected>1.0×</option>
-          <option value="1.25">1.25×</option>
-          <option value="1.5">1.5×</option>
-          <option value="2.0">2.0×</option>
-        </select>
-        <button id="pause" title="Pause / Resume" disabled>⏸</button>
-        <button id="replay" title="Replay" disabled>↻</button>
-        <button id="dl" title="Download video" disabled>⬇</button>
-        <button id="link" title="Copy link" disabled>🔗</button>
-      </div>
+  </header>
+  <div class="wrap hero">
+    <div>
+      <div class="eyebrow">Conversation space</div>
+      <h2>A little easier to understand.</h2>
+      <p>A shared place for a customer and shopkeeper to take their time, and communicate clearly.</p>
     </div>
-  </section>
-</main>
+    <div class="tabs" role="tablist"><button class="tab on" id="t1" role="tab"><svg class="ic-svg" aria-hidden="true">
+          <use href="#i-hand" />
+        </svg> Sign → Voice</button><button class="tab" id="t2" role="tab"><svg class="ic-svg" aria-hidden="true">
+          <use href="#i-vol" />
+        </svg> Voice → Sign</button></div>
+  </div>
 
-<details id="rsbox" class="hide"><summary>Research / diagnostics</summary><pre id="rsout">–</pre></details>
+  <main id="m1">
+    <section class="card">
+      <div class="card-head">
+        <div class="tile"><svg class="ic-svg" aria-hidden="true">
+            <use href="#i-cam" />
+          </svg></div>
+        <div class="grow">
+          <h3>Sign input</h3><small>Camera area</small>
+        </div><span class="badge"><svg class="ic-svg" aria-hidden="true">
+            <use href="#i-spark" />
+          </svg> Experimental</span>
+      </div>
+      <div class="card-body">
+        <div class="video">
+          <div class="cam-empty">
+            <div class="circ"><svg class="ic-svg" aria-hidden="true">
+                <use href="#i-cam" />
+              </svg></div><b>Camera preview</b><span>Press “Try experimental camera” to begin.</span>
+          </div><video id="cam" autoplay playsinline muted></video>
+        </div>
+        <div class="actions">
+          <span class="pill"><span class="dot" id="dot"></span><span id="status">Ready</span></span>
+          <button id="go">Try experimental camera</button>
+          <button id="reset" disabled>Reset</button>
+        </div>
+        <div class="note" id="banner" role="status" aria-live="polite"></div>
+        <div class="hud" id="hud">
+          <span class="hud-chip" id="hud-pose">Pose –</span><span class="hud-chip" id="hud-lh">LH –</span><span
+            class="hud-chip" id="hud-rh">RH –</span>
+          <span class="hud-chip live" id="hud-state">watching</span><span class="hud-chip" id="hud-fps">–
+            fps</span><span class="hud-chip" id="hud-wrist">wrist –</span>
+          <span class="hud-chip" id="hud-prov" style="display:none"></span>
+        </div>
+        <div class="pose-hint" id="pose-hint">Sit back so your head, shoulders and both hands are in view, with good
+          light.</div>
+      </div>
+      <div class="card-foot"><svg class="ic-svg" aria-hidden="true">
+          <use href="#i-help" />
+        </svg> Camera recognition is experimental and can be wrong. Check results before relying on them.</div>
+    </section>
+    <section class="card conv">
+      <div class="card-head">
+        <div class="tile warm"><svg class="ic-svg" aria-hidden="true">
+            <use href="#i-swap" />
+          </svg></div>
+        <div class="grow">
+          <h3>Conversation</h3><small>Customer &amp; shopkeeper</small>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="log" id="log" aria-live="polite">
+          <div class="note">Sign in front of the camera. Raise your hands, sign, then lower them.</div>
+        </div>
+        <div id="askbox" aria-live="assertive"></div>
+        <div class="note" id="voicenote"></div>
+      </div>
+    </section>
+  </main>
 
-<script src="/static/renderer.js"></script>
-<script src="/static/speech.js"></script>
-<script>
-const $=id=>document.getElementById(id);
-const STATUS={idle:"Ready",listening:"Watching for a sign",signing:"Recognizing…",interpreting:"Working out the meaning…",clarifying:"I need to check something",resolved:"Got it",speaking:"Speaking…",voice:"Listening to you…",generating:"Preparing the sign…",error:"Something went wrong"};
-let CFG=null,ws=null,stream=null,timer=null,watchdogTimer=null,inflight=false,lang=localStorage.getItem("lang")||"en";
-let animationReady=false;
-let _poseOkSince=null,_poseHintTimer=null,_warnShown=false;
-const SID=(()=>{let s=sessionStorage.getItem("sid");if(!s){s=crypto.randomUUID();sessionStorage.setItem("sid",s);}return s;})();
+  <main id="m2" class="hide" style="grid-template-columns:1fr">
+    <section class="card">
+      <div class="card-head">
+        <div class="tile"><svg class="ic-svg" aria-hidden="true">
+            <use href="#i-vol" />
+          </svg></div>
+        <div class="grow">
+          <h3>Voice to sign</h3><small>Type or speak a phrase and watch it signed</small>
+        </div>
+      </div>
+      <div class="vs">
+        <div>
+          <div class="langtabs" id="ltabs"></div>
+          <div class="pane">
+            <textarea id="txt" maxlength="200" placeholder="Type or speak a phrase"></textarea>
+            <div class="note" id="matched"></div>
+            <div class="tools">
+              <button class="ic" id="mic" title="Speak" aria-label="Speak" aria-pressed="false">🎤</button>
+              <button class="ic" id="say" title="Hear it in the selected language">🔊</button>
+              <span class="sp"></span><span class="note" id="cnt" style="margin:0">0 / 200</span>
+              <button class="primary" id="send">Show sign</button>
+            </div>
+            <div class="asr-badge" id="asr-badge" style="display:none"></div>
+            <div class="note scope-init" id="scope"></div>
+          </div>
+        </div>
+        <div class="stage">
+          <span class="pill"><span class="dot" id="dot2"></span><span id="status2">Ready</span></span>
+          <canvas id="cv" width="520" height="620"></canvas>
+          <div class="caption" id="caption"></div>
+          <div class="gloss-strip" id="gloss-strip"></div>
+          <div class="nosign-note" id="nosign-note" style="display:none"></div>
+          <div class="fab">
+            <select class="spd-sel" id="spd" title="Animation speed">
+              <option value="0.5">0.5×</option>
+              <option value="0.75">0.75×</option>
+              <option value="1.0" selected>1.0×</option>
+              <option value="1.25">1.25×</option>
+              <option value="1.5">1.5×</option>
+              <option value="2.0">2.0×</option>
+            </select>
+            <button id="pause" title="Pause / Resume" disabled>⏸</button><button id="replay" title="Replay"
+              disabled>↻</button><button id="dl" title="Download video" disabled>⬇</button><button id="link"
+              title="Copy link" disabled>🔗</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
 
-function setStatus(k,tone){const t=STATUS[k]||k;$("status").textContent=t;$("status2").textContent=t;
-  for(const d of [$("dot"),$("dot2")]){d.className="dot "+(tone||(["listening","signing"].includes(k)?"live":k==="error"?"err":k==="clarifying"?"warn":""));}}
-function say(el,text,cls){el.textContent=text;el.className=cls||"note"}
+  <details id="rsbox" class="hide">
+    <summary>Research / diagnostics</summary>
+    <pre id="rsout">–</pre>
+  </details>
 
-// ---------- config ----------
-fetch("/api/config").then(r=>r.json()).then(c=>{CFG=c;
-  const s=$("lang");c.languages.forEach(l=>{const o=document.createElement("option");o.value=l.code;o.textContent=l.name;s.appendChild(o)});
-  s.value=c.languages.some(l=>l.code===lang)?lang:(c.languages[0]?.code||"en");lang=s.value;
-  if(!c.recognition_ready){
-    $("go").disabled=true;
-    say($("banner"),c.reason,"note err");
-  }
-  const r=c.recognition||{};
-  $("scope").textContent=`This research prototype has ${r.class_count||0} recorded isolated signs. It does not translate arbitrary sentences.`;
-  const audit=r.demo_audit;
-  if(audit && !audit.passing){
-    $("scope").textContent+=` Model quality gate not met (${Math.round((audit.top1||0)*100)}% agreement with its recorded demonstrations); use camera results as experimental only.`;
-  }
-  if(!c.signs_available)$("scope").textContent+=" Sign animations are not installed yet.";
-  loadSigns();checkVoice();initFromUrl();});
-$("lang").onchange=()=>{lang=$("lang").value;localStorage.setItem("lang",lang);checkVoice();if(ws&&ws.readyState===1)ws.send(JSON.stringify({type:"config",lang}))};
-$("rs").onchange=()=>$("rsbox").classList.toggle("hide",!$("rs").checked);
-$("t1").onclick=()=>tab(1);$("t2").onclick=()=>tab(2);
-function tab(n){$("m1").classList.toggle("hide",n!==1);$("m2").classList.toggle("hide",n!==2);$("t1").classList.toggle("on",n===1);$("t2").classList.toggle("on",n===2)}
+  <script src="/static/renderer.js"></script>
+  <script src="/static/speech.js"></script>
+  <script>
+    const $ = id => document.getElementById(id);
+    const STATUS = { idle: "Ready", listening: "Watching for a sign", signing: "Recognizing…", interpreting: "Working out the meaning…", clarifying: "I need to check something", resolved: "Got it", speaking: "Speaking…", voice: "Listening to you…", generating: "Preparing the sign…", error: "Something went wrong" };
+    let CFG = null, ws = null, stream = null, timer = null, watchdogTimer = null, inflight = false, lang = localStorage.getItem("lang") || "en";
+    let animationReady = false;
+    let _poseOkSince = null, _poseHintTimer = null, _warnShown = false;
+    const SID = (() => { let s = sessionStorage.getItem("sid"); if (!s) { s = crypto.randomUUID(); sessionStorage.setItem("sid", s); } return s; })();
 
-// Speech provider instances (browser-native Web Speech API only)
-const asrProvider = new window.WebSpeechASRProvider();
-const ttsProvider = new window.WebSpeechTTSProvider();
-let lastAsrText = "", lastAsrConfidence = 1.0;
-
-function checkVoice(){
-  if(!CFG)return;
-  const l=CFG.languages.find(x=>x.code===lang);
-  const vs = ttsProvider.getVoices(l ? l.tag : navigator.language);
-  $("voicenote").textContent=vs.length?"":`No native ${l ? l.name : lang} voice on this device. Fallback synthesis will be used.`;
-}
-if("speechSynthesis" in window) speechSynthesis.onvoiceschanged=checkVoice;
-
-function speak(text,tag){
-  setStatus("speaking","live");
-  return ttsProvider.speak(text, {
-    lang: tag || (CFG?.languages.find(x=>x.code===lang)?.tag || navigator.language),
-    cancelPrevious: true,
-    onEnd: ()=>{ setStatus("idle"); },
-    onError: ()=>{ setStatus("idle"); }
-  });
-}
-
-// ---------- Sign -> Voice ----------
-function addMsg(html){const d=document.createElement("div");d.className="msg";d.innerHTML=html;const L=$("log");
-  if(L.querySelector(".note"))L.innerHTML="";L.appendChild(d);L.scrollTop=L.scrollHeight;return d}
-function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
-function setLiveInference(text){
-  const L=$("log");let d=$("live-inference");
-  if(!d){if(L.querySelector(".note"))L.innerHTML="";d=document.createElement("div");d.id="live-inference";d.className="note";L.appendChild(d)}
-  d.textContent=text;L.scrollTop=L.scrollHeight;
-}
-function clearLiveInference(){const d=$("live-inference");if(d)d.remove()}
-
-async function start(){
-  if(CFG&&!CFG.recognition_ready){setStatus("error");return}
-  inflight=false;
-  if(watchdogTimer){clearTimeout(watchdogTimer);watchdogTimer=null;}
-  try{stream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720}},audio:false})}
-  catch(e){setStatus("error");say($("banner"),"Camera permission was denied.","note err");return}
-  const v=$("cam");
-  v.srcObject=stream;
-  try{await v.play()}catch(e){}
-  say($("banner"),"","note");
-  ws=new WebSocket((location.protocol==="https:"?"wss://":"ws://")+location.host+"/ws/sign?sid="+encodeURIComponent(SID));
-  ws.binaryType="arraybuffer";
-  ws.onopen=()=>{
-    ws.send(JSON.stringify({type:"config",lang}));
-    $("go").textContent="Stop camera";
-    $("reset").disabled=false;
-    setLiveInference("Camera connected. Waiting for a complete sign…");
-    const v=$("cam");
-    if(v.videoWidth){
-      pump();
-    } else {
-      v.addEventListener("loadedmetadata", ()=>pump(), {once:true});
+    function setStatus(k, tone) {
+      const t = STATUS[k] || k; $("status").textContent = t; $("status2").textContent = t;
+      for (const d of [$("dot"), $("dot2")]) { d.className = "dot " + (tone || (["listening", "signing"].includes(k) ? "live" : k === "error" ? "err" : k === "clarifying" ? "warn" : "")); }
     }
-  };
-  ws.onmessage=ev=>{try{onEvent(JSON.parse(ev.data))}catch(error){console.error("WebSocket event handling failed",error);say($("banner"),"A server event could not be displayed. Please try again.","note err")}};
-  ws.onerror=()=>{setStatus("error");say($("banner"),"WebSocket connection error.","note err")};
-  ws.onclose=ev=>{
-    const wasActive=!!stream;
-    stop(false,false);
-    if(wasActive){
-      setStatus("error");
-      say($("banner"),`Camera session ended (code ${ev.code}${ev.reason?`: ${ev.reason}`:""}). Try the experimental camera again.`,"note err");
-    }
-  };
-}
-function stop(closeWs=true,userInitiated=true){
-  clearTimeout(timer);
-  if(watchdogTimer){clearTimeout(watchdogTimer);watchdogTimer=null;}
-  inflight=false;
-  if(closeWs&&ws){ws.onclose=null;ws.close()}
-  ws=null;
-  if(stream)stream.getTracks().forEach(t=>t.stop());
-  stream=null;$("cam").srcObject=null;
-  $("go").textContent="Try experimental camera";$("reset").disabled=true;$("askbox").innerHTML="";clearLiveInference();
-  if(userInitiated){setStatus("idle");say($("banner"),"","note")}
-}
-$("go").onclick=()=>stream?stop(true,true):start();
-$("reset").onclick=()=>{$("askbox").innerHTML="";if(ws)ws.send(JSON.stringify({type:"reset"}))};
+    function say(el, text, cls) { el.textContent = text; el.className = cls || "note" }
 
-const cap=document.createElement("canvas");
-function pump(){ // one frame in flight at a time; the camera frame is sent UNMIRRORED
-  if(!ws||ws.readyState!==1)return;
-  const v=$("cam");
-  if(!inflight&&v.videoWidth){
-    cap.width=480;cap.height=Math.round(480*v.videoHeight/v.videoWidth);
-    cap.getContext("2d").drawImage(v,0,0,cap.width,cap.height);
-    inflight=true;
-    if(watchdogTimer)clearTimeout(watchdogTimer);
-    watchdogTimer=setTimeout(()=>{
-      if(inflight){console.warn("Watchdog: ack not received within 2s, clearing inflight");inflight=false}
-    },2000);
-    cap.toBlob(b=>{
-      if(!b){inflight=false;return}
-      b.arrayBuffer().then(buf=>{
-        if(ws&&ws.readyState===1)ws.send(buf);
-        else inflight=false;
-      }).catch(()=>{inflight=false;});
-    },"image/jpeg",0.7);
-  }
-  timer=setTimeout(pump,40);
-}
-function ask(q){setStatus("clarifying","warn");const box=$("askbox");box.innerHTML="";
-  const d=document.createElement("div");d.className="ask";d.innerHTML=`<strong>${esc(q.text)}</strong><div class="opts"></div>`;
-  q.options.forEach(o=>{const b=document.createElement("button");b.type="button";b.textContent=o.text_lang?`${o.label} · ${o.text_lang}`:o.label;
-    b.onclick=()=>{box.innerHTML="";ws.send(JSON.stringify({type:"answer",value:o.value}));setStatus("interpreting")};d.querySelector(".opts").appendChild(b)});
-  box.appendChild(d)}
-function updateHud(d){
-  const chip=(id,ok,label)=>{const el=$(id);if(!el)return;el.textContent=label;el.className='hud-chip '+(ok?'ok':'no');}
-  chip('hud-pose',d.pose,'Pose '+(d.pose?'✓':'✗'));
-  chip('hud-lh',d.lh,'LH '+(d.lh?'✓':'✗'));
-  chip('hud-rh',d.rh,'RH '+(d.rh?'✓':'✗'));
-  const st=$("hud-state");if(st){st.textContent=d.state||'watching';st.className='hud-chip live';}
-  const fp=$("hud-fps");if(fp)fp.textContent=(d.fps||0)+' fps';
-  const wr=$("hud-wrist");if(wr){
-    if(d.wrist_y!=null)wr.textContent='wrist '+d.wrist_y.toFixed(2)+(d.act_y?' / '+d.act_y:'');
-    else wr.textContent='wrist –';
-  }
-  // Pose-missing hint
-  const hint=$("pose-hint");
-  if(hint){if(!d.pose){if(!_poseHintTimer)_poseHintTimer=setTimeout(()=>{hint.style.display='';_poseHintTimer=null},2000);}else{if(_poseHintTimer){clearTimeout(_poseHintTimer);_poseHintTimer=null}hint.style.display='none';}}
-}
-async function onEvent(e){
-  if(e.research||e.top){$("rsout").textContent=JSON.stringify(e.research||{top:e.top},null,2)}
-  if(e.type==="ack"){inflight=false;if(watchdogTimer){clearTimeout(watchdogTimer);watchdogTimer=null}return}
-  if(e.type==="diag"){if(e.research)updateHud(e.research);return}
-  else if(e.type==="state"){
-    setStatus(e.state);
-    if(e.state==="signing")setLiveInference("Sign detected. Reading the movement…");
-    else if(e.state==="interpreting")setLiveInference("Interpreting the completed sign…");
-    else if(e.state==="listening"){
-      setLiveInference("Waiting for a complete sign…");
-      const prov=$("hud-prov");if(prov)prov.style.display='none';
-    }
-  }
-  else if(e.type==="provisional"){
-    if(e.top&&e.top.length>0){
-      const top1=e.top[0];
-      setStatus("Recognizing… "+top1.label+" ("+Math.round(top1.p*100)+"%)","live");
-      setLiveInference("Still interpreting… best current match: "+top1.label+" ("+Math.round(top1.p*100)+"%).");
-      // Show provisional top-3 as chips in HUD
-      const prov=$("hud-prov");
-      if(prov){prov.style.display='';prov.textContent=e.top.slice(0,3).map(t=>t.label+' '+Math.round(t.p*100)+'%').join(' | ');}
-    }
-  }
-  else if(e.type==="clarify"){
-    clearLiveInference();
-    const prov=$("hud-prov");if(prov)prov.style.display='none';
-    addMsg(`<div class="sub">I need a quick clarification</div><div class="big">${esc(e.question.text)}</div>`);
-    ask(e.question);
-  }
-  else if(e.type==="resolved"){$("askbox").innerHTML="";setStatus("resolved","live");
-    clearLiveInference();
-    addMsg(`<div class="sub">You signed</div><div class="big">${esc(e.text)}</div><div class="sub">${esc(e.english)}${e.how==="best_guess"?" · best guess":""}</div>`);
-    const prov=$("hud-prov");if(prov)prov.style.display='none';
-    if($("auto").checked)await speak(e.text,e.tag);setStatus("listening")}
-  else if(e.type==="resign"){$("askbox").innerHTML="";
-    clearLiveInference();
-    const prov=$("hud-prov");if(prov)prov.style.display='none';
-    addMsg(`<div class="sub">${esc(e.message||"Sign not recognised. Please try again.")}</div>`);
-    setStatus("listening")}
-  else if(e.type==="warn"){if(!_warnShown){_warnShown=true;say($("banner"),e.message,"note");setTimeout(()=>{_warnShown=false;say($("banner"),"","note")},5000);}return}
-  else if(e.type==="error"){setStatus("error");say($("banner"),e.message,"note err");stop(false,false)}
-}
-
-// ---------- Voice -> Sign ----------
-let SIGNS=null,avatarRenderer=null,lastIds=[],lastInfo=[];
-
-function initRenderer(){
-  if(!avatarRenderer && window.AvatarRenderer){
-    avatarRenderer = new window.AvatarRenderer($("cv"), {
-      signs: SIGNS,
-      glossStripEl: $("gloss-strip"),
-      captionEl: $("caption"),
-      speed: parseFloat($("spd") ? $("spd").value : 1.0),
-      onComplete: ()=>{
-        setStatus("idle");
-        if($("pause")){$("pause").disabled=true;$("pause").textContent="⏸";}
+    // ---------- config ----------
+    fetch("/api/config").then(r => r.json()).then(c => {
+      CFG = c;
+      const s = $("lang"); c.languages.forEach(l => { const o = document.createElement("option"); o.value = l.code; o.textContent = l.name; s.appendChild(o) });
+      s.value = c.languages.some(l => l.code === lang) ? lang : (c.languages[0]?.code || "en"); lang = s.value;
+      if (!c.recognition_ready) {
+        $("go").disabled = true;
+        say($("banner"), c.reason, "note err");
       }
+      const r = c.recognition || {};
+      $("scope").textContent = `This research prototype has ${r.class_count || 0} recorded isolated signs. It does not translate arbitrary sentences.`;
+      const audit = r.demo_audit;
+      if (audit && !audit.passing) {
+        $("scope").textContent += ` Model quality gate not met (${Math.round((audit.top1 || 0) * 100)}% agreement with its recorded demonstrations); use camera results as experimental only.`;
+      }
+      if (!c.signs_available) $("scope").textContent += " Sign animations are not installed yet.";
+      loadSigns(); checkVoice(); initFromUrl();
     });
-  } else if(avatarRenderer && SIGNS){
-    avatarRenderer.setSigns(SIGNS);
-  }
-}
+    $("lang").onchange = () => { lang = $("lang").value; localStorage.setItem("lang", lang); checkVoice(); if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: "config", lang })) };
+    $("rs").onchange = () => $("rsbox").classList.toggle("hide", !$("rs").checked);
+    $("t1").onclick = () => tab(1); $("t2").onclick = () => tab(2);
+    function tab(n) { $("m1").classList.toggle("hide", n !== 1); $("m2").classList.toggle("hide", n !== 2); $("t1").classList.toggle("on", n === 1); $("t2").classList.toggle("on", n === 2) }
 
-function loadSigns(){
-  $("send").disabled=true;
-  fetch("/api/signs").then(r=>r.ok?r.json():null).then(j=>{
-    if(!j || !Object.keys(j).length)throw new Error("The recorded sign library is unavailable.");
-    SIGNS=j;
-    initRenderer();
-    animationReady=true;
-    $("send").disabled=false;
-  }).catch(()=>{say($("scope"),"Recorded sign animations could not be loaded. Refresh and try again.","note err");});
-}
+    // Speech provider instances (browser-native Web Speech API only)
+    const asrProvider = new window.WebSpeechASRProvider();
+    const ttsProvider = new window.WebSpeechTTSProvider();
+    let lastAsrText = "", lastAsrConfidence = 1.0;
 
-function drawFrame(f){
-  initRenderer();
-  if(avatarRenderer)avatarRenderer.renderFrame(f);
-}
-
-function play(ids,onFrame,done){
-  initRenderer();
-  if(!avatarRenderer){
-    say($("scope"),"Sign animations are not installed yet (models/signs.json missing).","note err");
-    return;
-  }
-  lastIds=ids;
-  ["pause","replay","dl","link"].forEach(k=>{if($(k))$(k).disabled=false;});
-  if($("pause"))$("pause").textContent="⏸";
-  setStatus("generating","live");
-
-  avatarRenderer.play(ids,{
-    speed: parseFloat($("spd") ? $("spd").value : 1.0),
-    onFrame: (idx,meta)=>{
-      if(onFrame)onFrame(idx,meta);
-    },
-    onComplete: ()=>{
-      setStatus("idle");
-      if($("pause")){$("pause").disabled=true;$("pause").textContent="⏸";}
-      if(done)done();
+    function checkVoice() {
+      if (!CFG) return;
+      const l = CFG.languages.find(x => x.code === lang);
+      const vs = ttsProvider.getVoices(l ? l.tag : navigator.language);
+      $("voicenote").textContent = vs.length ? "" : `No native ${l ? l.name : lang} voice on this device. Fallback synthesis will be used.`;
     }
-  });
-}
+    if ("speechSynthesis" in window) speechSynthesis.onvoiceschanged = checkVoice;
 
-$("pause").onclick=()=>{
-  if(!avatarRenderer)return;
-  if(avatarRenderer.isPaused){
-    avatarRenderer.resume();
-    $("pause").textContent="⏸";
-  } else {
-    avatarRenderer.pause();
-    $("pause").textContent="▶";
-  }
-};
-$("spd").onchange=e=>{
-  if(avatarRenderer)avatarRenderer.setSpeed(parseFloat(e.target.value));
-};
-$("replay").onclick=()=>play(lastIds);
-$("dl").onclick=()=>{const c=$("cv");if(!window.MediaRecorder||!c.captureStream){say($("scope"),"Video download needs Chrome or Edge.","note err");return}
-  const chunks=[],rec=new MediaRecorder(c.captureStream(25),{mimeType:"video/webm"});rec.ondataavailable=e=>chunks.push(e.data);
-  rec.onstop=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(chunks,{type:"video/webm"}));a.download="clarifysign.webm";a.click()};
-  rec.start();play(lastIds,null,()=>setTimeout(()=>rec.stop(),200))};
-$("link").onclick=()=>{const u=`${location.origin}/?tab=voice&lang=${lang}&text=${encodeURIComponent($("txt").value)}`;
-  (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>say($("scope"),"Link copied. It works on this computer while the app is running.","note")).catch(()=>say($("scope"),u,"note"))};
-async function understand(text){
-  if(!animationReady){say($("scope"),"The sign library is still loading. Please wait a moment.","note err");return;}
-  const submit=$("send"), originalLabel=submit.textContent;
-  submit.disabled=true;submit.textContent="Preparing…";
-  $("txt").value=text;
-  $("cnt").textContent=text.length+" / 200";
-  try{
-    const r=await fetch(`/api/understand?text=${encodeURIComponent(text)}&lang=${lang}&sid=${encodeURIComponent(SID)}`);
-    if(!r.ok)throw new Error("The sign translation service is unavailable.");
-    const j=await r.json();
-  const rsout=$("rsout");
-  if(rsout){
-    let prev=rsout.textContent;if(prev==="–")prev="";
-    rsout.textContent=`Heard: "${j.heard}"  plan: ${(j.plan||[]).map(p=>p.gloss||p.concept).join(" → ")||"NONE"}\n`+prev;
-  }
-  const plan=j.plan||[];
-    if(!plan.length){
-      $("matched").textContent="No supported sign found in that phrase.";
-      setStatus("idle");return;
+    function speak(text, tag) {
+      setStatus("speaking", "live");
+      return ttsProvider.speak(text, {
+        lang: tag || (CFG?.languages.find(x => x.code === lang)?.tag || navigator.language),
+        cancelPrevious: true,
+        onEnd: () => { setStatus("idle"); },
+        onError: () => { setStatus("idle"); }
+      });
     }
-    lastInfo=plan;
-    $("matched").textContent=(j.text||plan.map(p=>p.gloss).join(" "));
-    const coverage=j.coverage||{};
-    if(!coverage.complete){
-      const missing=[...(coverage.unmapped_tokens||[]),...(coverage.unrecorded_concepts||[])];
-      say($("scope"),`Showing only the recorded portion. Not represented: ${missing.join(", ")||"some sentence content"}.`,"note err");
+
+    // ---------- Sign -> Voice ----------
+    function addMsg(html) {
+      const d = document.createElement("div"); d.className = "msg"; d.innerHTML = html; const L = $("log");
+      if (L.querySelector(".note")) L.innerHTML = ""; L.appendChild(d); L.scrollTop = L.scrollHeight; return d
     }
-    play(plan);
-  }catch(err){
-    setStatus("error");
-    say($("scope"),err.message||"Unable to prepare signs right now.","note err");
-  }finally{
-    submit.disabled=false;submit.textContent=originalLabel;
-  }
-}
+    function esc(s) { return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])) }
+    function setLiveInference(text) {
+      const L = $("log"); let d = $("live-inference");
+      if (!d) { if (L.querySelector(".note")) L.innerHTML = ""; d = document.createElement("div"); d.id = "live-inference"; d.className = "note"; L.appendChild(d) }
+      d.textContent = text; L.scrollTop = L.scrollHeight;
+    }
+    function clearLiveInference() { const d = $("live-inference"); if (d) d.remove() }
 
-$("send").onclick=()=>understand($("txt").value);
-$("txt").oninput=()=>{$("cnt").textContent=$("txt").value.length+" / 200"};
-$("say").onclick=async()=>{
-  const l=CFG.languages.find(x=>x.code===lang);
-  const speakText = lastInfo.length ? lastInfo.map(c=>c.text).join(" ") : $("txt").value;
-  if(!speakText) return;
-  await speak(speakText, l ? l.tag : navigator.language);
-  setStatus("idle");
-};
+    async function start() {
+      if (CFG && !CFG.recognition_ready) { setStatus("error"); return }
+      inflight = false;
+      if (watchdogTimer) { clearTimeout(watchdogTimer); watchdogTimer = null; }
+      try { stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false }) }
+      catch (e) { setStatus("error"); say($("banner"), "Camera permission was denied.", "note err"); return }
+      const v = $("cam");
+      v.srcObject = stream;
+      try { await v.play() } catch (e) { }
+      say($("banner"), "", "note");
+      ws = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws/sign?sid=" + encodeURIComponent(SID));
+      ws.binaryType = "arraybuffer";
+      ws.onopen = () => {
+        ws.send(JSON.stringify({ type: "config", lang }));
+        $("go").textContent = "Stop camera";
+        $("reset").disabled = false;
+        setLiveInference("Camera connected. Waiting for a complete sign…");
+        const v = $("cam");
+        if (v.videoWidth) {
+          pump();
+        } else {
+          v.addEventListener("loadedmetadata", () => pump(), { once: true });
+        }
+      };
+      ws.onmessage = ev => { try { onEvent(JSON.parse(ev.data)) } catch (error) { console.error("WebSocket event handling failed", error); say($("banner"), "A server event could not be displayed. Please try again.", "note err") } };
+      ws.onerror = () => { setStatus("error"); say($("banner"), "WebSocket connection error.", "note err") };
+      ws.onclose = ev => {
+        const wasActive = !!stream;
+        stop(false, false);
+        if (wasActive) {
+          setStatus("error");
+          say($("banner"), `Camera session ended (code ${ev.code}${ev.reason ? `: ${ev.reason}` : ""}). Try the experimental camera again.`, "note err");
+        }
+      };
+    }
+    function stop(closeWs = true, userInitiated = true) {
+      clearTimeout(timer);
+      if (watchdogTimer) { clearTimeout(watchdogTimer); watchdogTimer = null; }
+      inflight = false;
+      if (closeWs && ws) { ws.onclose = null; ws.close() }
+      ws = null;
+      if (stream) stream.getTracks().forEach(t => t.stop());
+      stream = null; $("cam").srcObject = null;
+      $("go").textContent = "Try experimental camera"; $("reset").disabled = true; $("askbox").innerHTML = ""; clearLiveInference();
+      if (userInitiated) { setStatus("idle"); say($("banner"), "", "note") }
+    }
+    $("go").onclick = () => stream ? stop(true, true) : start();
+    $("reset").onclick = () => { $("askbox").innerHTML = ""; if (ws) ws.send(JSON.stringify({ type: "reset" })) };
 
-function langTabs(){const t=$("ltabs");t.innerHTML="";CFG.languages.forEach(l=>{const b=document.createElement("button");b.textContent=l.name;b.className=l.code===lang?"on":"";
-  b.onclick=()=>{$("lang").value=l.code;$("lang").onchange();langTabs()};t.appendChild(b)})}
-
-let isMicActive = false;
-$("mic").onclick=()=>{
-  if(isMicActive){
-    asrProvider.stop();
-    isMicActive = false;
-    $("mic").setAttribute("aria-pressed","false");
-    setStatus("idle");
-    return;
-  }
-
-  if(!asrProvider.isSupported()){
-    setStatus("error");
-    say($("scope"),"Speech recognition is not supported in this browser. Please use Chrome or Edge, or type directly in the box.","note err");
-    return;
-  }
-
-  const activeProvider = asrProvider;
-  setStatus("voice","live");
-  say($("scope"),"Listening... speak clearly...","note");
-  isMicActive = true;
-  $("mic").setAttribute("aria-pressed","true");
-
-  activeProvider.start({
-    lang: CFG?.languages.find(x=>x.code===lang)?.tag || navigator.language,
-    onStart: ()=>{
-      isMicActive = true;
-      $("mic").setAttribute("aria-pressed","true");
-      setStatus("voice","live");
-    },
-    onResult: (res)=>{
-      $("txt").value = res.transcript;
-      $("cnt").textContent = res.transcript.length + " / 200";
-      lastAsrText = res.transcript;
-      lastAsrConfidence = res.confidence;
-
-      const badge = $("asr-badge");
-      if(badge){
-        const confPct = Math.round(res.confidence * 100);
-        badge.style.display = "flex";
-        badge.innerHTML = `<span>Heard: <strong>"${esc(res.transcript)}"</strong></span> <span class="conf">${confPct}% conf</span> <span class="hint">Edit text above if needed, then click 'Show sign'</span>`;
+    const cap = document.createElement("canvas");
+    function pump() { // one frame in flight at a time; the camera frame is sent UNMIRRORED
+      if (!ws || ws.readyState !== 1) return;
+      const v = $("cam");
+      if (!inflight && v.videoWidth) {
+        cap.width = 480; cap.height = Math.round(480 * v.videoHeight / v.videoWidth);
+        cap.getContext("2d").drawImage(v, 0, 0, cap.width, cap.height);
+        inflight = true;
+        if (watchdogTimer) clearTimeout(watchdogTimer);
+        watchdogTimer = setTimeout(() => {
+          if (inflight) { console.warn("Watchdog: ack not received within 2s, clearing inflight"); inflight = false }
+        }, 2000);
+        cap.toBlob(b => {
+          if (!b) { inflight = false; return }
+          b.arrayBuffer().then(buf => {
+            if (ws && ws.readyState === 1) ws.send(buf);
+            else inflight = false;
+          }).catch(() => { inflight = false; });
+        }, "image/jpeg", 0.7);
       }
-    },
-    onError: (err)=>{
-      isMicActive = false;
-      $("mic").setAttribute("aria-pressed","false");
-      setStatus("error");
-      say($("scope"), err.message || "Speech recognition error", "note err");
-    },
-    onEnd: ()=>{
-      isMicActive = false;
-      $("mic").setAttribute("aria-pressed","false");
-      setStatus("idle");
+      timer = setTimeout(pump, 40);
     }
-  });
-};
-function initFromUrl(){langTabs();const p=new URLSearchParams(location.search);
-  if(p.get("lang")&&CFG.languages.some(l=>l.code===p.get("lang"))){$("lang").value=p.get("lang");$("lang").onchange();langTabs()}
-  if(p.get("tab")==="voice"){tab(2);if(p.get("text"))setTimeout(()=>understand(p.get("text")),600)}}
-</script>
+    function ask(q) {
+      setStatus("clarifying", "warn"); const box = $("askbox"); box.innerHTML = "";
+      const d = document.createElement("div"); d.className = "ask"; d.innerHTML = `<strong>${esc(q.text)}</strong><div class="opts"></div>`;
+      q.options.forEach(o => {
+        const b = document.createElement("button"); b.type = "button"; b.textContent = o.text_lang ? `${o.label} · ${o.text_lang}` : o.label;
+        b.onclick = () => { box.innerHTML = ""; ws.send(JSON.stringify({ type: "answer", value: o.value })); setStatus("interpreting") }; d.querySelector(".opts").appendChild(b)
+      });
+      box.appendChild(d)
+    }
+    function updateHud(d) {
+      const chip = (id, ok, label) => { const el = $(id); if (!el) return; el.textContent = label; el.className = 'hud-chip ' + (ok ? 'ok' : 'no'); }
+      chip('hud-pose', d.pose, 'Pose ' + (d.pose ? '✓' : '✗'));
+      chip('hud-lh', d.lh, 'LH ' + (d.lh ? '✓' : '✗'));
+      chip('hud-rh', d.rh, 'RH ' + (d.rh ? '✓' : '✗'));
+      const st = $("hud-state"); if (st) { st.textContent = d.state || 'watching'; st.className = 'hud-chip live'; }
+      const fp = $("hud-fps"); if (fp) fp.textContent = (d.fps || 0) + ' fps';
+      const wr = $("hud-wrist"); if (wr) {
+        if (d.wrist_y != null) wr.textContent = 'wrist ' + d.wrist_y.toFixed(2) + (d.act_y ? ' / ' + d.act_y : '');
+        else wr.textContent = 'wrist –';
+      }
+      // Pose-missing hint
+      const hint = $("pose-hint");
+      if (hint) { if (!d.pose) { if (!_poseHintTimer) _poseHintTimer = setTimeout(() => { hint.style.display = 'block'; _poseHintTimer = null }, 2000); } else { if (_poseHintTimer) { clearTimeout(_poseHintTimer); _poseHintTimer = null } hint.style.display = 'none'; } }
+    }
+    async function onEvent(e) {
+      if (e.research || e.top) { $("rsout").textContent = JSON.stringify(e.research || { top: e.top }, null, 2) }
+      if (e.type === "ack") { inflight = false; if (watchdogTimer) { clearTimeout(watchdogTimer); watchdogTimer = null } return }
+      if (e.type === "diag") { if (e.research) updateHud(e.research); return }
+      else if (e.type === "state") {
+        setStatus(e.state);
+        if (e.state === "signing") setLiveInference("Sign detected. Reading the movement…");
+        else if (e.state === "interpreting") setLiveInference("Interpreting the completed sign…");
+        else if (e.state === "listening") {
+          setLiveInference("Waiting for a complete sign…");
+          const prov = $("hud-prov"); if (prov) prov.style.display = 'none';
+        }
+      }
+      else if (e.type === "provisional") {
+        if (e.top && e.top.length > 0) {
+          const top1 = e.top[0];
+          setStatus("Recognizing… " + top1.label + " (" + Math.round(top1.p * 100) + "%)", "live");
+          setLiveInference("Still interpreting… best current match: " + top1.label + " (" + Math.round(top1.p * 100) + "%).");
+          // Show provisional top-3 as chips in HUD
+          const prov = $("hud-prov");
+          if (prov) { prov.style.display = ''; prov.textContent = e.top.slice(0, 3).map(t => t.label + ' ' + Math.round(t.p * 100) + '%').join(' | '); }
+        }
+      }
+      else if (e.type === "clarify") {
+        clearLiveInference();
+        const prov = $("hud-prov"); if (prov) prov.style.display = 'none';
+        addMsg(`<div class="sub">I need a quick clarification</div><div class="big">${esc(e.question.text)}</div>`);
+        ask(e.question);
+      }
+      else if (e.type === "resolved") {
+        $("askbox").innerHTML = ""; setStatus("resolved", "live");
+        clearLiveInference();
+        addMsg(`<div class="sub">You signed</div><div class="big">${esc(e.text)}</div><div class="sub">${esc(e.english)}${e.how === "best_guess" ? " · best guess" : ""}</div>`);
+        const prov = $("hud-prov"); if (prov) prov.style.display = 'none';
+        if ($("auto").checked) await speak(e.text, e.tag); setStatus("listening")
+      }
+      else if (e.type === "resign") {
+        $("askbox").innerHTML = "";
+        clearLiveInference();
+        const prov = $("hud-prov"); if (prov) prov.style.display = 'none';
+        addMsg(`<div class="sub">${esc(e.message || "Sign not recognised. Please try again.")}</div>`);
+        setStatus("listening")
+      }
+      else if (e.type === "warn") { if (!_warnShown) { _warnShown = true; say($("banner"), e.message, "note"); setTimeout(() => { _warnShown = false; say($("banner"), "", "note") }, 5000); } return }
+      else if (e.type === "error") { setStatus("error"); say($("banner"), e.message, "note err"); stop(false, false) }
+    }
+
+    // ---------- Voice -> Sign ----------
+    let SIGNS = null, avatarRenderer = null, lastIds = [], lastInfo = [];
+
+    function initRenderer() {
+      if (!avatarRenderer && window.AvatarRenderer) {
+        avatarRenderer = new window.AvatarRenderer($("cv"), {
+          signs: SIGNS,
+          glossStripEl: $("gloss-strip"),
+          captionEl: $("caption"),
+          speed: parseFloat($("spd") ? $("spd").value : 1.0),
+          onComplete: () => {
+            setStatus("idle");
+            if ($("pause")) { $("pause").disabled = true; $("pause").textContent = "⏸"; }
+          }
+        });
+      } else if (avatarRenderer && SIGNS) {
+        avatarRenderer.setSigns(SIGNS);
+      }
+    }
+
+    function loadSigns() {
+      $("send").disabled = true;
+      fetch("/api/signs").then(r => r.ok ? r.json() : null).then(j => {
+        if (!j || !Object.keys(j).length) throw new Error("The recorded sign library is unavailable.");
+        SIGNS = j;
+        initRenderer();
+        animationReady = true;
+        $("send").disabled = false;
+      }).catch(() => { say($("scope"), "Recorded sign animations could not be loaded. Refresh and try again.", "note err"); });
+    }
+
+    function drawFrame(f) {
+      initRenderer();
+      if (avatarRenderer) avatarRenderer.renderFrame(f);
+    }
+
+    function play(ids, onFrame, done) {
+      initRenderer();
+      if (!avatarRenderer) {
+        say($("scope"), "Sign animations are not installed yet (models/signs.json missing).", "note err");
+        return;
+      }
+      lastIds = ids;
+      ["pause", "replay", "dl", "link"].forEach(k => { if ($(k)) $(k).disabled = false; });
+      if ($("pause")) $("pause").textContent = "⏸";
+      setStatus("generating", "live");
+
+      avatarRenderer.play(ids, {
+        speed: parseFloat($("spd") ? $("spd").value : 1.0),
+        onFrame: (idx, meta) => {
+          if (onFrame) onFrame(idx, meta);
+        },
+        onComplete: () => {
+          setStatus("idle");
+          if ($("pause")) { $("pause").disabled = true; $("pause").textContent = "⏸"; }
+          if (done) done();
+        }
+      });
+    }
+
+    $("pause").onclick = () => {
+      if (!avatarRenderer) return;
+      if (avatarRenderer.isPaused) {
+        avatarRenderer.resume();
+        $("pause").textContent = "⏸";
+      } else {
+        avatarRenderer.pause();
+        $("pause").textContent = "▶";
+      }
+    };
+    $("spd").onchange = e => {
+      if (avatarRenderer) avatarRenderer.setSpeed(parseFloat(e.target.value));
+    };
+    $("replay").onclick = () => play(lastIds);
+    $("dl").onclick = () => {
+      const c = $("cv"); if (!window.MediaRecorder || !c.captureStream) { say($("scope"), "Video download needs Chrome or Edge.", "note err"); return }
+      const chunks = [], rec = new MediaRecorder(c.captureStream(25), { mimeType: "video/webm" }); rec.ondataavailable = e => chunks.push(e.data);
+      rec.onstop = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(chunks, { type: "video/webm" })); a.download = "clarifysign.webm"; a.click() };
+      rec.start(); play(lastIds, null, () => setTimeout(() => rec.stop(), 200))
+    };
+    $("link").onclick = () => {
+      const u = `${location.origin}/?tab=voice&lang=${lang}&text=${encodeURIComponent($("txt").value)}`;
+      (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(() => say($("scope"), "Link copied. It works on this computer while the app is running.", "note")).catch(() => say($("scope"), u, "note"))
+    };
+    async function understand(text) {
+      if (!animationReady) { say($("scope"), "The sign library is still loading. Please wait a moment.", "note err"); return; }
+      const submit = $("send"), originalLabel = submit.textContent;
+      submit.disabled = true; submit.textContent = "Preparing…";
+      $("txt").value = text;
+      $("cnt").textContent = text.length + " / 200";
+      try {
+        const r = await fetch(`/api/understand?text=${encodeURIComponent(text)}&lang=${lang}&sid=${encodeURIComponent(SID)}`);
+        if (!r.ok) throw new Error("The sign translation service is unavailable.");
+        const j = await r.json();
+        const rsout = $("rsout");
+        if (rsout) {
+          let prev = rsout.textContent; if (prev === "–") prev = "";
+          rsout.textContent = `Heard: "${j.heard}"  plan: ${(j.plan || []).map(p => p.gloss || p.concept).join(" → ") || "NONE"}\n` + prev;
+        }
+        const plan = j.plan || [];
+        if (!plan.length) {
+          $("matched").textContent = "No supported sign found in that phrase.";
+          setStatus("idle"); return;
+        }
+        lastInfo = plan;
+        $("matched").textContent = (j.text || plan.map(p => p.gloss).join(" "));
+        const coverage = j.coverage || {};
+        if (!coverage.complete) {
+          const missing = [...(coverage.unmapped_tokens || []), ...(coverage.unrecorded_concepts || [])];
+          say($("scope"), `Showing only the recorded portion. Not represented: ${missing.join(", ") || "some sentence content"}.`, "note err");
+        }
+        play(plan);
+      } catch (err) {
+        setStatus("error");
+        say($("scope"), err.message || "Unable to prepare signs right now.", "note err");
+      } finally {
+        submit.disabled = false; submit.textContent = originalLabel;
+      }
+    }
+
+    $("send").onclick = () => understand($("txt").value);
+    $("txt").oninput = () => { $("cnt").textContent = $("txt").value.length + " / 200" };
+    $("say").onclick = async () => {
+      const l = CFG.languages.find(x => x.code === lang);
+      const speakText = lastInfo.length ? lastInfo.map(c => c.text).join(" ") : $("txt").value;
+      if (!speakText) return;
+      await speak(speakText, l ? l.tag : navigator.language);
+      setStatus("idle");
+    };
+
+    function langTabs() {
+      const t = $("ltabs"); t.innerHTML = ""; CFG.languages.forEach(l => {
+        const b = document.createElement("button"); b.textContent = l.name; b.className = l.code === lang ? "on" : "";
+        b.onclick = () => { $("lang").value = l.code; $("lang").onchange(); langTabs() }; t.appendChild(b)
+      })
+    }
+
+    let isMicActive = false;
+    $("mic").onclick = () => {
+      if (isMicActive) {
+        asrProvider.stop();
+        isMicActive = false;
+        $("mic").setAttribute("aria-pressed", "false");
+        setStatus("idle");
+        return;
+      }
+
+      if (!asrProvider.isSupported()) {
+        setStatus("error");
+        say($("scope"), "Speech recognition is not supported in this browser. Please use Chrome or Edge, or type directly in the box.", "note err");
+        return;
+      }
+
+      const activeProvider = asrProvider;
+      setStatus("voice", "live");
+      say($("scope"), "Listening... speak clearly...", "note");
+      isMicActive = true;
+      $("mic").setAttribute("aria-pressed", "true");
+
+      activeProvider.start({
+        lang: CFG?.languages.find(x => x.code === lang)?.tag || navigator.language,
+        onStart: () => {
+          isMicActive = true;
+          $("mic").setAttribute("aria-pressed", "true");
+          setStatus("voice", "live");
+        },
+        onResult: (res) => {
+          $("txt").value = res.transcript;
+          $("cnt").textContent = res.transcript.length + " / 200";
+          lastAsrText = res.transcript;
+          lastAsrConfidence = res.confidence;
+
+          const badge = $("asr-badge");
+          if (badge) {
+            const confPct = Math.round(res.confidence * 100);
+            badge.style.display = "flex";
+            badge.innerHTML = `<span>Heard: <strong>"${esc(res.transcript)}"</strong></span> <span class="conf">${confPct}% conf</span> <span class="hint">Edit text above if needed, then click 'Show sign'</span>`;
+          }
+        },
+        onError: (err) => {
+          isMicActive = false;
+          $("mic").setAttribute("aria-pressed", "false");
+          setStatus("error");
+          say($("scope"), err.message || "Speech recognition error", "note err");
+        },
+        onEnd: () => {
+          isMicActive = false;
+          $("mic").setAttribute("aria-pressed", "false");
+          setStatus("idle");
+        }
+      });
+    };
+    function initFromUrl() {
+      langTabs(); const p = new URLSearchParams(location.search);
+      if (p.get("lang") && CFG.languages.some(l => l.code === p.get("lang"))) { $("lang").value = p.get("lang"); $("lang").onchange(); langTabs() }
+      if (p.get("tab") === "voice") { tab(2); if (p.get("text")) setTimeout(() => understand(p.get("text")), 600) }
+    }
+  </script>
+  <script>(function () {
+      var r = document.documentElement; function cur() { return r.dataset.theme || (matchMedia("(prefers-color-scheme:dark)").matches ? "dark" : "light") }
+      document.getElementById("theme").onclick = function () { var n = cur() === "dark" ? "light" : "dark"; r.dataset.theme = n; try { localStorage.setItem("cs-theme", n) } catch (e) { } }
+    })();</script>
 </body>
+
 </html>
