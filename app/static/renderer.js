@@ -1,15 +1,12 @@
-
-
-
-
-
-
-
 /**
  * ClarifySign Decoupled Avatar Renderer (HTML5 Canvas 2D)
  *
- * Custom illustrated avatar: blue/yellow turban, sunglasses, moustache,
- * yellow kurta and blue detailing.
+ * Custom illustrated avatar: blue/yellow pagri (turban) with polka dots, sunglasses,
+ * curled moustache, yellow kurta with a blue inner shirt and blue detailing.
+ *
+ * Hands are drawn as natural, human hands: human palm proportions, a consistent size
+ * (so they do not pulse while fingers open and close), a smooth palm shape, tapered
+ * fingers with knuckle creases and soft palm shading.
  *
  * Hand and pose smoothing preserve detected landmarks across missing frames.
  * Playback logic, timeline, IK, exports and sign data format are retained.
@@ -19,6 +16,13 @@
 (function (global) {
   "use strict";
 
+  // Hand look. Recorded hand landmarks are vertically stretched about 1.5x more than a real
+  // hand, so hand Y is scaled by HAND_ASPECT on top of the body unstretch. HAND_PALM is the
+  // target wrist->knuckle length of the drawn hand (in shoulder-width units): hands are
+  // resized to it per frame so their size stays natural and steady.
+  const HAND_ASPECT = 0.68;
+  const HAND_PALM = 0.27;
+
   const HAND_PALM_CONNECTIONS = [
     [0, 1], [0, 5], [5, 9], [9, 13], [13, 17], [0, 17]
   ];
@@ -26,9 +30,9 @@
   const HAND_FINGERS = [
     { name: "thumb", chain: [1, 2, 3, 4], w: 1.20 },
     { name: "index", chain: [5, 6, 7, 8], w: 1.00 },
-    { name: "middle", chain: [9, 10, 11, 12], w: 1.03 },
-    { name: "ring", chain: [13, 14, 15, 16], w: 0.96 },
-    { name: "pinky", chain: [17, 18, 19, 20], w: 0.84 }
+    { name: "middle", chain: [9, 10, 11, 12], w: 1.04 },
+    { name: "ring", chain: [13, 14, 15, 16], w: 0.95 },
+    { name: "pinky", chain: [17, 18, 19, 20], w: 0.80 }
   ];
 
   const SKINS = {
@@ -220,7 +224,8 @@
       HAND_REST.forEach(([x, y, z], idx) => {
         const base = (isRight ? 63 : 0) + idx * 3;
         f[base] = side * x;
-        f[base + 1] = y;
+        // hand Y is scaled by HAND_ASPECT when drawn, so pre-compensate to keep the rest hand's shape
+        f[base + 1] = y / HAND_ASPECT;
         f[base + 2] = z;
       });
     });
@@ -426,6 +431,31 @@
       g.fill();
     });
 
+    // Kurta detailing (as in the reference illustration): curved yoke seams from the
+    // neck to the underarm, soft chest creases, and a stitched trim line above the hem.
+    [[L, 1], [R, -1]].forEach(([sh, inward]) => {
+      const neckX = xNeck[0] - inward * neckHalf * 2.1;
+      g.strokeStyle = gar.line; g.lineWidth = 1.6; g.lineCap = "round"; g.globalAlpha = 0.65;
+      g.beginPath();
+      g.moveTo(neckX, xNeck[1] + S * 0.10);
+      g.quadraticCurveTo(sh[0] + inward * S * 0.01, sh[1] + S * 0.24, sh[0] + inward * S * 0.075, sh[1] + S * 0.70);
+      g.stroke();
+      g.lineWidth = 1.2; g.globalAlpha = 0.4;
+      g.beginPath();
+      g.moveTo(sh[0] + inward * S * 0.20, sh[1] + S * 0.46);
+      g.quadraticCurveTo(sh[0] + inward * S * 0.27, sh[1] + S * 0.70, sh[0] + inward * S * 0.20, sh[1] + S * 0.98);
+      g.stroke();
+      g.globalAlpha = 1;
+    });
+    g.save();
+    g.setLineDash([S * 0.028, S * 0.02]);
+    g.strokeStyle = gar.trim; g.lineWidth = 1.5; g.lineCap = "butt";
+    g.beginPath();
+    g.moveTo(bl[0] + S * 0.05, bl[1] - S * 0.13);
+    g.quadraticCurveTo(xNeck[0], hemY - S * 0.08, br[0] - S * 0.05, br[1] - S * 0.13);
+    g.stroke();
+    g.restore();
+
     // Hem and side vents.
     g.strokeStyle = gar.trim;
     g.lineWidth = 1.6;
@@ -500,26 +530,75 @@
         disc(g, [xNeck[0], xNeck[1] + S * (0.19 + 0.43 * t)], 2.1, gar.trim)
       );
     } else {
-      const cw = nw2 * 1.2;
+      // Kurta with a V neckline: light-blue inner shirt, striped collar band,
+      // lighter yellow facings with blue stitched piping, and a button placket.
+      const nx = xNeck[0], ny = xNeck[1];
+      const ink = gar.line;
+      const inner = "#6fb7ee", innerShade = "#4f98d3";
+      const facing = mix(gar.base, "#ffffff", 0.12);
+      const topW = nw2 * 1.32, outW = nw2 * 2.45, vTip = ny + S * 0.80;
 
+      // blue inner shirt, visible in the V
       g.beginPath();
-      g.moveTo(xNeck[0] - cw, xNeck[1] - S * 0.012);
-      g.quadraticCurveTo(xNeck[0], xNeck[1] + S * 0.085, xNeck[0] + cw, xNeck[1] - S * 0.012);
-      g.lineTo(xNeck[0] + cw * 0.9, xNeck[1] - S * 0.062);
-      g.quadraticCurveTo(xNeck[0], xNeck[1] + S * 0.018, xNeck[0] - cw * 0.9, xNeck[1] - S * 0.062);
+      g.moveTo(nx - topW, ny - S * 0.03);
+      g.lineTo(nx, vTip);
+      g.lineTo(nx + topW, ny - S * 0.03);
       g.closePath();
-      g.fillStyle = gar.base;
-      g.fill();
-      g.strokeStyle = gar.line;
-      g.lineWidth = 1.6;
-      g.stroke();
+      g.fillStyle = inner; g.fill();
+      g.strokeStyle = ink; g.lineWidth = 2; g.lineJoin = "round"; g.stroke();
+      // soft shade on one side of the shirt
+      g.beginPath();
+      g.moveTo(nx + topW * 0.1, ny + S * 0.10);
+      g.lineTo(nx, vTip - S * 0.02);
+      g.lineTo(nx + topW * 0.85, ny - S * 0.02);
+      g.closePath();
+      g.globalAlpha = 0.45; g.fillStyle = innerShade; g.fill(); g.globalAlpha = 1;
 
-      const top = xNeck[1] + S * 0.075;
-      strokeSeg(g, [xNeck[0], top], [xNeck[0], top + S * 0.34], gar.trim, 2);
+      // yellow facings (the kurta's folded neckline edges)
+      [-1, 1].forEach(sd => {
+        g.beginPath();
+        g.moveTo(nx + sd * topW, ny - S * 0.03);
+        g.lineTo(nx + sd * outW, ny + S * 0.05);
+        g.quadraticCurveTo(nx + sd * outW * 0.62, ny + S * 0.52, nx + sd * S * 0.014, vTip + S * 0.05);
+        g.lineTo(nx, vTip);
+        g.closePath();
+        g.fillStyle = facing; g.fill();
+        g.strokeStyle = ink; g.lineWidth = 2; g.stroke();
+        // stitched blue piping along the inner edge
+        g.save();
+        g.setLineDash([S * 0.022, S * 0.016]);
+        g.strokeStyle = gar.trim; g.lineWidth = 1.7; g.lineCap = "butt";
+        g.beginPath();
+        g.moveTo(nx + sd * (topW + S * 0.022), ny + S * 0.015);
+        g.lineTo(nx + sd * S * 0.03, vTip - S * 0.035);
+        g.stroke();
+        g.restore();
+      });
 
-      [0.30, 0.62, 0.94].forEach(t =>
-        disc(g, [xNeck[0], top + S * 0.34 * t], 2.1, gar.trim)
-      );
+      // centre placket and buttons on the blue shirt
+      strokeSeg(g, [nx, ny + S * 0.085], [nx, vTip - S * 0.01], ink, 1.2);
+      [0.20, 0.38, 0.56].forEach(t => {
+        const by = ny + S * (0.085 + (0.80 - 0.085) * t);
+        disc(g, [nx, by], 2.9, ink);
+        disc(g, [nx, by], 1.9, "#ffffff");
+      });
+
+      // collar band around the neck, with small blue/white stripes
+      const cw = nw2 * 1.22;
+      const lowY = x => ny + S * 0.095 * (1 - Math.pow((x - nx) / cw, 2)) - S * 0.02;   // lower edge (parabola)
+      const upY = x => ny - S * 0.075 + S * 0.022 * (1 - Math.pow((x - nx) / cw, 2));   // upper edge
+      g.beginPath();
+      g.moveTo(nx - cw, lowY(nx - cw));
+      for (let i = 1; i <= 16; i++) { const x = nx - cw + (2 * cw * i) / 16; g.lineTo(x, lowY(x)); }
+      for (let i = 16; i >= 0; i--) { const x = nx - cw * 0.92 + (2 * cw * 0.92 * i) / 16; g.lineTo(x, upY(x)); }
+      g.closePath();
+      g.fillStyle = inner; g.fill();
+      g.strokeStyle = ink; g.lineWidth = 1.8; g.stroke();
+      const nTick = 9;
+      for (let i = 0; i < nTick; i++) {
+        const t = (i + 0.5) / nTick, xl = nx - cw + 2 * cw * t, xu = nx - cw * 0.92 + 2 * cw * 0.92 * t;
+        strokeSeg(g, [xu, upY(xu) + 1], [xl, lowY(xl) - 1], i % 2 ? "#ffffff" : "#2d6fb8", Math.max(2, S * 0.011), "butt");
+      }
     }
   }
 
@@ -546,13 +625,89 @@
     g.fill();
   }
 
+  // ---------------------------------------------------------------------------
+  // Pagri: big bulbous wrap, alternating yellow/blue bands, a thick yellow twist
+  // crossing a blue twist, dense white polka dots, sticker-style white edge.
+  // ---------------------------------------------------------------------------
+  function drawTurban(g, cx, cy, rx, ry, S) {
+    const ink = "#17243b";
+    const yellow = "#f5c62e", yellowShade = "#d9a50e", yellowHi = "#ffe27a";
+    const blue = "#3a8ee0", blueShade = "#2a6fc2";
+    const white = "#fff8e9";
+
+    // keep the dome clear of the top edge of the canvas (squash it a little, pivoting at the brow)
+    const pivot = cy - ry * 0.45;
+    g.save();
+    g.translate(0, pivot); g.scale(1, 0.88); g.translate(0, -pivot);
+
+    const Q = a => [cx + a[0] * rx, cy + a[1] * ry];
+    const cubic = (p, k) => {
+      const u = 1 - k;
+      return [
+        u * u * u * p[0][0] + 3 * u * u * k * p[1][0] + 3 * u * k * k * p[2][0] + k * k * k * p[3][0],
+        u * u * u * p[0][1] + 3 * u * u * k * p[1][1] + 3 * u * k * k * p[2][1] + k * k * k * p[3][1]
+      ];
+    };
+
+    // Silhouette: wider than the face, tall dome, forehead edge arching up in the middle.
+    const sil = () => {
+      g.beginPath();
+      g.moveTo(cx - rx * 1.14, cy - ry * 0.20);
+      g.bezierCurveTo(cx - rx * 1.66, cy - ry * 0.55, cx - rx * 1.70, cy - ry * 1.32, cx - rx * 1.08, cy - ry * 1.74);
+      g.bezierCurveTo(cx - rx * 0.72, cy - ry * 2.04, cx + rx * 0.38, cy - ry * 2.14, cx + rx * 0.88, cy - ry * 1.84);
+      g.bezierCurveTo(cx + rx * 1.58, cy - ry * 1.54, cx + rx * 1.74, cy - ry * 0.70, cx + rx * 1.14, cy - ry * 0.20);
+      g.bezierCurveTo(cx + rx * 0.80, cy - ry * 0.48, cx + rx * 0.40, cy - ry * 0.58, cx, cy - ry * 0.58);
+      g.bezierCurveTo(cx - rx * 0.40, cy - ry * 0.58, cx - rx * 0.80, cy - ry * 0.48, cx - rx * 1.14, cy - ry * 0.20);
+      g.closePath();
+    };
+
+    // white sticker edge, then the blue base
+    sil(); g.lineJoin = "round";
+    g.strokeStyle = white; g.lineWidth = Math.max(6, S * 0.034); g.stroke();
+    sil(); g.fillStyle = blue; g.fill();
+
+    g.save();
+    sil(); g.clip();
+
+    const dotR = Math.max(1.3, S * 0.0072);
+
+    // one wrapped band: outline, colour, shade line, highlight, polka dots
+    const band = (pts, wFrac, color, shade, dotColor, hi) => {
+      const p = pts.map(Q), w = ry * wFrac;
+      const path = (dy) => { g.beginPath(); g.moveTo(p[0][0], p[0][1] + dy); g.bezierCurveTo(p[1][0], p[1][1] + dy, p[2][0], p[2][1] + dy, p[3][0], p[3][1] + dy); };
+      g.lineCap = "round";
+      path(0); g.strokeStyle = ink; g.lineWidth = w + Math.max(4, S * 0.022); g.stroke();
+      path(0); g.strokeStyle = color; g.lineWidth = w; g.stroke();
+      g.globalAlpha = 0.6; path(w * 0.30); g.strokeStyle = shade; g.lineWidth = w * 0.22; g.stroke(); g.globalAlpha = 1;
+      if (hi) { g.globalAlpha = 0.85; path(-w * 0.26); g.strokeStyle = hi; g.lineWidth = Math.max(1.6, w * 0.10); g.stroke(); g.globalAlpha = 1; }
+      for (let k = 0.03, n = 0; k < 0.98; k += 0.042, n++) {
+        const q = cubic(p, k), off = ((n % 3) - 1) * w * 0.24;
+        disc(g, [q[0], q[1] + off], dotR * (n % 2 ? 0.85 : 1.1), dotColor);
+      }
+    };
+
+    // back to front
+    band([[-1.95, -0.30], [-1.15, -1.05], [-0.30, -1.00], [0.75, -0.42]], 0.64, yellow, yellowShade, "#fff3b8", null);   // lower-left yellow
+    band([[0.25, -0.42], [0.90, -0.56], [1.50, -0.60], [2.05, -0.46]], 0.52, yellow, yellowShade, "#fff3b8", null);   // lower-right yellow
+    band([[-1.75, -1.58], [-1.05, -2.18], [0.00, -2.24], [0.90, -1.72]], 0.50, yellow, yellowShade, "#fff3b8", null);   // upper yellow
+    band([[-1.95, -0.98], [-1.25, -1.58], [-0.40, -1.58], [0.55, -1.12]], 0.46, blue, blueShade, white, null);           // blue band, left
+    band([[1.95, -0.88], [1.15, -1.22], [0.30, -1.38], [-0.55, -1.92]], 0.62, blue, blueShade, white, null);           // blue twist, right to left
+    band([[-1.55, -0.50], [-0.60, -0.72], [0.20, -1.18], [1.30, -1.98]], 0.74, yellow, yellowShade, "#fff3b8", yellowHi); // thick yellow twist, in front
+
+    // roundness: soft shade down the right side
+    g.globalAlpha = 0.16; g.fillStyle = ink;
+    g.beginPath(); g.ellipse(cx + rx * 1.75, cy - ry * 0.95, rx * 0.75, ry * 1.35, 0, 0, Math.PI * 2); g.fill();
+    g.globalAlpha = 1;
+    g.restore();
+
+    sil(); g.strokeStyle = ink; g.lineWidth = Math.max(2.6, S * 0.014); g.lineJoin = "round"; g.stroke();
+    g.restore();
+  }
+
   // Cartoon avatar face and turban.
   function drawHead(g, cx, cy, rx, ry, S, st, openness) {
     const skin = st.skin;
     const ink = "#17243b";
-    const blue = "#087bd0";
-    const yellow = "#f4c400";
-    const white = "#fff8e9";
 
     // Ears.
     [-1, 1].forEach(side => {
@@ -595,142 +750,8 @@
     g.lineWidth = Math.max(2, S * 0.012);
     g.stroke();
 
-    // White turban border.
-    g.beginPath();
-    g.moveTo(cx - rx * 1.10, cy - ry * 0.48);
-    g.bezierCurveTo(cx - rx * 1.20, cy - ry * 1.22,
-      cx - rx * 0.62, cy - ry * 1.62,
-      cx - rx * 0.10, cy - ry * 1.55);
-    g.bezierCurveTo(cx + rx * 0.48, cy - ry * 1.70,
-      cx + rx * 1.20, cy - ry * 1.18,
-      cx + rx * 1.12, cy - ry * 0.42);
-    g.bezierCurveTo(cx + rx * 0.95, cy - ry * 0.15,
-      cx - rx * 0.92, cy - ry * 0.12,
-      cx - rx * 1.10, cy - ry * 0.48);
-    g.closePath();
-    g.fillStyle = white;
-    g.fill();
-    g.strokeStyle = ink;
-    g.lineWidth = Math.max(2, S * 0.013);
-    g.stroke();
-
-    // Blue crown base.
-    const crownPath = () => {
-      g.beginPath();
-      g.moveTo(cx - rx * 0.98, cy - ry * 0.48);
-      g.bezierCurveTo(cx - rx * 0.92, cy - ry * 1.26,
-        cx - rx * 0.30, cy - ry * 1.48,
-        cx + rx * 0.08, cy - ry * 1.42);
-      g.bezierCurveTo(cx + rx * 0.72, cy - ry * 1.48,
-        cx + rx * 1.03, cy - ry * 0.94,
-        cx + rx * 0.98, cy - ry * 0.42);
-      g.bezierCurveTo(cx + rx * 0.45, cy - ry * 0.22,
-        cx - rx * 0.45, cy - ry * 0.20,
-        cx - rx * 0.98, cy - ry * 0.48);
-      g.closePath();
-    };
-
-    crownPath();
-    g.fillStyle = blue;
-    g.fill();
-    g.strokeStyle = ink;
-    g.lineWidth = Math.max(1.5, S * 0.009);
-    g.stroke();
-
-    // Layered curved fabric folds, clipped to the crown. These add the
-    // pleated blue/yellow bandhani look without changing the head geometry.
-    g.save();
-    crownPath();
-    g.clip();
-
-    const turbanFold = (color, points, width) => {
-      g.beginPath();
-      g.moveTo(cx + points[0][0] * rx, cy + points[0][1] * ry);
-      g.bezierCurveTo(
-        cx + points[1][0] * rx, cy + points[1][1] * ry,
-        cx + points[2][0] * rx, cy + points[2][1] * ry,
-        cx + points[3][0] * rx, cy + points[3][1] * ry
-      );
-      g.strokeStyle = ink;
-      g.lineWidth = width + Math.max(1.5, S * 0.010);
-      g.lineCap = "round";
-      g.stroke();
-      g.strokeStyle = color;
-      g.lineWidth = width;
-      g.stroke();
-    };
-
-    turbanFold(yellow,
-      [[-1.08, -0.88], [-0.72, -1.20], [-0.18, -1.37], [0.30, -1.30]],
-      S * 0.052);
-    turbanFold(blue,
-      [[-1.10, -0.62], [-0.66, -0.95], [-0.08, -1.16], [0.58, -1.10]],
-      S * 0.048);
-    turbanFold(yellow,
-      [[-0.92, -0.42], [-0.48, -0.72], [0.10, -0.91], [0.90, -0.78]],
-      S * 0.050);
-    turbanFold(blue,
-      [[-0.62, -0.30], [-0.22, -0.50], [0.36, -0.66], [1.04, -0.52]],
-      S * 0.044);
-
-    g.restore();
-
-    // Yellow lower wrap.
-    g.beginPath();
-    g.moveTo(cx - rx * 1.02, cy - ry * 0.56);
-    g.quadraticCurveTo(cx - rx * 0.40, cy - ry * 0.18,
-      cx + rx * 0.98, cy - ry * 0.52);
-    g.quadraticCurveTo(cx + rx * 1.10, cy - ry * 0.22,
-      cx + rx * 0.66, cy - ry * 0.13);
-    g.quadraticCurveTo(cx - rx * 0.22, cy + ry * 0.02,
-      cx - rx * 1.02, cy - ry * 0.30);
-    g.closePath();
-    g.fillStyle = yellow;
-    g.fill();
-    g.strokeStyle = ink;
-    g.lineWidth = Math.max(1.5, S * 0.009);
-    g.stroke();
-
-    // Small bandhani dots on the exposed yellow fold.
-    [
-      [-0.78, -0.43], [-0.55, -0.34], [-0.30, -0.28],
-      [0.02, -0.29], [0.34, -0.34], [0.66, -0.40],
-      [0.86, -0.48]
-    ].forEach(([dx, dy]) => {
-      disc(g, [cx + dx * rx, cy + dy * ry], Math.max(1, S * 0.0048), white);
-    });
-
-    // Sweeping yellow front sash.
-    g.beginPath();
-    g.moveTo(cx + rx * 0.55, cy - ry * 1.32);
-    g.bezierCurveTo(cx + rx * 0.27, cy - ry * 1.02,
-      cx - rx * 0.25, cy - ry * 0.48,
-      cx - rx * 0.94, cy - ry * 0.22);
-    g.quadraticCurveTo(cx - rx * 0.54, cy + ry * 0.04,
-      cx - rx * 0.12, cy - ry * 0.30);
-    g.bezierCurveTo(cx + rx * 0.28, cy - ry * 0.66,
-      cx + rx * 0.58, cy - ry * 1.08,
-      cx + rx * 0.82, cy - ry * 1.22);
-    g.closePath();
-    g.fillStyle = yellow;
-    g.fill();
-    g.strokeStyle = ink;
-    g.lineWidth = Math.max(2, S * 0.012);
-    g.stroke();
-
-    // White cloth dots.
-    const dots = [
-      [-0.58, -1.10], [-0.30, -1.27], [0.02, -1.18], [0.34, -1.23], [0.66, -1.02],
-      [-0.78, -0.82], [-0.42, -0.88], [-0.08, -0.96], [0.28, -0.91], [0.72, -0.78],
-      [-0.58, -0.58], [-0.20, -0.67], [0.18, -0.68], [0.55, -0.57]
-    ];
-
-    dots.forEach(([dx, dy]) => {
-      g.beginPath();
-      g.arc(cx + dx * rx, cy + dy * ry, Math.max(1.1, S * 0.006), 0, Math.PI * 2);
-      g.fillStyle = white;
-      g.fill();
-    });
+    // Pagri (turban) sits over the top of the face.
+    drawTurban(g, cx, cy, rx, ry, S);
 
     // Sunglasses.
     const glassesY = cy - ry * 0.12;
@@ -866,66 +887,101 @@
     }
   }
 
-  // Draw a filled hand with outlined, depth-ordered fingers.
+  // Draw a natural, human hand: smooth rounded palm with soft shading, a thick thumb pad,
+  // tapered depth-ordered fingers with rounded tips, and knuckle creases.
   function drawHand(g, joints, unit, skin) {
-    const line = mix(skin.line, skin.base, 0.18);
-    const o = Math.max(1.0, unit * 0.11);
-    const pw = unit * 1.08;
-    const palmIdx = [0, 1, 5, 9, 13, 17];
-
-    const palmPath = () => {
-      g.beginPath();
-
-      palmIdx.forEach((idx, k) => {
-        if (k === 0) {
-          g.moveTo(joints[idx][0], joints[idx][1]);
-        } else {
-          g.lineTo(joints[idx][0], joints[idx][1]);
-        }
-      });
-
-      g.closePath();
+    const line = mix(skin.line, skin.base, 0.10);
+    const o = Math.max(1.1, unit * 0.13);
+    const pw = unit * 1.18;
+    const shade = mix(skin.base, skin.shade, 0.65);
+    const crease = mix(skin.line, skin.base, 0.35);
+    const rgba = (hex, a) => {
+      const c = hexToRgb(hex);
+      return "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a + ")";
     };
 
     g.lineJoin = "round";
     g.lineCap = "round";
 
+    // Palm: rounded outline through the palm landmarks (quadratic curves via the midpoints).
+    const pts = [0, 1, 5, 9, 13, 17].map(i => joints[i]);
+    const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    const palmPath = () => {
+      const n = pts.length;
+      const m0 = mid(pts[n - 1], pts[0]);
+      g.beginPath();
+      g.moveTo(m0[0], m0[1]);
+      for (let k = 0; k < n; k++) {
+        const m = mid(pts[k], pts[(k + 1) % n]);
+        g.quadraticCurveTo(pts[k][0], pts[k][1], m[0], m[1]);
+      }
+      g.closePath();
+    };
+
+    // outline, thumb pad outline
     palmPath();
     g.strokeStyle = line;
     g.lineWidth = pw + o * 2;
     g.stroke();
+    strokeSeg(g, joints[0], joints[2], line, unit * 1.55 + o * 2, "round");
 
-    strokeSeg(g, joints[0], joints[2], line, unit * 1.45 + o * 2, "round");
-
+    // skin fill
     palmPath();
     g.fillStyle = skin.base;
     g.fill();
-
     palmPath();
     g.strokeStyle = skin.base;
     g.lineWidth = pw;
     g.stroke();
+    strokeSeg(g, joints[0], joints[2], skin.base, unit * 1.55, "round");
 
-    strokeSeg(g, joints[0], joints[2], skin.base, unit * 1.45, "round");
+    // soft shading toward the wrist (gives the palm some volume)
+    g.save();
+    palmPath();
+    g.clip();
+    const gr = g.createLinearGradient(joints[0][0], joints[0][1], joints[9][0], joints[9][1]);
+    gr.addColorStop(0, rgba(shade, 0.55));
+    gr.addColorStop(0.65, rgba(shade, 0.0));
+    g.fillStyle = gr;
+    g.fillRect(-5000, -5000, 10000, 10000);
+    g.restore();
 
+    // fingers, farthest from the camera first
     const order = HAND_FINGERS.map(fg => ({
       fg,
       z: fg.chain.reduce((sum, i) => sum + joints[i][2], 0) / fg.chain.length
     })).sort((a, b) => b.z - a.z);
 
     order.forEach(({ fg }) => {
-      const pts = fg.chain.map(i => [joints[i][0], joints[i][1]]);
+      const chain = fg.chain.map(i => [joints[i][0], joints[i][1]]);
       const isThumb = fg.name === "thumb";
 
-      const w0 = unit * fg.w * (isThumb ? 1.30 : 1.0);
-      const w1 = unit * fg.w * (isThumb ? 0.90 : 0.76);
+      const w0 = unit * fg.w * (isThumb ? 1.28 : 1.0);
+      const w1 = unit * fg.w * (isThumb ? 0.88 : 0.74);
 
-      const samples = taperSamples(pts, w0, w1);
+      const samples = taperSamples(chain, w0, w1);
 
       strokeTaper(g, samples, line, o * 2);
       strokeTaper(g, samples, skin.base, 0);
 
-      disc(g, pts[0], w0 * 0.5 + o * 0.9, skin.base);
+      // base of the finger blends into the palm
+      disc(g, chain[0], w0 * 0.5 + o * 0.5, skin.base);
+
+      // knuckle creases across the finger at the two inner joints
+      g.save();
+      g.globalAlpha = 0.5;
+      [1, 2].forEach(k => {
+        const a = chain[k - 1], b = chain[k], c = chain[k + 1];
+        const dx = c[0] - a[0], dy = c[1] - a[1];
+        const len = Math.hypot(dx, dy) || 1;
+        const half = (w0 + (w1 - w0) * (k / 3)) * 0.30;
+        const nx = -dy / len, ny = dx / len;
+        strokeSeg(g,
+          [b[0] - nx * half, b[1] - ny * half],
+          [b[0] + nx * half, b[1] + ny * half],
+          crease, Math.max(1, unit * 0.075), "round");
+      });
+      g.restore();
     });
   }
 
@@ -946,6 +1002,7 @@
         fps: 30,
         useIK: true,
         yUnstretch: 9 / 16,
+        handAutoSize: true,   // resize hands per frame to a natural, steady size (false = fixed 0.8 scale)
         style: {},
         idleMotion: true,
         glossStripEl: null,
@@ -964,6 +1021,7 @@
       this.useIK = this.options.useIK;
       this._style = this._resolveStyle(this.options.style);
       this._lastFrame = REST_FRAME;
+      this._handScale = { 0: null, 63: null };
 
       this.timeline = [];
       this.metadata = [];
@@ -1671,6 +1729,14 @@
             2.4,
             "butt"
           );
+
+          // Blue piping just inside the cuff edge.
+          const ux = dx / d, uy = dy / d, back = S * 0.045;
+          strokeSeg(g,
+            [xc[0] - ux * back - nx * (hw - 2), xc[1] - uy * back - ny * (hw - 2)],
+            [xc[0] - ux * back + nx * (hw - 2), xc[1] - uy * back + ny * (hw - 2)],
+            gar.trim, 2, "butt"
+          );
         };
 
         drawArm(p11, p13, p15);
@@ -1678,8 +1744,8 @@
       }
 
       // HANDS.
-      // Left hand: 0–62, attached to wrist 15.
-      // Right hand: 63–125, attached to wrist 16.
+      // Left hand: 0-62, attached to wrist 15.
+      // Right hand: 63-125, attached to wrist 16.
       [[0, 15], [63, 16]].forEach(
         ([offset, wristPoseIdx]) => {
           if (!ok(wristPoseIdx)) return;
@@ -1703,33 +1769,53 @@
 
           const wP = P(wristPoseIdx);
 
-          // Scale hand landmarks around the wrist, not around the canvas.
-          // This keeps wrist attachment and finger articulation intact while
-          // reducing the oversized palm/finger silhouette.
-          const hs = 0.80;
+          // Landmark offsets from the wrist, in shoulder-width units, with a human
+          // palm aspect (HAND_ASPECT) on top of the body's vertical unstretch.
+          const uh = U * HAND_ASPECT;
+          const rel = [];
+
+          for (let i = 0; i < 21; i++) {
+            rel.push([
+              src[offset + i * 3],
+              src[offset + i * 3 + 1] * uh,
+              src[offset + i * 3 + 2]
+            ]);
+          }
+
+          // Natural, steady hand size: measure the palm (wrist -> knuckles) and resize the
+          // hand around the wrist to HAND_PALM. The scale is eased frame to frame so the
+          // hand never pulses as the fingers open and close.
+          let sc = 0.8;
+
+          if (this.options.handAutoSize !== false) {
+            let palm = 0;
+            [5, 9, 13, 17].forEach(j => { palm += Math.hypot(rel[j][0], rel[j][1]); });
+            palm /= 4;
+
+            const target = palm > 1e-4 ? clamp(HAND_PALM / palm, 0.6, 1.6) : 1;
+            const prev = this._handScale[offset];
+
+            sc = prev === null || prev === undefined
+              ? target
+              : prev + (target - prev) * 0.35;
+
+            this._handScale[offset] = sc;
+          }
 
           const joints = [];
 
           for (let i = 0; i < 21; i++) {
             joints.push([
-              ox + (
-                wP[0] +
-                src[offset + i * 3] * hs
-              ) * S,
-
-              oy + (
-                wP[1] +
-                src[offset + i * 3 + 1] * U * hs
-              ) * S,
-
-              src[offset + i * 3 + 2]
+              ox + (wP[0] + rel[i][0] * sc) * S,
+              oy + (wP[1] + rel[i][1] * sc) * S,
+              rel[i][2]
             ]);
           }
 
           drawHand(
             g,
             joints,
-            S * 0.5 * 0.112,
+            S * 0.047,
             st.skin
           );
         }
@@ -1763,6 +1849,3 @@
   }
 
 })(typeof window !== "undefined" ? window : global);
-
-
-
